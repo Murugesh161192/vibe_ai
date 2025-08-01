@@ -2,7 +2,7 @@
   "name": "vibe-ai",
   "version": "1.0.0",
   "description": "GitHub Repository Vibe Score Calculator - Full-stack application with React frontend and Fastify backend",
-  "main": "backend/src/server.js",
+  "main": "api/index.js",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
@@ -41,7 +41,7 @@
     "d3",
     "tailwind",
     "netlify",
-    "railway"
+    "vercel"
   ],
   "author": "Vibe AI Team",
   "license": "MIT",
@@ -56,6 +56,14 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.4.0",
+    "@fastify/env": "^4.2.1",
+    "@fastify/rate-limit": "^8.0.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "fastify": "^4.24.3"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

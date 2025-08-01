@@ -48,28 +48,37 @@ fastify.setErrorHandler((error, request, reply) => {
   
   // Handle GitHub API rate limiting
   if (error.statusCode === 403 && error.message.includes('rate limit')) {
-    return reply.status(429).send({
-      error: 'GitHub API Rate Limit Exceeded',
-      message: 'Please try again later or use a GitHub token for higher limits'
+    reply.status(429).send({
+      success: false,
+      error: 'GitHub API rate limit exceeded',
+      message: 'Too many requests to GitHub API. Please try again later or configure a GitHub token for higher limits.',
+      retryAfter: 3600 // 1 hour
     });
+    return;
   }
-  
+
   // Handle validation errors
   if (error.validation) {
-    return reply.status(400).send({
+    reply.status(400).send({
+      success: false,
       error: 'Validation Error',
-      message: error.message
+      message: error.message,
+      details: error.validation
     });
+    return;
   }
-  
-  // Default error response
+
+  // Handle general errors
   reply.status(error.statusCode || 500).send({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : error.message
+    success: false,
+    error: error.name || 'Internal Server Error',
+    message: process.env.NODE_ENV === 'production' 
+      ? 'An error occurred while processing your request'
+      : error.message
   });
 });
 
-// Start server
+// Start function for local development
 const start = async () => {
   try {
     const port = process.env.PORT || 3000;
@@ -85,4 +94,13 @@ const start = async () => {
   }
 };
 
-start(); 
+// Export for Vercel (serverless) or start for local development
+export default async (req, res) => {
+  await fastify.ready();
+  fastify.server.emit('request', req, res);
+};
+
+// Start server only if running locally (not in Vercel)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  start();
+} 
