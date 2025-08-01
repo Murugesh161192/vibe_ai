@@ -14,5 +14,13 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  },
+  "buildCommand": "",
+  "outputDirectory": "",
+  "installCommand": "npm install --only=production"
 } 
