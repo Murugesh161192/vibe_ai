@@ -85,5 +85,20 @@ async function createApp() {
 export default async function handler(req, res) {
   const app = await createApp();
   await app.ready();
-  app.server.emit('request', req, res);
+  
+  // Use Fastify's inject method for serverless compatibility
+  const response = await app.inject({
+    method: req.method,
+    url: req.url,
+    headers: req.headers,
+    payload: req.method !== 'GET' && req.method !== 'HEAD' ? req.body : undefined
+  });
+
+  // Set response headers
+  Object.keys(response.headers).forEach(key => {
+    res.setHeader(key, response.headers[key]);
+  });
+
+  // Set status code and send response
+  res.status(response.statusCode).send(response.payload);
 } 
