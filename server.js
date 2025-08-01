@@ -39,6 +39,14 @@ fastify.get('/health', async (request, reply) => {
   return { status: 'ok', timestamp: new Date().toISOString() };
 });
 
+// Root endpoint for health check and welcome message
+fastify.get('/', async (request, reply) => {
+  return {
+    status: 'ok',
+    message: 'Welcome to Vibe AI Backend! The server is running.'
+  };
+});
+
 // Register API routes
 await fastify.register(analyzeRoutes, { prefix: process.env.API_PREFIX || '/api' });
 
