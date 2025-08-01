@@ -1,0 +1,42 @@
+{
+  "name": "vibe-ai-backend",
+  "version": "1.0.0",
+  "description": "Fastify backend for GitHub repository vibe score analysis",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "lint": "eslint src/",
+    "setup-token": "node setup-token.js",
+    "debug": "node debug-test.js",
+    "test-token": "node test-token.js"
+  },
+  "keywords": [
+    "fastify",
+    "github",
+    "api",
+    "analysis",
+    "vibe-score"
+  ],
+  "author": "Vibe AI Team",
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/cors": "^8.4.0",
+    "@fastify/env": "^4.2.1",
+    "@fastify/rate-limit": "^8.0.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "fastify": "^4.24.3"
+  },
+  "devDependencies": {
+    "cross-env": "^10.0.0",
+    "eslint": "^8.54.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
