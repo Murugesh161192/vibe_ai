@@ -1,58 +1,29 @@
 {
-  "name": "vibe-ai",
+  "name": "vibe-ai-backend",
   "version": "1.0.0",
-  "description": "GitHub Repository Vibe Score Calculator - Full-stack application with React frontend and Fastify backend",
+  "description": "Vibe AI Backend API for GitHub repository analysis",
   "main": "api/index.js",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
-    "build": "npm run build:backend && npm run build:frontend",
-    "build:backend": "cd backend && npm run build",
-    "build:frontend": "cd frontend && npm run build",
-    "install:all": "npm run install:backend && npm run install:frontend",
-    "install:backend": "cd backend && npm install",
-    "install:frontend": "cd frontend && npm install",
-    "start": "cd backend && npm start",
-    "test": "npm run test:backend && npm run test:frontend",
-    "test:backend": "cd backend && npm test",
-    "test:frontend": "cd frontend && npm test",
-    "lint": "npm run lint:backend && npm run lint:frontend",
-    "lint:backend": "cd backend && npm run lint",
-    "lint:frontend": "cd frontend && npm run lint",
-    "clean": "npm run clean:backend && npm run clean:frontend",
-    "clean:backend": "cd backend && rm -rf node_modules package-lock.json",
-    "clean:frontend": "cd frontend && rm -rf node_modules package-lock.json dist",
-    "setup": "npm run install:all && npm run setup:env",
-    "setup:env": "npm run setup:env:backend && npm run setup:env:frontend",
-    "setup:env:backend": "cp backend/env.example backend/.env && echo 'Backend .env file created. Please edit backend/.env with your GitHub token.'",
-    "setup:env:frontend": "cp frontend/env.example frontend/.env && echo 'Frontend .env file created. Please edit frontend/.env with your API URL.'",
-    "deploy:netlify": "cd frontend && npm run build",
-    "deploy:backend": "cd backend && npm start"
+    "dev": "node backend/src/server.js",
+    "start": "node api/index.js",
+    "build": "echo 'No build step required for backend API'"
   },
   "keywords": [
     "github",
     "repository",
     "analysis",
     "vibe-score",
-    "react",
     "fastify",
-    "d3",
-    "tailwind",
-    "netlify",
+    "api",
     "vercel"
   ],
   "author": "Vibe AI Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/vibe-ai.git"
+    "url": "https://github.com/Murugesh161192/vibe_ai.git"
   },
-  "bugs": {
-    "url": "https://github.com/your-username/vibe-ai/issues"
-  },
-  "homepage": "https://vibe-ai.netlify.app",
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
@@ -64,28 +35,5 @@
     "axios": "^1.6.0",
     "dotenv": "^16.3.1",
     "fastify": "^4.24.3"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
-  },
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
-  "prettier": {
-    "semi": true,
-    "trailingComma": "es5",
-    "singleQuote": true,
-    "printWidth": 80,
-    "tabWidth": 2
-  },
-  "eslintConfig": {
-    "extends": [
-      "eslint:recommended"
-    ],
-    "env": {
-      "node": true,
-      "es2022": true
-    }
   }
 } 
