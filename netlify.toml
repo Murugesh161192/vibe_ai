@@ -1,6 +1,6 @@
 [build]
-  # Build command for the frontend - Using npm ci for production reliability
-  command = "cd frontend && npm ci && npm run build"
+  # Build command for the frontend - Using npm install since no package-lock.json exists
+  command = "cd frontend && npm install && npm run build"
   
   # Publish directory (where the built files are located)
   publish = "frontend/dist"
