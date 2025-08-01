@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "node backend/src/server.js",
-    "start": "node backend/src/server.js",
+    "start": "node start.js",
+    "start:direct": "node backend/src/server.js",
     "build": "echo 'No build step required for backend API'"
   },
   "keywords": [
