@@ -1,13 +1,18 @@
 [build]
-  # Build command for the frontend
-  command = "cd frontend && npm install && npm run build"
+  # Build command for the frontend - Using npm ci for production reliability
+  command = "cd frontend && npm ci && npm run build"
   
   # Publish directory (where the built files are located)
   publish = "frontend/dist"
+  
+  # Base directory for the build
+  base = "."
 
 [build.environment]
-  # Node.js version
+  # Node.js version - ensuring compatibility
   NODE_VERSION = "18"
+  # Use npm version 8+ for better performance
+  NPM_VERSION = "8"
 
 # Redirect rules for SPA routing
 [[redirects]]
