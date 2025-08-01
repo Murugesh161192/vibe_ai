@@ -82,7 +82,7 @@ fastify.setErrorHandler((error, request, reply) => {
 const start = async () => {
   try {
     const port = process.env.PORT || 3000;
-    const host = process.env.HOST || 'localhost';
+    const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : (process.env.HOST || 'localhost');
     
     await fastify.listen({ port, host });
     fastify.log.info(`🚀 Vibe AI Backend server running on http://${host}:${port}`);
@@ -101,6 +101,6 @@ export default async (req, res) => {
 };
 
 // Start server only if running locally (not in Vercel)
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL || process.env.RENDER) {
   start();
 } 

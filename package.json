@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "node backend/src/server.js",
     "start": "node api/index.js",
+    "start:render": "node backend/src/server.js",
     "build": "echo 'No build step required for backend API'"
   },
   "keywords": [
