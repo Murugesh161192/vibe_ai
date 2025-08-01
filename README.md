@@ -131,7 +131,7 @@ https://github.com/nodejs/node.git
 https://github.com/tailwindlabs/tailwindcss/
 
 # URLs with subdirectories (will extract main repo)
-https://github.com/vercel/next.js/tree/main/packages
+https://github.com/facebook/react/tree/main/packages
 ```
 
 #### ❌ Unsupported Formats

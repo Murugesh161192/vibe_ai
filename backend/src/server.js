@@ -78,7 +78,7 @@ fastify.setErrorHandler((error, request, reply) => {
   });
 });
 
-// Start function for local development
+// Start function for server deployment
 const start = async () => {
   try {
     const port = process.env.PORT || 3000;
@@ -94,13 +94,5 @@ const start = async () => {
   }
 };
 
-// Export for Vercel (serverless) or start for local development
-export default async (req, res) => {
-  await fastify.ready();
-  fastify.server.emit('request', req, res);
-};
-
-// Start server only if running locally (not in Vercel)
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL || process.env.RENDER) {
-  start();
-} 
+// Start the server
+start(); 

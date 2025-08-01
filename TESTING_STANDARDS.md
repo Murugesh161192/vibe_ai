@@ -43,10 +43,10 @@ https://www.github.com/microsoft/TypeScript
 
 # URLs with trailing slashes
 https://github.com/tailwindlabs/tailwindcss/
-https://github.com/vercel/next.js/
+https://github.com/facebook/react/
 
 # URLs with paths (should extract main repo)
-https://github.com/vercel/next.js/tree/main/packages
+https://github.com/facebook/react/tree/main/packages
 https://github.com/microsoft/vscode/blob/main/README.md
 https://github.com/facebook/react/issues
 https://github.com/nodejs/node/releases

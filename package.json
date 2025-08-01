@@ -2,12 +2,11 @@
   "name": "vibe-ai-backend",
   "version": "1.0.0",
   "description": "Vibe AI Backend API for GitHub repository analysis",
-  "main": "api/index.js",
+  "main": "backend/src/server.js",
   "type": "module",
   "scripts": {
     "dev": "node backend/src/server.js",
-    "start": "node api/index.js",
-    "start:render": "node backend/src/server.js",
+    "start": "node backend/src/server.js",
     "build": "echo 'No build step required for backend API'"
   },
   "keywords": [
@@ -17,7 +16,7 @@
     "vibe-score",
     "fastify",
     "api",
-    "vercel"
+    "render"
   ],
   "author": "Vibe AI Team",
   "license": "MIT",
