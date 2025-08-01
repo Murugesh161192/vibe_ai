@@ -2,13 +2,13 @@
   "name": "vibe-ai-backend",
   "version": "1.0.0",
   "description": "Vibe AI Backend API for GitHub repository analysis",
-  "main": "backend/src/server.js",
+  "main": "start.js",
   "type": "module",
   "scripts": {
     "dev": "node backend/src/server.js",
-    "start": "node start.js",
-    "start:direct": "node backend/src/server.js",
-    "build": "echo 'No build step required for backend API'"
+    "start": "node server.js",
+    "start:backend": "cd backend && npm start",
+    "build": "npm install"
   },
   "keywords": [
     "github",
@@ -36,5 +36,11 @@
     "axios": "^1.6.0",
     "dotenv": "^16.3.1",
     "fastify": "^4.24.3"
+  },
+  "devDependencies": {
+    "cross-env": "^10.0.0",
+    "eslint": "^8.54.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1"
   }
 } 
