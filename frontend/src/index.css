@@ -14,6 +14,10 @@
     color: #1f2937;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    /* Enhanced scroll optimization */
+    will-change: scroll-position;
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
   }
   
   /* Focus styles for accessibility */
@@ -43,47 +47,149 @@
 
 /* Enhanced component styles */
 @layer components {
-  /* Enhanced Button Styles */
+  /* Enhanced Button Styles - Optimized transitions */
   .btn-primary {
     @apply bg-gradient-to-r from-indigo-600 to-purple-700 text-white font-semibold 
            py-3 px-6 rounded-xl hover:from-indigo-700 hover:to-purple-800 
-           transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl
-           border border-indigo-400/50 backdrop-blur-sm;
+           border border-indigo-400/50 shadow-lg hover:shadow-xl;
+    /* Optimize transitions for specific properties */
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    will-change: auto;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 12px 20px -5px rgba(99, 102, 241, 0.3), 0 6px 8px -3px rgba(99, 102, 241, 0.15);
   }
 
   .btn-secondary {
-    @apply bg-black/30 text-white font-medium py-2 px-4 rounded-lg 
-           border border-white/30 hover:bg-black/40 hover:border-white/50
-           transition-all duration-300 backdrop-blur-sm shadow-lg;
+    @apply bg-black/20 text-white font-medium py-2 px-4 rounded-lg 
+           border border-white/30 hover:bg-black/30 hover:border-white/50
+           shadow-lg hover:shadow-xl;
+    /* Enhanced transition */
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    backdrop-filter: blur(4px);
+    will-change: auto;
+  }
+
+  .btn-secondary:hover {
+    box-shadow: 0 8px 12px -3px rgba(0, 0, 0, 0.15), 0 3px 4px -1px rgba(0, 0, 0, 0.1);
   }
 
   .btn-ghost {
     @apply text-white/90 hover:text-white hover:bg-white/10 font-medium 
-           py-2 px-4 rounded-lg transition-all duration-300 backdrop-blur-sm;
+           py-2 px-4 rounded-lg;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    will-change: auto;
   }
   
-  /* Enhanced Glass Morphism Cards */
+  /* Enhanced Glass Morphism Cards - Optimized for scroll performance */
   .card-glass {
-    @apply bg-black/25 backdrop-blur-md rounded-2xl border border-white/20 shadow-xl 
-           hover:bg-black/30 hover:border-white/30 transition-all duration-300;
+    @apply bg-black/25 rounded-2xl border border-white/20 shadow-lg 
+           hover:bg-black/30 hover:border-white/30;
+    /* Reduced backdrop-blur for better performance */
+    backdrop-filter: blur(6px);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    /* Optimize for scroll performance */
+    will-change: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .card-glass:hover {
+    /* Simplified hover effect to prevent scroll breaks */
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
   }
 
   .card-glass-sm {
-    @apply bg-black/20 backdrop-blur-md rounded-xl border border-white/20 shadow-lg 
-           hover:bg-black/25 hover:border-white/30 transition-all duration-300;
+    @apply bg-black/20 rounded-xl border border-white/20 shadow-md 
+           hover:bg-black/25 hover:border-white/30;
+    /* Reduced backdrop-blur */
+    backdrop-filter: blur(4px);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    /* Optimize for scroll performance */
+    will-change: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .card-glass-sm:hover {
+    /* Simplified hover effect */
+    box-shadow: 0 6px 15px -3px rgba(0, 0, 0, 0.1);
   }
 
   .card-content {
-    @apply bg-black/20 backdrop-blur-md rounded-xl border border-white/20 
-           hover:bg-black/30 transition-all duration-300 shadow-lg;
+    @apply bg-black/20 rounded-xl border border-white/20 
+           hover:bg-black/30 shadow-md hover:shadow-lg;
+    backdrop-filter: blur(4px);
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    /* Optimize for scroll performance */
+    will-change: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .card-content:hover {
+    border-color: rgba(255, 255, 255, 0.3);
   }
   
-  /* Enhanced Input Styles */
+  /* Enhanced Input Styles - Optimized performance */
   .input-glass {
     @apply w-full px-4 py-3 bg-black/25 border-2 border-white/30 rounded-xl 
            text-white placeholder-white/60 focus:outline-none focus:border-indigo-400 
-           focus:bg-black/30 transition-all duration-300 backdrop-blur-md shadow-lg
-           focus:shadow-xl focus:ring-2 focus:ring-indigo-400/30;
+           focus:bg-black/30 shadow-lg;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+
+  .input-glass:focus {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    transform: scale(1.01);
+  }
+
+  /* Optimized hover states for interactive elements */
+  .hover-lift {
+    transition: box-shadow 0.2s ease;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .hover-lift:hover {
+    box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Pulse animation for loading states */
+  .pulse-gentle {
+    animation: pulse-gentle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-gentle {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  /* Enhanced focus states for accessibility */
+  .focus-ring {
+    @apply focus:ring-2 focus:ring-indigo-400/50 focus:outline-none;
+  }
+
+  /* Smooth reveal animation */
+  .reveal {
+    animation: reveal 0.5s ease-out;
+  }
+
+  @keyframes reveal {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   
   /* Text Styles */
@@ -138,7 +244,8 @@
   }
 
   .progress-bar {
-    @apply h-2 rounded-full transition-all duration-500 shadow-lg;
+    @apply h-2 rounded-full shadow-lg;
+    transition: width 0.5s ease;
   }
 
   .progress-bar-excellent {
@@ -157,30 +264,35 @@
     @apply bg-gradient-to-r from-red-400 to-pink-500;
   }
 
-  /* Status Badge Styles */
+  /* Status Badge Styles - Reduced backdrop blur */
   .status-badge {
     @apply px-2 sm:px-3 py-1 rounded-lg text-xs font-semibold text-white shadow-lg 
            whitespace-nowrap flex-shrink-0;
   }
 
   .status-badge-weight {
-    @apply bg-indigo-600/80 text-white border border-indigo-400/50 backdrop-blur-sm;
+    @apply bg-indigo-600/80 text-white border border-indigo-400/50;
+    backdrop-filter: blur(4px);
   }
 
   .status-badge-excellent {
-    @apply bg-green-600/80 text-white border border-green-400/50 backdrop-blur-sm;
+    @apply bg-green-600/80 text-white border border-green-400/50;
+    backdrop-filter: blur(4px);
   }
 
   .status-badge-good {
-    @apply bg-yellow-600/80 text-white border border-yellow-400/50 backdrop-blur-sm;
+    @apply bg-yellow-600/80 text-white border border-yellow-400/50;
+    backdrop-filter: blur(4px);
   }
 
   .status-badge-neutral {
-    @apply bg-blue-600/80 text-white border border-blue-400/50 backdrop-blur-sm;
+    @apply bg-blue-600/80 text-white border border-blue-400/50;
+    backdrop-filter: blur(4px);
   }
 
   .status-badge-poor {
-    @apply bg-red-600/80 text-white border border-red-400/50 backdrop-blur-sm;
+    @apply bg-red-600/80 text-white border border-red-400/50;
+    backdrop-filter: blur(4px);
   }
 
   /* Icon Container Styles */
@@ -220,11 +332,13 @@
   }
   
   .glassmorphism {
-    @apply bg-black/20 backdrop-blur-md border border-white/20 shadow-xl;
+    @apply bg-black/20 border border-white/20 shadow-xl;
+    backdrop-filter: blur(6px);
   }
   
   .glassmorphism-hover {
-    @apply hover:bg-black/30 hover:border-white/30 hover:shadow-2xl transition-all duration-300;
+    @apply hover:bg-black/30 hover:border-white/30 hover:shadow-2xl;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   }
   
   .text-shadow {
@@ -236,12 +350,20 @@
   }
   
   .glow-hover {
-    @apply hover:shadow-xl hover:shadow-indigo-500/40 transition-all duration-300;
+    @apply hover:shadow-xl hover:shadow-indigo-500/40;
+    transition: box-shadow 0.2s ease;
   }
 
-  /* Metric hover animations */
+  /* Optimized metric hover animations */
   .metric-hover {
-    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-xl;
+    transition: box-shadow 0.2s ease;
+    will-change: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .metric-hover:hover {
+    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
 
   /* Enhanced focus states */
@@ -272,23 +394,23 @@
     background: rgba(255, 255, 255, 0.5);
   }
 
-  /* Animation classes */
+  /* Optimized animation classes */
   .animate-in {
-    animation: fade-in 0.3s ease-out;
+    animation: fade-in 0.2s ease-out;
   }
 
   .fade-in {
-    animation: fade-in 0.3s ease-out;
+    animation: fade-in 0.2s ease-out;
   }
 
   @keyframes fade-in {
     from {
       opacity: 0;
-      transform: scale(0.95) translateY(-10px);
+      transform: translateY(-10px);
     }
     to {
       opacity: 1;
-      transform: scale(1) translateY(0);
+      transform: translateY(0);
     }
   }
 
@@ -303,13 +425,28 @@
   }
 }
 
-/* Animation classes */
+/* Scroll performance optimization for all interactive elements */
+.btn-primary,
+.btn-secondary,
+.btn-ghost {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: auto;
+}
+
+/* Optimize navigation for scroll performance */
+nav {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Optimized Animation classes */
 .animate-fade-in {
-  animation: fadeIn 0.5s ease-in-out;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 .animate-slide-up {
-  animation: slideUp 0.5s ease-out;
+  animation: slideUp 0.3s ease-out;
 }
 
 .animate-pulse-slow {
@@ -324,7 +461,7 @@
   animation: radarSpin 20s linear infinite;
 }
 
-/* Loading spinner */
+/* Loading spinner - Optimized */
 .loading-spinner {
   border: 3px solid rgba(255, 255, 255, 0.2);
   border-top: 3px solid #0ea5e9;
@@ -332,6 +469,7 @@
   width: 40px;
   height: 40px;
   animation: spin 1s linear infinite;
+  will-change: transform;
 }
 
 @keyframes spin {
@@ -339,11 +477,12 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Enhanced radar chart styles */
+/* Enhanced radar chart styles - Performance optimized */
 .radar-chart {
-  transition: all 0.3s ease;
   width: 100%;
   height: 100%;
+  will-change: transform;
+  transition: transform 0.2s ease;
 }
 
 .radar-chart:hover {
@@ -372,7 +511,7 @@
   stroke: #0ea5e9;
   stroke-width: 2;
   fill: rgba(14, 165, 233, 0.1);
-  transition: all 0.3s ease;
+  transition: stroke-width 0.2s ease, fill 0.2s ease;
 }
 
 .radar-data-line:hover {
@@ -384,7 +523,8 @@
   fill: #0ea5e9;
   stroke: white;
   stroke-width: 2;
-  transition: all 0.3s ease;
+  transition: fill 0.2s ease, transform 0.2s ease;
+  will-change: transform;
 }
 
 .radar-point:hover {
@@ -404,7 +544,7 @@
   z-index: 1000;
   white-space: nowrap;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(8px);
 }
 
 /* Responsive design */

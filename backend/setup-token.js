@@ -8,6 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import readline from 'readline';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,21 +22,21 @@ console.log('3. Give it a name like "Vibe AI Analyzer"');
 console.log('4. Select the "public_repo" scope');
 console.log('5. Copy the generated token\n');
 
-const readline = require('readline').createInterface({
+const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
-readline.question('Enter your GitHub Personal Access Token: ', (token) => {
+rl.question('Enter your GitHub Personal Access Token: ', (token) => {
   if (!token || token.trim() === '') {
     console.log('❌ No token provided. Setup cancelled.');
-    readline.close();
+    rl.close();
     return;
   }
 
-  // Validate token format
-  if (!token.startsWith('ghp_')) {
-    console.log('⚠️  Warning: Token should start with "ghp_". Please verify your token.');
+  // Validate token format (support both classic and fine-grained tokens)
+  if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
+    console.log('⚠️  Warning: Token should start with "ghp_" (classic) or "github_pat_" (fine-grained). Please verify your token.');
   }
 
   const envPath = path.join(__dirname, '.env');
@@ -64,5 +65,5 @@ readline.question('Enter your GitHub Personal Access Token: ', (token) => {
     console.error('❌ Failed to save token:', error.message);
   }
 
-  readline.close();
+  rl.close();
 }); 

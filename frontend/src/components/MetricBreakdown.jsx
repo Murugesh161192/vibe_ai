@@ -274,42 +274,6 @@ const MetricBreakdown = ({ breakdown, weights }) => {
           </div>
         </div>
       </div>
-
-      {/* Weight Interpretation Guide */}
-      <div className="card-content p-4 md:p-6">
-        <h4 className="text-heading-sm text-base sm:text-xl mb-4 flex items-center gap-2">
-          <span className="text-xl sm:text-2xl">⚖️</span>
-          Weight Distribution Guide
-        </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
-          <div className="space-y-2 sm:space-y-3">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex-shrink-0"></div>
-              <span className="text-white font-medium">12-16%: High Priority</span>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex-shrink-0"></div>
-              <span className="text-white font-medium">8-15%: Medium Priority</span>
-            </div>
-          </div>
-          <div className="space-y-2 sm:space-y-3">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex-shrink-0"></div>
-              <span className="text-white font-medium">4-8%: Standard Priority</span>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-gray-500 to-slate-500 rounded-full flex-shrink-0"></div>
-              <span className="text-white font-medium">2-6%: Lower Priority</span>
-            </div>
-          </div>
-        </div>
-        <div className="mt-3 sm:mt-4 space-y-1 sm:space-y-2 text-xs sm:text-sm text-white/70 leading-relaxed">
-          <p><strong className="text-white">High Priority (12-16%):</strong> Code Quality, Security & Safety - Critical for enterprise adoption</p>
-          <p><strong className="text-white">Medium Priority (8-15%):</strong> Readability, Collaboration, Performance - Important for project success</p>
-          <p><strong className="text-white">Standard Priority (4-8%):</strong> Innovation, Maintainability, Testing Quality - Good practices</p>
-          <p><strong className="text-white">Lower Priority (2-6%):</strong> Inclusivity, Community Health, Code Health, Release Management - Supporting factors</p>
-        </div>
-      </div>
     </div>
   );
 };

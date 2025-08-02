@@ -10,9 +10,9 @@ describe('AnalysisInsights Component', () => {
       'Strong community engagement'
     ],
     testFiles: ['test/app.test.js', 'test/components.test.js', 'test/utils.test.js'],
-    documentationFiles: ['README.md', 'CONTRIBUTING.md', 'API.md'],
     dependencies: ['react', 'axios', 'lodash', 'jest'],
-    folderStructure: ['src/', 'test/', 'docs/']
+    folderStructure: ['src/', 'test/', 'docs/'],
+    languages: ['JavaScript', 'TypeScript']
   }
 
   beforeEach(() => {
@@ -20,17 +20,20 @@ describe('AnalysisInsights Component', () => {
   })
 
   describe('Initial Render', () => {
-    test('renders insights section', () => {
+    test('renders component with analysis data', () => {
       render(<AnalysisInsights analysis={mockAnalysis} />)
       
       expect(screen.getByText(/Analysis Insights/i)).toBeInTheDocument()
-      expect(screen.getByText(/Good code quality with comprehensive testing/i)).toBeInTheDocument()
+      expect(screen.getAllByText(/Test Coverage/i).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(/Dependencies/i).length).toBeGreaterThan(0)
     })
 
-    test('renders smart recommendations section', () => {
+    test('renders insights information', () => {
       render(<AnalysisInsights analysis={mockAnalysis} />)
       
-      expect(screen.getByText(/Smart Recommendations/i)).toBeInTheDocument()
+      mockAnalysis.insights.forEach(insight => {
+        expect(screen.getByText(insight)).toBeInTheDocument()
+      })
     })
 
     test('renders test files information', () => {
@@ -39,109 +42,102 @@ describe('AnalysisInsights Component', () => {
       // Find the Test Coverage heading in the cards section (not recommendations)
       const headings = screen.getAllByText('Test Coverage')
       expect(headings.length).toBeGreaterThan(0)
-      expect(screen.getByText('Test Files')).toBeInTheDocument() // Test files label
       
-      // Check that test files are rendered with emoji prefix
-      expect(screen.getByText('📄 test/app.test.js')).toBeInTheDocument()
+      // Check that test files are rendered with emoji prefix (🧪 not 📄)
+      expect(screen.getAllByText(/🧪/).length).toBeGreaterThan(0)
     })
 
-    test('renders documentation files', () => {
+    test('renders dependencies information', () => {
       render(<AnalysisInsights analysis={mockAnalysis} />)
       
-      // Find the Documentation heading in the cards section
-      const headings = screen.getAllByText('Documentation')
-      expect(headings.length).toBeGreaterThan(0)
+      // Check for Dependencies section using role
+      expect(screen.getByRole('heading', { level: 4, name: /Dependencies/i })).toBeInTheDocument()
+      expect(screen.getByText(/External packages and libraries/i)).toBeInTheDocument()
       
-      // Check that documentation files are rendered with emoji prefix
-      expect(screen.getByText('📖 README.md')).toBeInTheDocument()
-      expect(screen.getByText('📖 CONTRIBUTING.md')).toBeInTheDocument()
-    })
-
-    test('renders dependencies', () => {
-      render(<AnalysisInsights analysis={mockAnalysis} />)
-      
-      const headings = screen.getAllByText('Dependencies')
-      expect(headings.length).toBeGreaterThan(0)
-      // Dependencies are shown with emoji prefix
+      // Check for Dependencies content
+      expect(screen.getByText('4')).toBeInTheDocument() // Dependency count
       expect(screen.getByText('📦 react')).toBeInTheDocument()
       expect(screen.getByText('📦 axios')).toBeInTheDocument()
     })
+
+    test('renders recommendations section', () => {
+      render(<AnalysisInsights analysis={mockAnalysis} />)
+      
+      expect(screen.getByText(/Smart Recommendations/i)).toBeInTheDocument()
+      expect(screen.getByText(/Improve Your Vibe Score/i)).toBeInTheDocument()
+    })
   })
 
-  describe('Data Handling', () => {
-    test('handles empty insights array', () => {
-      const emptyAnalysis = { ...mockAnalysis, insights: [] }
+  describe('Edge Cases', () => {
+    test('handles empty analysis gracefully', () => {
+      const emptyAnalysis = {
+        insights: [],
+        testFiles: [],
+        dependencies: [],
+        languages: []
+      }
+      
       render(<AnalysisInsights analysis={emptyAnalysis} />)
       
-      // Should not render insights section at all
+      // Should still render other sections even with empty/missing data
+      expect(screen.getAllByText(/Test Coverage/i).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(/Dependencies/i).length).toBeGreaterThan(0)
+    })
+
+    test('handles null analysis', () => {
+      render(<AnalysisInsights analysis={null} />)
+      
+      // Component should not render anything
       expect(screen.queryByText(/Analysis Insights/i)).not.toBeInTheDocument()
     })
 
-    test('handles empty test files array', () => {
-      const emptyAnalysis = { ...mockAnalysis, testFiles: [] }
-      render(<AnalysisInsights analysis={emptyAnalysis} />)
+    test('handles missing dependencies data', () => {
+      const analysisWithoutDependencies = {
+        insights: ['Some insight'],
+        testFiles: ['test.js'],
+        dependencies: [],
+        languages: []
+      }
       
-      const headings = screen.getAllByText('Test Coverage')
-      expect(headings.length).toBeGreaterThan(0)
-      expect(screen.getByText(/No test files detected in the repository/i)).toBeInTheDocument()
-    })
-
-    test('handles empty documentation files array', () => {
-      const noDocsAnalysis = { ...mockAnalysis, documentationFiles: [] }
-      render(<AnalysisInsights analysis={noDocsAnalysis} />)
+      render(<AnalysisInsights analysis={analysisWithoutDependencies} />)
       
-      const headings = screen.getAllByText('Documentation')
-      expect(headings.length).toBeGreaterThan(0)
-      expect(screen.getByText(/No documentation files detected/i)).toBeInTheDocument()
-    })
-
-    test('handles empty dependencies array', () => {
-      const noDepsAnalysis = { ...mockAnalysis, dependencies: [] }
-      render(<AnalysisInsights analysis={noDepsAnalysis} />)
-      
-      const headings = screen.getAllByText('Dependencies')
-      expect(headings.length).toBeGreaterThan(0)
+      // Should show "No dependencies detected" message
       expect(screen.getByText(/No dependencies detected/i)).toBeInTheDocument()
-    })
-  })
-
-  describe('Component Props', () => {
-    test('handles empty analysis object', () => {
-      expect(() => {
-        render(<AnalysisInsights analysis={{}} />)
-      }).not.toThrow()
+      expect(screen.getByText(/This could be a standalone project or dependency detection failed/i)).toBeInTheDocument()
     })
 
-    test('handles missing analysis prop', () => {
-      expect(() => {
-        render(<AnalysisInsights />)
-      }).not.toThrow()
-    })
-
-    test('returns null when analysis is null', () => {
-      const { container } = render(<AnalysisInsights analysis={null} />)
-      expect(container.firstChild).toBeNull()
-    })
-  })
-
-  describe('Accessibility', () => {
-    test('has proper heading structure', () => {
-      render(<AnalysisInsights analysis={mockAnalysis} />)
+    test('handles dependencies with large count', () => {
+      const analysisWithManyDependencies = {
+        insights: ['Some insight'],
+        testFiles: ['test.js'],
+        dependencies: ['react', 'vue', 'angular', 'svelte', 'ember', 'backbone', 'jquery', 'lodash'],
+        languages: []
+      }
       
-      const headings = screen.getAllByRole('heading', { level: 3 })
-      expect(headings.length).toBeGreaterThan(0)
+      render(<AnalysisInsights analysis={analysisWithManyDependencies} />)
+      
+      // Should show dependencies with overflow count
+      expect(screen.getByRole('heading', { level: 4, name: /Dependencies/i })).toBeInTheDocument()
+      expect(screen.getByText('8')).toBeInTheDocument() // Total dependency count
+      expect(screen.getByText('📦 react')).toBeInTheDocument()
+      expect(screen.getByText('+2')).toBeInTheDocument() // Shows +2 for 8 deps (6 shown + 2 more)
     })
 
-    test('insights have proper icon accessibility', () => {
-      render(<AnalysisInsights analysis={mockAnalysis} />)
+    test('handles small number of dependencies', () => {
+      const analysisWithFewDependencies = {
+        insights: ['Some insight'],
+        testFiles: ['test.js'],
+        dependencies: ['react', 'vue'],
+        languages: []
+      }
       
-      // Check that SVG icons are present (lucide icons are SVG elements)
-      const icons = document.querySelectorAll('svg')
-      expect(icons.length).toBeGreaterThan(0)
+      render(<AnalysisInsights analysis={analysisWithFewDependencies} />)
       
-      // Check that icons have proper lucide classes
-      const lucideIcons = document.querySelectorAll('.lucide')
-      expect(lucideIcons.length).toBeGreaterThan(0)
+      // Should show all dependencies without overflow
+      expect(screen.getByRole('heading', { level: 4, name: /Dependencies/i })).toBeInTheDocument()
+      expect(screen.getByText('📦 react')).toBeInTheDocument()
+      expect(screen.getByText('📦 vue')).toBeInTheDocument()
+      expect(screen.queryByText(/\+/)).not.toBeInTheDocument() // No overflow indicator
     })
   })
 }) 

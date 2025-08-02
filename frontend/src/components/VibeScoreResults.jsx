@@ -1,18 +1,13 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Star, GitBranch, Calendar, Users, HelpCircle } from 'lucide-react';
+import React from 'react';
+import { ArrowLeft, Star, GitBranch, Calendar, Users } from 'lucide-react';
 import RadarChart from './RadarChart';
 import MetricBreakdown from './MetricBreakdown';
 import RepositoryInfo from './RepositoryInfo';
 import AnalysisInsights from './AnalysisInsights';
-import MetricsModal from './MetricsModal';
 
 const VibeScoreResults = ({ result, onAnalyzeAnother }) => {
   const { repoInfo, vibeScore, analysis } = result;
-  const [isModalOpen, setIsModalOpen] = useState(false);
   
-
-
-
   /**
    * Get vibe score color class based on score value
    * @param {number} score - Vibe score value
@@ -129,20 +124,10 @@ const VibeScoreResults = ({ result, onAnalyzeAnother }) => {
 
         {/* Detailed Metrics - Now Below Radar Chart */}
         <div className="card-glass p-4 sm:p-6 md:p-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <h3 className="text-heading-md text-lg sm:text-2xl md:text-3xl flex items-center gap-2">
-              <span className="text-2xl sm:text-3xl">📋</span>
-              Detailed Metrics
-            </h3>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="btn-secondary flex items-center gap-2 text-xs sm:text-sm w-full sm:w-auto justify-center sm:justify-start"
-              aria-label="Learn more about vibe score metrics"
-            >
-              <HelpCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="truncate">What do these metrics mean?</span>
-            </button>
-          </div>
+          <h3 className="text-heading-md text-lg sm:text-2xl md:text-3xl mb-6 sm:mb-8 flex items-center gap-2">
+            <span className="text-2xl sm:text-3xl">📋</span>
+            Detailed Metrics
+          </h3>
           <div className="flex flex-col justify-start">
             <MetricBreakdown 
               breakdown={vibeScore.breakdown} 
@@ -196,8 +181,6 @@ const VibeScoreResults = ({ result, onAnalyzeAnother }) => {
           </div>
         </div>
       </div>
-
-      <MetricsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 };

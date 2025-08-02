@@ -26,14 +26,15 @@ export class GitHubService {
         'User-Agent': 'VibeAI-Analyzer/1.0.0',
         ...(this.token && { 'Authorization': `token ${this.token}` })
       },
-      timeout: 30000 // 30 second timeout
+      timeout: 10000 // 10 second timeout for faster failure detection
     });
     
-    // Add request interceptor for rate limiting
+    // Add request interceptor for rate limiting (only for unauthenticated requests)
     this.api.interceptors.request.use(
       async (config) => {
-        // Add delay for unauthenticated requests to avoid rate limits
-        if (!this.token) {
+        // Only add delay for unauthenticated requests to avoid rate limits
+        // With token, we have 5000 requests/hour, so no delay needed
+        if (!this.token && !process.env.GITHUB_TOKEN) {
           const now = Date.now();
           const timeSinceLastRequest = now - this.lastRequestTime;
           
@@ -140,7 +141,7 @@ export class GitHubService {
    * @param {number} perPage - Number of commits per page (max 100)
    * @returns {Array} Array of commit objects
    */
-  async getCommitHistory(owner, repo, perPage = 100) {
+  async getCommitHistory(owner, repo, perPage = 30) {
     try {
       this.ensureToken();
       const response = await this.api.get(`/repos/${owner}/${repo}/commits`, {

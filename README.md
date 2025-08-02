@@ -26,7 +26,7 @@ A professional full-stack web application that provides enterprise-grade analysi
 - **Lucide React** for consistent iconography
 
 ### Backend Architecture
-- **Fastify** (Node.js/Bun compatible) with JSON schema validation
+- **Fastify** (Node.js) with JSON schema validation
 - **GitHub REST API** integration with intelligent rate limiting
 - **Comprehensive error handling** and logging
 - **RESTful API design** with OpenAPI documentation
@@ -64,7 +64,7 @@ Our proprietary scoring algorithm evaluates repositories across twelve critical 
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
-- **Node.js 18+** or **Bun** runtime
+- **Node.js 18+** runtime
 - **GitHub Personal Access Token** (for enhanced API limits)
 - **Git** for version control
 

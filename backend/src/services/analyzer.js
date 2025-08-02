@@ -23,17 +23,13 @@ export class RepositoryAnalyzer {
       // Extract repository owner and name from URL
       const { owner, repo } = this.extractRepoInfo(repoUrl);
       
-      // Fetch basic repository information
-      const repoInfo = await this.githubService.getRepositoryInfo(owner, repo);
-      
-      // Fetch repository contents for analysis
-      const contents = await this.githubService.getRepositoryContents(owner, repo);
-      
-      // Fetch commit history for collaboration analysis
-      const commits = await this.githubService.getCommitHistory(owner, repo);
-      
-      // Fetch contributors for statistics
-      const contributors = await this.githubService.getContributors(owner, repo);
+      // Parallelize GitHub API calls for better performance
+      const [repoInfo, contents, commits, contributors] = await Promise.all([
+        this.githubService.getRepositoryInfo(owner, repo),
+        this.githubService.getRepositoryContents(owner, repo),
+        this.githubService.getCommitHistory(owner, repo),
+        this.githubService.getContributors(owner, repo)
+      ]);
       
       // Analyze repository based on detected language
       const languageAnalysis = await this.languageAnalyzer.analyzeLanguage(
@@ -43,10 +39,12 @@ export class RepositoryAnalyzer {
         repo
       );
       
-      // Perform comprehensive analysis for new metrics
-      const securityAnalysis = await this.performSecurityAnalysis(contents, languageAnalysis);
-      const performanceAnalysis = await this.performPerformanceAnalysis(contents, languageAnalysis);
-      const communityAnalysis = await this.performCommunityAnalysis(contents, repoInfo);
+      // Parallelize analysis operations for better performance
+      const [securityAnalysis, performanceAnalysis, communityAnalysis] = await Promise.all([
+        this.performSecurityAnalysis(contents, languageAnalysis),
+        this.performPerformanceAnalysis(contents, languageAnalysis),
+        this.performCommunityAnalysis(contents, repoInfo)
+      ]);
       
       // Calculate vibe score based on all collected data
       const vibeScore = this.vibeCalculator.calculateVibeScore({

@@ -1,11 +1,11 @@
 import React from 'react';
-import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle, Target, Zap, Users, BookOpen, Code, Globe, Star, GitBranch, Clock, Shield, Heart } from 'lucide-react';
+import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle, Target, Zap, Users, BookOpen, Code, Globe, Star, GitBranch, Clock, Shield, Heart, FileCode } from 'lucide-react';
 
 const AnalysisInsights = ({ analysis }) => {
   if (!analysis) {
     return null;
   }
-  const { insights, testFiles, documentationFiles, dependencies, folderStructure } = analysis;
+  const { insights, testFiles, documentationFiles, dependencies, folderStructure, languages } = analysis;
 
   /**
    * Get insight icon based on insight type and sentiment
@@ -88,12 +88,12 @@ const AnalysisInsights = ({ analysis }) => {
         </div>
       )}
 
-      {/* Repository Analysis Details */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-        {/* Test Files */}
-        <div className="group card-glass p-5 sm:p-6 md:p-7 hover:shadow-xl transition-all duration-500 metric-hover glow-hover">
+      {/* Repository Analysis Details - Updated to 2 columns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        {/* Test Coverage */}
+        <div className="card-glass p-5 sm:p-6 md:p-7">
           <div className="text-center mb-6">
-            <div className="icon-container icon-container-success p-3 sm:p-4 glow mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+            <div className="icon-container icon-container-success p-3 sm:p-4 mx-auto mb-4">
               <Code className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
             <h4 className="text-xl sm:text-2xl font-bold text-white mb-2">Test Coverage</h4>
@@ -102,104 +102,49 @@ const AnalysisInsights = ({ analysis }) => {
 
           {testFiles && testFiles.length > 0 ? (
             <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-bold text-green-400 mb-4 group-hover:scale-105 transition-transform duration-300">
+              <div className="text-4xl sm:text-5xl font-bold text-green-400 mb-4">
                 {testFiles.length}
               </div>
               <div className="text-white/80 text-lg font-medium mb-4">Test Files</div>
 
-              <div className="bg-black/20 rounded-xl p-4 border border-white/10 backdrop-blur-sm">
-                <div className="space-y-2 max-h-32 sm:max-h-40 overflow-y-auto custom-scrollbar">
+              <div className="bg-black/20 rounded-xl p-4 border border-white/10">
+                <div className="flex flex-wrap gap-2 justify-center max-h-32 overflow-y-auto custom-scrollbar">
                   {testFiles.slice(0, 5).map((file, index) => (
-                    <div
+                    <span
                       key={index}
-                      className="text-xs sm:text-sm text-white/70 font-mono bg-white/5 p-2 rounded-lg hover:bg-white/10 transition-colors duration-200 truncate"
+                      className="status-badge status-badge-excellent text-xs"
                       title={file}
                     >
-                      📄 {file}
-                    </div>
+                      🧪 {file.length > 15 ? file.substring(0, 15) + '...' : file}
+                    </span>
                   ))}
                   {testFiles.length > 5 && (
-                    <div className="text-center pt-2">
-                      <span className="status-badge status-badge-good text-xs">
-                        +{testFiles.length - 5} more files
-                      </span>
-                    </div>
+                    <span className="status-badge status-badge-good text-xs">
+                      +{testFiles.length - 5}
+                    </span>
                   )}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="text-center py-8">
-              <div className="text-6xl mb-4 opacity-50">🧪</div>
-              <div className="text-white/60 text-sm">
-                No test files detected in the repository.
-              </div>
-              <div className="mt-3">
-                <span className="status-badge status-badge-poor text-xs">
-                  Consider adding tests
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Documentation Files */}
-        <div className="group card-glass p-5 sm:p-6 md:p-7 hover:shadow-xl transition-all duration-500 metric-hover glow-hover">
-          <div className="text-center mb-6">
-            <div className="icon-container icon-container-info p-3 sm:p-4 glow mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-              <BookOpen className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-            </div>
-            <h4 className="text-xl sm:text-2xl font-bold text-white mb-2">Documentation</h4>
-            <p className="text-white/60 text-sm">Project documentation quality</p>
-          </div>
-
-          {documentationFiles && documentationFiles.length > 0 ? (
             <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-bold text-blue-400 mb-4 group-hover:scale-105 transition-transform duration-300">
-                {documentationFiles.length}
+              <div className="text-3xl sm:text-4xl font-bold text-gray-400 mb-4">
+                0
               </div>
-              <div className="text-white/80 text-lg font-medium mb-4">Doc Files</div>
-
-              <div className="bg-black/20 rounded-xl p-4 border border-white/10 backdrop-blur-sm">
-                <div className="space-y-2 max-h-32 sm:max-h-40 overflow-y-auto custom-scrollbar">
-                  {documentationFiles.slice(0, 5).map((file, index) => (
-                    <div
-                      key={index}
-                      className="text-xs sm:text-sm text-white/70 font-mono bg-white/5 p-2 rounded-lg hover:bg-white/10 transition-colors duration-200 truncate"
-                      title={file}
-                    >
-                      📖 {file}
-                    </div>
-                  ))}
-                  {documentationFiles.length > 5 && (
-                    <div className="text-center pt-2">
-                      <span className="status-badge status-badge-good text-xs">
-                        +{documentationFiles.length - 5} more files
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="text-6xl mb-4 opacity-50">📚</div>
-              <div className="text-white/60 text-sm">
-                No documentation files detected.
-              </div>
-              <div className="mt-3">
-                <span className="status-badge status-badge-poor text-xs">
-                  Add documentation
-                </span>
+              <div className="text-white/60">No test files detected</div>
+              <div className="mt-4 p-4 bg-black/20 rounded-xl border border-white/10">
+                <p className="text-white/70 text-sm">
+                  💡 Consider adding automated tests to improve code quality and reliability
+                </p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Dependencies */}
-        <div className="group card-glass p-5 sm:p-6 md:p-7 hover:shadow-xl transition-all duration-500 metric-hover glow-hover">
+        {/* Dependencies - Simplified and focused */}
+        <div className="card-glass p-5 sm:p-6 md:p-7">
           <div className="text-center mb-6">
-            <div className="icon-container icon-container-warning p-3 sm:p-4 glow mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+            <div className="icon-container icon-container-warning p-3 sm:p-4 mx-auto mb-4">
               <Globe className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
             <h4 className="text-xl sm:text-2xl font-bold text-white mb-2">Dependencies</h4>
@@ -208,17 +153,17 @@ const AnalysisInsights = ({ analysis }) => {
 
           {dependencies && dependencies.length > 0 ? (
             <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-bold text-purple-400 mb-4 group-hover:scale-105 transition-transform duration-300">
+              <div className="text-4xl sm:text-5xl font-bold text-purple-400 mb-4">
                 {dependencies.length}
               </div>
               <div className="text-white/80 text-lg font-medium mb-4">Packages</div>
 
-              <div className="bg-black/20 rounded-xl p-4 border border-white/10 backdrop-blur-sm">
+              <div className="bg-black/20 rounded-xl p-4 border border-white/10">
                 <div className="flex flex-wrap gap-2 justify-center max-h-32 overflow-y-auto custom-scrollbar">
                   {dependencies.slice(0, 6).map((dep, index) => (
                     <span
                       key={index}
-                      className="status-badge status-badge-weight text-xs hover:scale-105 transition-transform duration-200"
+                      className="status-badge status-badge-weight text-xs"
                       title={dep}
                     >
                       📦 {dep}
@@ -233,15 +178,15 @@ const AnalysisInsights = ({ analysis }) => {
               </div>
             </div>
           ) : (
-            <div className="text-center py-8">
-              <div className="text-6xl mb-4 opacity-50">📦</div>
-              <div className="text-white/60 text-sm">
-                No dependencies detected.
+            <div className="text-center">
+              <div className="text-3xl sm:text-4xl font-bold text-gray-400 mb-4">
+                0
               </div>
-              <div className="mt-3">
-                <span className="status-badge status-badge-neutral text-xs">
-                  Standalone project
-                </span>
+              <div className="text-white/60">No dependencies detected</div>
+              <div className="mt-4 p-4 bg-black/20 rounded-xl border border-white/10">
+                <p className="text-white/70 text-sm">
+                  📦 This could be a standalone project or dependency detection failed
+                </p>
               </div>
             </div>
           )}

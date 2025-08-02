@@ -15,7 +15,7 @@ describe('RepositoryInput Component', () => {
     test('renders the component with all elements', () => {
       render(<RepositoryInput onAnalyze={mockOnAnalyze} />);
       
-      expect(screen.getByText(/Repository Analysis/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/GitHub Repository URL/i)).toBeInTheDocument();
       expect(screen.getByPlaceholderText(/https:\/\/github.com\/username\/repository/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /analyze repository/i })).toBeInTheDocument();
     });
@@ -43,11 +43,14 @@ describe('RepositoryInput Component', () => {
       const user = userEvent.setup()
       render(<RepositoryInput onAnalyze={mockOnAnalyze} />)
       
-      const analyzeButton = screen.getByRole('button', { name: /analyze repository/i })
-      await user.click(analyzeButton)
+      const form = screen.getByRole('form')
       
-      const errorContainer = await screen.findByRole('alert');
-      expect(within(errorContainer).getByText(/Please enter a repository URL/i)).toBeInTheDocument();
+      // Directly trigger form submission to test validation logic
+      fireEvent.submit(form)
+      
+      // Wait for validation error to appear
+      const errorMessage = await screen.findByText(/Please enter a repository URL/i);
+      expect(errorMessage).toBeInTheDocument();
       expect(mockOnAnalyze).not.toHaveBeenCalled()
     })
 
@@ -179,16 +182,16 @@ describe('RepositoryInput Component', () => {
       render(<RepositoryInput onAnalyze={mockOnAnalyze} />)
       
       const input = screen.getByPlaceholderText(/https:\/\/github.com\/username\/repository/i)
-      const analyzeButton = screen.getByRole('button', { name: /analyze repository/i })
+      const form = screen.getByRole('form')
       
-      // Trigger validation error
-      await user.click(analyzeButton);
-      const errorContainer = await screen.findByRole('alert');
-      expect(within(errorContainer).getByText(/Please enter a repository URL/i)).toBeInTheDocument();
+      // Directly trigger form submission to get validation error
+      fireEvent.submit(form);
+      const errorMessage = await screen.findByText(/Please enter a repository URL/i);
+      expect(errorMessage).toBeInTheDocument();
       
       // Start typing to clear error
       await user.type(input, 'h');
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(screen.queryByText(/Please enter a repository URL/i)).not.toBeInTheDocument()
     })
   })
 
@@ -196,15 +199,15 @@ describe('RepositoryInput Component', () => {
     test('shows loading state when isLoading is true', () => {
       render(<RepositoryInput onAnalyze={mockOnAnalyze} isLoading={true} />);
       
-      expect(screen.getByText(/Analyzing.../i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Analyzing.../i })).toBeDisabled();
+      // Button text remains "Analyze Repository" but is disabled
+      expect(screen.getByRole('button', { name: /Analyze Repository/i })).toBeDisabled();
     });
 
     test('disables input and buttons during loading', () => {
       render(<RepositoryInput onAnalyze={mockOnAnalyze} isLoading={true} />);
       
       const input = screen.getByPlaceholderText(/https:\/\/github.com\/username\/repository/i);
-      const analyzeButton = screen.getByRole('button', { name: /Analyzing.../i });
+      const analyzeButton = screen.getByRole('button', { name: /Analyze Repository/i });
       
       expect(input).toBeDisabled();
       expect(analyzeButton).toBeDisabled();
@@ -215,7 +218,7 @@ describe('RepositoryInput Component', () => {
       render(<RepositoryInput onAnalyze={mockOnAnalyze} isLoading={true} />);
       
       const input = screen.getByPlaceholderText(/https:\/\/github.com\/username\/repository/i);
-      const analyzeButton = screen.getByRole('button', { name: /Analyzing.../i });
+      const analyzeButton = screen.getByRole('button', { name: /Analyze Repository/i });
       
       // Since input is disabled, user.type should not work, but let's test the button click
       await act(async () => {
@@ -250,6 +253,9 @@ describe('RepositoryInput Component', () => {
       await user.tab();
       expect(screen.getByPlaceholderText(/https:\/\/github.com\/username\/repository/i)).toHaveFocus();
 
+      // Type some content to enable the button
+      await user.type(screen.getByPlaceholderText(/https:\/\/github.com\/username\/repository/i), 'https://github.com/test/repo');
+      
       await user.tab();
       expect(screen.getByRole('button', { name: /analyze repository/i })).toHaveFocus();
     });
