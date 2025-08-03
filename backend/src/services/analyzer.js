@@ -69,6 +69,8 @@ export class RepositoryAnalyzer {
           language: repoInfo.language,
           stars: repoInfo.stargazers_count,
           forks: repoInfo.forks_count,
+          openIssues: repoInfo.open_issues_count,
+          watchers: repoInfo.watchers_count,
           contributors: contributors.length,
           createdAt: repoInfo.created_at,
           updatedAt: repoInfo.updated_at

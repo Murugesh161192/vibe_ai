@@ -88,6 +88,18 @@ const start = async () => {
     fastify.log.info(`🚀 Vibe AI Backend server running on http://${host}:${port}`);
     fastify.log.info(`📊 Health check available at http://${host}:${port}/health`);
     fastify.log.info(`🔍 API endpoints available at http://${host}:${port}${process.env.API_PREFIX || '/api'}`);
+    
+    // Graceful shutdown handling
+    process.on('SIGTERM', async () => {
+      fastify.log.info('SIGTERM signal received: closing HTTP server');
+      await fastify.close();
+    });
+    
+    process.on('SIGINT', async () => {
+      fastify.log.info('SIGINT signal received: closing HTTP server');
+      await fastify.close();
+    });
+    
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

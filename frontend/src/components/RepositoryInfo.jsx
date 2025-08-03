@@ -54,7 +54,7 @@ const RepositoryInfo = ({ repoInfo }) => {
             href={`https://github.com/${repoInfo.fullName}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-secondary flex items-center gap-2"
+            className="btn-secondary flex items-center gap-2 px-4 py-2.5 font-medium shadow-md hover:shadow-lg transition-all"
             aria-label={`View ${repoInfo.name} on GitHub`}
           >
             <ExternalLink className="w-4 h-4" aria-hidden="true" />

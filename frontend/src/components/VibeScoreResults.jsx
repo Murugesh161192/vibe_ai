@@ -1,11 +1,11 @@
 import React from 'react';
-import { ArrowLeft, Star, GitBranch, Calendar, Users } from 'lucide-react';
+import { ArrowLeft, Star, GitBranch, Calendar, Users, Bot } from 'lucide-react';
 import RadarChart from './RadarChart';
 import MetricBreakdown from './MetricBreakdown';
 import RepositoryInfo from './RepositoryInfo';
 import AnalysisInsights from './AnalysisInsights';
 
-const VibeScoreResults = ({ result, onAnalyzeAnother }) => {
+const VibeScoreResults = ({ result, onNewAnalysis }) => {
   const { repoInfo, vibeScore, analysis } = result;
   
   /**
@@ -66,121 +66,118 @@ const VibeScoreResults = ({ result, onAnalyzeAnother }) => {
   return (
     <div className="space-y-4 sm:space-y-6 md:space-y-8">
 
-      {/* Repository Information */}
-      <RepositoryInfo repoInfo={repoInfo} />
-
-      {/* Enhanced Main Vibe Score Display */}
-      <div className="card-glass p-4 sm:p-6 md:p-8 text-center">
-        <div className="mb-6 sm:mb-8">
-          <h2 className="text-heading-lg text-xl sm:text-3xl md:text-4xl mb-3">
-            Vibe Score Results
-          </h2>
-          <p className="text-body text-sm sm:text-lg">
-            Comprehensive analysis of <span className="text-accent">{repoInfo.name}</span>
-          </p>
-        </div>
-
-        <div className="flex flex-col items-center">
+      {/* Main Vibe Score Display - Enhanced visuals */}
+      <div className="mb-6 sm:mb-8">
+        <div className="card-glass p-4 sm:p-6 text-center relative overflow-hidden">
           <div className="mb-4 sm:mb-6">
-            <div className={`text-6xl sm:text-7xl md:text-8xl font-bold ${getVibeScoreColor(vibeScore.total)} mb-4 animate-pulse`}>
-              {Math.round(vibeScore.total)}
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
+              Vibe Score Analysis
+            </h2>
+            <p className="text-xs sm:text-sm md:text-base text-white/80 max-w-lg mx-auto">
+              Comprehensive analysis of <span className="text-blue-400 font-semibold">{repoInfo.name}</span>
+            </p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="mb-4">
+              <div className={`text-5xl sm:text-6xl md:text-7xl font-black ${getVibeScoreColor(vibeScore.total)} mb-2 transition-all duration-300`}>
+                {Math.round(vibeScore.total)}
+              </div>
+              <div className="text-white/60 text-xs sm:text-sm">out of 100</div>
             </div>
-          </div>
-          
-          <div className="text-heading-md text-lg sm:text-2xl md:text-3xl mb-4">
-            {vibeMessage.title}
-          </div>
-          
-          <p className="text-body text-sm sm:text-base max-w-2xl leading-relaxed">
-            {vibeMessage.description}
-          </p>
-          
-          {/* Accessibility: Screen reader summary */}
-          <div className="sr-only" aria-live="polite">
-            Vibe score is {Math.round(vibeScore.total)} out of 100. {vibeScore.total >= 80 ? 'Excellent vibes detected.' :
-             vibeScore.total >= 60 ? 'Good vibes detected.' :
-             vibeScore.total >= 40 ? 'Decent vibes detected.' : 'Room for improvement detected.'}
+            <div className="text-lg sm:text-xl md:text-2xl font-semibold text-white mb-3">
+              {vibeMessage.title}
+            </div>
+            <p className="text-xs sm:text-sm md:text-base text-white/70 max-w-lg mx-auto leading-relaxed px-4">
+              {vibeMessage.description}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Enhanced Radar Chart and Metrics Grid */}
-      <div className="space-y-4 sm:space-y-6 md:space-y-8">
-        {/* Interactive Radar Chart - Responsive */}
-        <div className="card-glass p-4 sm:p-6 md:p-8">
-          <h3 className="text-heading-md text-lg sm:text-2xl md:text-3xl mb-6 sm:mb-8 flex items-center gap-2">
-            <span className="text-2xl sm:text-3xl">📊</span>
-            Vibe Score Breakdown
-          </h3>
-          <div className="w-full flex justify-center items-center">
-            <div className="w-full max-w-[95vw] aspect-square max-h-[500px] min-h-[300px]">
-              <RadarChart data={vibeScore.breakdown} />
+      {/* Repository Information Card - Optimized layout */}
+      <RepositoryInfo repoInfo={repoInfo} />
+
+      {/* Radar Chart - Interactive visualization */}
+      {vibeScore && vibeScore.breakdown && (
+        <div className="mb-6 sm:mb-8">
+          <div className="card-glass p-4 sm:p-6">
+            <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mb-4 text-center">
+              📊 Score Breakdown
+            </h3>
+            <RadarChart data={vibeScore.breakdown} weights={vibeScore.weights} />
+          </div>
+        </div>
+      )}
+
+      {/* Score Interpretation Guide - Moved here for better UX */}
+      <div className="mb-6 sm:mb-8">
+        <div className="card-content p-4 md:p-6">
+          <h4 className="text-base sm:text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            <span className="text-xl sm:text-2xl">📊</span>
+            Score Interpretation Guide
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex-shrink-0"></div>
+                <span className="text-white font-medium">80-100: Excellent</span>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full flex-shrink-0"></div>
+                <span className="text-white font-medium">60-79: Good</span>
+              </div>
+            </div>
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full flex-shrink-0"></div>
+                <span className="text-white font-medium">40-59: Fair</span>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex-shrink-0"></div>
+                <span className="text-white font-medium">0-39: Poor</span>
+              </div>
             </div>
           </div>
-          <p className="text-body-sm text-xs sm:text-sm mt-4 sm:mt-6 text-center">
-            💡 Hover over the chart to see detailed metrics
-          </p>
         </div>
+      </div>
 
-        {/* Detailed Metrics - Now Below Radar Chart */}
-        <div className="card-glass p-4 sm:p-6 md:p-8">
-          <h3 className="text-heading-md text-lg sm:text-2xl md:text-3xl mb-6 sm:mb-8 flex items-center gap-2">
-            <span className="text-2xl sm:text-3xl">📋</span>
-            Detailed Metrics
+      {/* Metrics Breakdown - Detailed analysis */}
+      {vibeScore && vibeScore.breakdown && (
+        <div className="mb-6 sm:mb-8">
+          <MetricBreakdown breakdown={vibeScore.breakdown} weights={vibeScore.weights} />
+        </div>
+      )}
+
+      {/* Repository Statistics - Key numbers with enhanced visuals */}
+      <div className="mb-6 sm:mb-8">
+        <div className="card-glass p-4 sm:p-6">
+          <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mb-4 sm:mb-6 text-center">
+            📈 Repository Statistics
           </h3>
-          <div className="flex flex-col justify-start">
-            <MetricBreakdown 
-              breakdown={vibeScore.breakdown} 
-              weights={vibeScore.weights}
-            />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            {[
+              { label: 'Stars', value: repoInfo.stars || 0, icon: '⭐', color: 'text-yellow-400' },
+              { label: 'Forks', value: repoInfo.forks || 0, icon: '🔱', color: 'text-blue-400' },
+              { label: 'Issues', value: repoInfo.openIssues || 0, icon: '🐛', color: 'text-red-400' },
+              { label: 'Watchers', value: repoInfo.watchers || 0, icon: '👀', color: 'text-green-400' }
+            ].map((stat, index) => (
+              <div 
+                key={index} 
+                className="card-glass-sm p-3 sm:p-4 text-center hover:bg-white/10 transition-all duration-200 cursor-default"
+              >
+                <div className="text-2xl sm:text-3xl mb-2">{stat.icon}</div>
+                <div className={`text-xl sm:text-2xl md:text-3xl font-bold ${stat.color} mb-1`}>
+                  {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
+                </div>
+                <div className="text-white/60 text-xs sm:text-sm">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Analysis Insights */}
       <AnalysisInsights analysis={analysis} />
-
-      {/* Enhanced Repository Statistics */}
-      <div className="card-glass p-4 sm:p-6 lg:p-8">
-        <h3 className="text-heading-md mb-4 sm:mb-6 flex items-center gap-2">
-          <span className="text-2xl sm:text-3xl">📈</span>
-          Repository Statistics
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 max-w-full">
-          <div className="card-content p-3 sm:p-4 lg:p-6 text-center">
-            <div className="icon-container icon-container-warning mx-auto mb-2 sm:mb-3 w-10 h-10 sm:w-12 sm:h-12">
-              <Star className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 leading-tight">{repoInfo.stars.toLocaleString()}</div>
-            <div className="text-body-sm">Stars</div>
-          </div>
-          <div className="card-content p-3 sm:p-4 lg:p-6 text-center">
-            <div className="icon-container icon-container-info mx-auto mb-2 sm:mb-3 w-10 h-10 sm:w-12 sm:h-12">
-              <GitBranch className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 leading-tight">{repoInfo.forks.toLocaleString()}</div>
-            <div className="text-body-sm">Forks</div>
-          </div>
-          <div className="card-content p-3 sm:p-4 lg:p-6 text-center">
-            <div className="icon-container icon-container-primary mx-auto mb-2 sm:mb-3 w-10 h-10 sm:w-12 sm:h-12">
-              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 leading-tight">
-              {new Date(repoInfo.createdAt).getFullYear()}
-            </div>
-            <div className="text-body-sm">Created</div>
-          </div>
-          <div className="card-content p-3 sm:p-4 lg:p-6 text-center">
-            <div className="icon-container icon-container-success mx-auto mb-2 sm:mb-3 w-10 h-10 sm:w-12 sm:h-12">
-              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 leading-tight">
-              {(repoInfo.contributors || 0).toLocaleString()}
-            </div>
-            <div className="text-body-sm">Contributors</div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

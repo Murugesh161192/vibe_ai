@@ -8,15 +8,24 @@ import dotenv from 'dotenv';
 export class GitHubService {
   constructor() {
     this.baseURL = 'https://api.github.com';
+    // Load environment variables first
+    dotenv.config();
     this.token = process.env.GITHUB_TOKEN;
     this.requestCount = 0;
     this.lastRequestTime = 0;
     this.rateLimitDelay = 1000; // 1 second delay between requests for unauthenticated calls
-    dotenv.config();
-    // Debug token configuration
+    
+    // Debug token configuration with fine-grained token detection
     console.log(`🔧 GitHub Service initialized:`);
     console.log(`   - Token configured: ${this.token ? '✅ Yes' : '❌ No'}`);
-    console.log(`   - Token preview: ${this.token ? this.token.substring(0, 10) + '...' : 'None'}`);
+    if (this.token) {
+      const tokenType = this.token.startsWith('github_pat_') ? 'Fine-grained' : 
+                       this.token.startsWith('ghp_') ? 'Classic' : 'Unknown';
+      console.log(`   - Token type: ${tokenType}`);
+      console.log(`   - Token preview: ${this.token.substring(0, 15)}...`);
+    } else {
+      console.log(`   - Token preview: None`);
+    }
     
     // Configure axios instance with GitHub API headers
     this.api = axios.create({
@@ -24,7 +33,8 @@ export class GitHubService {
       headers: {
         'Accept': 'application/vnd.github.v3+json',
         'User-Agent': 'VibeAI-Analyzer/1.0.0',
-        ...(this.token && { 'Authorization': `token ${this.token}` })
+        'X-GitHub-Api-Version': '2022-11-28',
+        ...(this.token && { 'Authorization': `Bearer ${this.token}` })
       },
       timeout: 10000 // 10 second timeout for faster failure detection
     });
@@ -84,11 +94,32 @@ export class GitHubService {
    */
   ensureToken() {
     if (!this.token) {
+      // Reload environment variables in case they changed
+      dotenv.config();
       this.token = process.env.GITHUB_TOKEN;
       if (this.token) {
-        this.api.defaults.headers['Authorization'] = `token ${this.token}`;
-        console.log(`🔧 Token loaded dynamically: ${this.token.substring(0, 10)}...`);
+        this.api.defaults.headers['Authorization'] = `Bearer ${this.token}`;
+        const tokenType = this.token.startsWith('github_pat_') ? 'Fine-grained' : 
+                         this.token.startsWith('ghp_') ? 'Classic' : 'Unknown';
+        console.log(`🔧 Token loaded dynamically: ${tokenType} - ${this.token.substring(0, 15)}...`);
       }
+    }
+  }
+
+  /**
+   * Generic GitHub API request wrapper
+   * @param {string} endpoint - API endpoint (relative to base URL)
+   * @param {Object} options - Request options (params, headers, etc.)
+   * @returns {*} Response data
+   */
+  async request(endpoint, options = {}) {
+    try {
+      this.ensureToken();
+      const response = await this.api.get(endpoint, options);
+      return response;
+    } catch (error) {
+      console.error(`GitHub API request failed for ${endpoint}:`, error.message);
+      throw error;
     }
   }
 
@@ -320,4 +351,14 @@ export class GitHubService {
 }
 
 // Export singleton instance
-export const githubService = new GitHubService(); 
+export const githubService = new GitHubService();
+
+/**
+ * Simple wrapper function for GitHub API requests
+ * @param {string} endpoint - API endpoint (relative to base URL)
+ * @param {Object} options - Request options (params, headers, etc.)
+ * @returns {*} Response data
+ */
+export const githubRequest = async (endpoint, options = {}) => {
+  return await githubService.request(endpoint, options);
+}; 

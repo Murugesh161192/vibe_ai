@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom base styles */
+/* Performance-optimized base styles */
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -13,11 +13,11 @@
     line-height: 1.6;
     color: #1f2937;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
     min-height: 100vh;
-    /* Enhanced scroll optimization */
-    will-change: scroll-position;
+    /* Scroll performance optimizations */
     -webkit-overflow-scrolling: touch;
-    transform: translateZ(0);
+    contain: layout style paint;
   }
   
   /* Focus styles for accessibility */
@@ -26,9 +26,9 @@
     outline-offset: 2px;
   }
   
-  /* Custom scrollbar */
+  /* Lightweight custom scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
   }
   
   ::-webkit-scrollbar-track {
@@ -37,176 +37,124 @@
   
   ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
+    border-radius: 3px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.4);
   }
 }
 
-/* Enhanced component styles */
+/* Optimized component styles */
 @layer components {
-  /* Enhanced Button Styles - Optimized transitions */
+  /* Lightweight Button Styles */
   .btn-primary {
     @apply bg-gradient-to-r from-indigo-600 to-purple-700 text-white font-semibold 
            py-3 px-6 rounded-xl hover:from-indigo-700 hover:to-purple-800 
            border border-indigo-400/50 shadow-lg hover:shadow-xl;
-    /* Optimize transitions for specific properties */
-    transition: background 0.2s ease, box-shadow 0.2s ease;
-    will-change: auto;
+    transition: all 0.2s ease;
+    contain: layout style;
   }
 
   .btn-primary:hover {
-    box-shadow: 0 12px 20px -5px rgba(99, 102, 241, 0.3), 0 6px 8px -3px rgba(99, 102, 241, 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
   }
 
   .btn-secondary {
-    @apply bg-black/20 text-white font-medium py-2 px-4 rounded-lg 
-           border border-white/30 hover:bg-black/30 hover:border-white/50
-           shadow-lg hover:shadow-xl;
-    /* Enhanced transition */
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    backdrop-filter: blur(4px);
-    will-change: auto;
+    @apply bg-white/15 text-white font-medium py-2.5 px-5 rounded-lg 
+           border border-white/25 hover:bg-white/20 hover:border-white/35
+           shadow-md hover:shadow-lg;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+    contain: layout style;
   }
 
   .btn-secondary:hover {
-    box-shadow: 0 8px 12px -3px rgba(0, 0, 0, 0.15), 0 3px 4px -1px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
   }
 
   .btn-ghost {
     @apply text-white/90 hover:text-white hover:bg-white/10 font-medium 
            py-2 px-4 rounded-lg;
-    transition: color 0.2s ease, background-color 0.2s ease;
-    will-change: auto;
+    transition: color 0.15s ease, background-color 0.15s ease;
+    contain: layout style;
   }
   
-  /* Enhanced Glass Morphism Cards - Optimized for scroll performance */
+  /* Lightweight Glass Cards - Reduced backdrop-blur for performance */
   .card-glass {
-    @apply bg-black/25 rounded-2xl border border-white/20 shadow-lg 
-           hover:bg-black/30 hover:border-white/30;
-    /* Reduced backdrop-blur for better performance */
+    @apply bg-black/15 rounded-2xl border border-white/20 shadow-lg 
+           hover:bg-black/20 hover:border-white/25;
     backdrop-filter: blur(6px);
     transition: background-color 0.2s ease, border-color 0.2s ease;
-    /* Optimize for scroll performance */
-    will-change: auto;
-    transform: translateZ(0);
-    backface-visibility: hidden;
+    contain: layout style paint;
   }
 
   .card-glass:hover {
-    /* Simplified hover effect to prevent scroll breaks */
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
   }
 
   .card-glass-sm {
-    @apply bg-black/20 rounded-xl border border-white/20 shadow-md 
-           hover:bg-black/25 hover:border-white/30;
-    /* Reduced backdrop-blur */
+    @apply bg-black/10 rounded-xl border border-white/20 shadow-md 
+           hover:bg-black/15 hover:border-white/25;
     backdrop-filter: blur(4px);
     transition: background-color 0.2s ease, border-color 0.2s ease;
-    /* Optimize for scroll performance */
-    will-change: auto;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-  }
-
-  .card-glass-sm:hover {
-    /* Simplified hover effect */
-    box-shadow: 0 6px 15px -3px rgba(0, 0, 0, 0.1);
+    contain: layout style paint;
   }
 
   .card-content {
-    @apply bg-black/20 rounded-xl border border-white/20 
-           hover:bg-black/30 shadow-md hover:shadow-lg;
-    backdrop-filter: blur(4px);
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    /* Optimize for scroll performance */
-    will-change: auto;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-  }
-
-  .card-content:hover {
-    border-color: rgba(255, 255, 255, 0.3);
+    @apply bg-black/10 rounded-xl border border-white/20 
+           hover:bg-black/15 hover:border-white/25;
+    backdrop-filter: blur(3px);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    contain: layout style;
   }
   
-  /* Enhanced Input Styles - Optimized performance */
+  /* Optimized Input Styles */
   .input-glass {
-    @apply w-full px-4 py-3 bg-black/25 border-2 border-white/30 rounded-xl 
+    @apply w-full px-4 py-3 bg-black/20 border-2 border-white/25 rounded-xl 
            text-white placeholder-white/60 focus:outline-none focus:border-indigo-400 
-           focus:bg-black/30 shadow-lg;
+           focus:bg-black/25 shadow-md font-medium;
     backdrop-filter: blur(8px);
     transition: all 0.2s ease;
+    contain: layout style;
   }
 
   .input-glass:focus {
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
-    transform: scale(1.01);
+    border-color: rgba(129, 140, 248, 0.8);
   }
 
-  /* Optimized hover states for interactive elements */
+  /* Lightweight hover effects */
   .hover-lift {
-    transition: box-shadow 0.2s ease;
-    transform: translateZ(0);
-    backface-visibility: hidden;
+    transition: transform 0.1s ease, box-shadow 0.15s ease;
+    contain: layout style;
   }
 
   .hover-lift:hover {
-    box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1);
   }
 
-  /* Pulse animation for loading states */
-  .pulse-gentle {
-    animation: pulse-gentle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  @keyframes pulse-gentle {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.7;
-    }
-  }
-
-  /* Enhanced focus states for accessibility */
-  .focus-ring {
-    @apply focus:ring-2 focus:ring-indigo-400/50 focus:outline-none;
-  }
-
-  /* Smooth reveal animation */
-  .reveal {
-    animation: reveal 0.5s ease-out;
-  }
-
-  @keyframes reveal {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  /* Text Styles */
+  /* Optimized text styles */
   .text-heading-xl {
-    @apply text-4xl md:text-5xl font-bold text-white tracking-wide;
+    @apply text-4xl md:text-5xl font-bold text-white;
+    contain: layout style;
   }
 
   .text-heading-lg {
-    @apply text-3xl font-bold text-white tracking-wide;
+    @apply text-3xl font-bold text-white;
+    contain: layout style;
   }
 
   .text-heading-md {
     @apply text-2xl font-bold text-white;
+    contain: layout style;
   }
 
   .text-heading-sm {
     @apply text-xl font-semibold text-white;
+    contain: layout style;
   }
 
   .text-body {
@@ -238,66 +186,73 @@
     @apply text-blue-300 font-bold;
   }
 
-  /* Progress Bar Styles */
+  /* Simplified Progress Bar */
   .progress-bar-container {
-    @apply w-full bg-black/30 rounded-full h-2 border border-white/10;
+    @apply w-full bg-black/30 rounded-full h-2.5 border border-white/10 overflow-hidden;
+    contain: layout style;
   }
 
   .progress-bar {
-    @apply h-2 rounded-full shadow-lg;
-    transition: width 0.5s ease;
+    @apply h-full rounded-full shadow-sm;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    contain: layout style;
   }
 
-  .progress-bar-excellent {
+  .progress-bar-excellent,
+  .vibe-score-excellent.progress-bar {
     @apply bg-gradient-to-r from-green-400 to-emerald-500;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
   }
 
-  .progress-bar-good {
+  .progress-bar-good,
+  .vibe-score-good.progress-bar {
     @apply bg-gradient-to-r from-yellow-400 to-amber-500;
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
   }
 
-  .progress-bar-neutral {
+  .progress-bar-neutral,
+  .vibe-score-neutral.progress-bar {
     @apply bg-gradient-to-r from-blue-400 to-cyan-500;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
   }
 
-  .progress-bar-poor {
+  .progress-bar-poor,
+  .vibe-score-poor.progress-bar {
     @apply bg-gradient-to-r from-red-400 to-pink-500;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
   }
 
-  /* Status Badge Styles - Reduced backdrop blur */
+  /* Lightweight Status Badges */
   .status-badge {
-    @apply px-2 sm:px-3 py-1 rounded-lg text-xs font-semibold text-white shadow-lg 
-           whitespace-nowrap flex-shrink-0;
+    @apply px-2.5 py-1 rounded-md text-xs font-semibold text-white shadow-sm 
+           whitespace-nowrap flex-shrink-0 inline-flex items-center;
+    contain: layout style;
   }
 
   .status-badge-weight {
-    @apply bg-indigo-600/80 text-white border border-indigo-400/50;
-    backdrop-filter: blur(4px);
+    @apply bg-indigo-600/60 text-white border border-indigo-400/30;
   }
 
   .status-badge-excellent {
-    @apply bg-green-600/80 text-white border border-green-400/50;
-    backdrop-filter: blur(4px);
+    @apply bg-green-600/70 text-white border border-green-400/40;
   }
 
   .status-badge-good {
-    @apply bg-yellow-600/80 text-white border border-yellow-400/50;
-    backdrop-filter: blur(4px);
+    @apply bg-yellow-600/70 text-white border border-yellow-400/40;
   }
 
   .status-badge-neutral {
-    @apply bg-blue-600/80 text-white border border-blue-400/50;
-    backdrop-filter: blur(4px);
+    @apply bg-blue-600/70 text-white border border-blue-400/40;
   }
 
   .status-badge-poor {
-    @apply bg-red-600/80 text-white border border-red-400/50;
-    backdrop-filter: blur(4px);
+    @apply bg-red-600/70 text-white border border-red-400/40;
   }
 
-  /* Icon Container Styles */
+  /* Simplified Icon Containers */
   .icon-container {
-    @apply w-12 h-12 rounded-xl flex items-center justify-center shadow-lg;
+    @apply w-12 h-12 rounded-xl flex items-center justify-center shadow-md;
+    contain: layout style;
   }
 
   .icon-container-primary {
@@ -319,59 +274,76 @@
   .icon-container-danger {
     @apply bg-gradient-to-r from-red-500 to-pink-500;
   }
+
+  .icon-container-ai {
+    @apply bg-gradient-to-r from-purple-600 to-pink-600;
+  }
 }
 
-/* Enhanced utility styles */
+/* Optimized utility styles */
 @layer utilities {
   .text-gradient {
     @apply bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent;
   }
-
-  .border-gradient {
-    @apply border-2 border-transparent bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-border;
-  }
   
   .glassmorphism {
-    @apply bg-black/20 border border-white/20 shadow-xl;
-    backdrop-filter: blur(6px);
+    @apply bg-black/10 border border-white/20 shadow-md;
+    backdrop-filter: blur(4px);
+    contain: layout style;
   }
   
   .glassmorphism-hover {
-    @apply hover:bg-black/30 hover:border-white/30 hover:shadow-2xl;
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    @apply hover:bg-black/15 hover:border-white/25;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
   }
   
   .text-shadow {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
   
   .glow {
-    @apply shadow-lg shadow-indigo-500/25;
+    @apply shadow-md shadow-indigo-500/20;
   }
   
   .glow-hover {
-    @apply hover:shadow-xl hover:shadow-indigo-500/40;
-    transition: box-shadow 0.2s ease;
+    @apply hover:shadow-lg hover:shadow-indigo-500/30;
+    transition: box-shadow 0.15s ease;
   }
 
-  /* Optimized metric hover animations */
+  /* Lightweight metric hover */
   .metric-hover {
-    transition: box-shadow 0.2s ease;
-    will-change: auto;
-    transform: translateZ(0);
-    backface-visibility: hidden;
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
+    contain: layout style;
   }
 
   .metric-hover:hover {
-    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2), 0 4px 8px -2px rgba(0, 0, 0, 0.1);
   }
 
-  /* Enhanced focus states */
-  .focus-visible {
-    @apply focus:ring-2 focus:ring-indigo-400/50 focus:outline-none;
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
   }
 
-  /* Custom scrollbar styling */
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  /* Custom lightweight scrollbar */
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
@@ -390,109 +362,254 @@
     border-radius: 2px;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
+  /* Optimized animations */
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
   }
 
-  /* Optimized animation classes */
-  .animate-in {
-    animation: fade-in 0.2s ease-out;
+  .animate-scale-in {
+    animation: scaleIn 0.25s ease-out;
   }
 
-  .fade-in {
-    animation: fade-in 0.2s ease-out;
+  .animate-slide-up {
+    animation: slideUp 0.25s ease-out;
   }
 
-  @keyframes fade-in {
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes scaleIn {
+    from { 
+      opacity: 0; 
+      transform: scale(0.95) translateZ(0); 
+    }
+    to { 
+      opacity: 1; 
+      transform: scale(1) translateZ(0); 
+    }
+  }
+
+  @keyframes slideUp {
     from {
       opacity: 0;
-      transform: translateY(-10px);
+      transform: translate3d(0, 10px, 0);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: translate3d(0, 0, 0);
     }
   }
 
-  /* Custom responsive breakpoints */
-  @media (min-width: 480px) {
-    .xs\:inline {
-      display: inline;
-    }
-    .xs\:hidden {
-      display: none;
-    }
+  /* Optimized loading spinner */
+  .loading-spinner {
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top: 2px solid #0ea5e9;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    animation: spin 0.8s linear infinite;
+    contain: layout style;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 }
 
-/* Scroll performance optimization for all interactive elements */
-.btn-primary,
-.btn-secondary,
-.btn-ghost {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: auto;
+/* Responsive Layout Utilities */
+@layer utilities {
+  /* Improved responsive containers */
+  .container-responsive {
+    @apply w-full mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 100%;
+  }
+  
+  @screen sm {
+    .container-responsive {
+      max-width: 640px;
+    }
+  }
+  
+  @screen md {
+    .container-responsive {
+      max-width: 768px;
+    }
+  }
+  
+  @screen lg {
+    .container-responsive {
+      max-width: 1024px;
+    }
+  }
+  
+  @screen xl {
+    .container-responsive {
+      max-width: 1280px;
+    }
+  }
+  
+  /* Better touch targets for mobile */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  @media (min-width: 640px) {
+    .touch-target {
+      min-height: auto;
+      min-width: auto;
+    }
+  }
+  
+  /* Mobile touch feedback */
+  @media (hover: none) and (pointer: coarse) {
+    .touch-target:active {
+      transform: scale(0.95);
+      opacity: 0.9;
+    }
+  }
+  
+  /* Responsive text utilities */
+  .text-responsive {
+    @apply text-sm sm:text-base;
+  }
+  
+  .heading-responsive {
+    @apply text-xl sm:text-2xl md:text-3xl;
+  }
+  
+  /* Improved mobile spacing */
+  .spacing-responsive {
+    @apply space-y-4 sm:space-y-6 md:space-y-8;
+  }
+  
+  /* Better grid gaps for mobile */
+  .gap-responsive {
+    @apply gap-3 sm:gap-4 md:gap-6;
+  }
 }
 
-/* Optimize navigation for scroll performance */
-nav {
-  will-change: transform;
-  transform: translateZ(0);
+/* Responsive improvements for existing components */
+@media (max-width: 640px) {
+  /* Better mobile padding for cards */
+  .card-glass {
+    @apply p-4;
+  }
+  
+  /* Improved button sizing on mobile */
+  .btn-primary,
+  .btn-secondary {
+    @apply py-2.5 px-4 text-sm;
+  }
+  
+  /* Better input field sizing */
+  .input-glass {
+    @apply py-3 text-sm;
+  }
+  
+  /* Radar chart container adjustments */
+  .radar-chart-container {
+    padding: 0.5rem;
+  }
+  
+  /* Metric cards responsive */
+  .metric-card {
+    @apply p-3;
+  }
+  
+  /* Header adjustments */
+  .header-container {
+    @apply py-4;
+  }
+  
+  /* Prevent horizontal overflow */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Better touch targets for mobile */
+  button {
+    min-height: 40px;
+  }
+  
+  /* Fix text overflow on small screens */
+  .truncate {
+    max-width: 100%;
+  }
 }
 
-/* Optimized Animation classes */
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+/* Tablet improvements */
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Better tablet layouts */
+  .grid-responsive {
+    @apply grid-cols-2;
+  }
+  
+  /* Adjusted container widths */
+  .container-fluid {
+    @apply px-6;
+  }
 }
 
-.animate-slide-up {
-  animation: slideUp 0.3s ease-out;
+/* Desktop refinements */
+@media (min-width: 1025px) {
+  /* Optimal reading width */
+  .content-container {
+    max-width: 65ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* Better hover states on desktop */
+  .hover-desktop:hover {
+    @apply transform scale-105;
+  }
 }
 
-.animate-pulse-slow {
-  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.animate-bounce-slow {
-  animation: bounce 2s infinite;
-}
-
-.animate-radar-spin {
-  animation: radarSpin 20s linear infinite;
-}
-
-/* Loading spinner - Optimized */
-.loading-spinner {
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top: 3px solid #0ea5e9;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  will-change: transform;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Enhanced radar chart styles - Performance optimized */
+/* Performance-optimized radar chart */
 .radar-chart {
   width: 100%;
   height: 100%;
-  will-change: transform;
-  transition: transform 0.2s ease;
+  transition: transform 0.15s ease;
+  contain: layout style;
 }
 
 .radar-chart:hover {
-  transform: scale(1.02);
+  transform: scale(1.01);
 }
 
-/* Responsive radar chart adjustments */
-@media (max-width: 480px) {
-  .radar-chart:hover {
-    transform: none; /* Disable hover scaling on mobile */
+.radar-chart-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Disable hover effects on mobile for better performance */
+@media (max-width: 768px) {
+  .radar-chart:hover,
+  .hover-lift:hover,
+  .metric-hover:hover {
+    transform: none;
+  }
+  
+  .card-glass:hover,
+  .card-glass-sm:hover,
+  .card-content:hover {
+    background-color: inherit;
+    border-color: inherit;
+    box-shadow: inherit;
+  }
+  
+  /* Responsive radar chart sizing */
+  .radar-chart-container {
+    min-height: 320px;
+    max-height: 400px;
   }
 }
 
@@ -504,53 +621,48 @@ nav {
 .radar-grid-line {
   stroke: rgba(255, 255, 255, 0.2);
   stroke-width: 0.5;
-  stroke-dasharray: 2,2;
 }
 
 .radar-data-line {
   stroke: #0ea5e9;
   stroke-width: 2;
   fill: rgba(14, 165, 233, 0.1);
-  transition: stroke-width 0.2s ease, fill 0.2s ease;
-}
-
-.radar-data-line:hover {
-  stroke-width: 3;
-  fill: rgba(14, 165, 233, 0.2);
+  transition: stroke-width 0.15s ease;
 }
 
 .radar-point {
   fill: #0ea5e9;
   stroke: white;
-  stroke-width: 2;
-  transition: fill 0.2s ease, transform 0.2s ease;
-  will-change: transform;
+  stroke-width: 1;
+  transition: all 0.2s ease;
 }
 
 .radar-point:hover {
-  fill: #0284c7;
-  transform: scale(1.2);
+  r: 8;
+  filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.8));
 }
 
-/* Enhanced tooltip styles */
+/* Lightweight tooltip */
 .tooltip {
-  position: absolute;
+  position: fixed;
   background: rgba(0, 0, 0, 0.9);
   color: white;
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 14px;
+  font-weight: 500;
   pointer-events: none;
-  z-index: 1000;
+  z-index: 9999;
   white-space: nowrap;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(8px);
 }
 
-/* Responsive design */
+/* Responsive optimizations */
 @media (max-width: 768px) {
   .card-glass, .card-glass-sm {
-    @apply p-4;
+    @apply p-3;
   }
   
   .btn-primary, .btn-secondary {
@@ -568,6 +680,19 @@ nav {
   .text-heading-lg {
     @apply text-2xl;
   }
+  
+  /* Reduce backdrop-blur on mobile */
+  .card-glass {
+    backdrop-filter: blur(2px);
+  }
+  
+  .card-glass-sm {
+    backdrop-filter: blur(1px);
+  }
+  
+  .input-glass {
+    backdrop-filter: blur(2px);
+  }
 }
 
 /* High contrast mode support */
@@ -579,13 +704,9 @@ nav {
   .btn-primary {
     @apply border-2 border-white;
   }
-  
-  .input-glass {
-    @apply border-2 border-white;
-  }
 }
 
-/* Reduced motion support */
+/* Reduced motion support for accessibility */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -594,10 +715,25 @@ nav {
   }
   
   .animate-fade-in,
-  .animate-slide-up,
-  .animate-pulse-slow,
-  .animate-bounce-slow,
-  .animate-radar-spin {
+  .animate-scale-in,
+  .animate-slide-up {
     animation: none !important;
+  }
+  
+  .radar-chart:hover,
+  .hover-lift:hover,
+  .metric-hover:hover {
+    transform: none !important;
+  }
+} 
+
+/* Improved focus states for better accessibility */
+@media (hover: none) {
+  /* Remove hover effects on touch devices */
+  .card-glass:hover,
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    transform: none;
+    box-shadow: none;
   }
 } 

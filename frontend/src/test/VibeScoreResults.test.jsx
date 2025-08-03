@@ -5,20 +5,48 @@ import VibeScoreResults from '../components/VibeScoreResults';
 describe('VibeScoreResults Component', () => {
   const mockRepoInfo = {
     name: 'test-repo',
+    fullName: 'test/test-repo',
     description: 'A test repository',
+    language: 'JavaScript',
     stars: 100,
     forks: 50,
+    openIssues: 15,
+    watchers: 25,
     contributors: 10,
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-12-01T00:00:00Z',
     url: 'https://github.com/test/test-repo',
   };
 
   const mockVibeScore = {
     total: 85,
     breakdown: {
-      community: 90,
-      documentation: 80,
-      testing: 70,
-      code_quality: 95,
+      codeQuality: 90,
+      readability: 80,
+      collaboration: 70,
+      innovation: 85,
+      maintainability: 75,
+      inclusivity: 65,
+      security: 88,
+      performance: 82,
+      testingQuality: 78,
+      communityHealth: 72,
+      codeHealth: 80,
+      releaseManagement: 68,
+    },
+    weights: {
+      codeQuality: 16,
+      readability: 12,
+      collaboration: 15,
+      innovation: 8,
+      maintainability: 8,
+      inclusivity: 5,
+      security: 12,
+      performance: 8,
+      testingQuality: 6,
+      communityHealth: 4,
+      codeHealth: 4,
+      releaseManagement: 2,
     },
   };
 
@@ -29,9 +57,8 @@ describe('VibeScoreResults Component', () => {
       'Good test coverage.',
       'High code quality.',
     ],
-    recommendations: ['Consider adding more integration tests'],
-    documentationFiles: [],
     testFiles: [],
+    documentationFiles: [],
     dependencies: [],
     folderStructure: [],
   };
@@ -43,62 +70,102 @@ describe('VibeScoreResults Component', () => {
   };
 
   test('renders the main components', () => {
-    render(<VibeScoreResults result={mockResult} onAnalyzeAnother={() => {}} />);
+    render(<VibeScoreResults result={mockResult} onNewAnalysis={() => {}} />);
 
-    expect(screen.getByText(/Vibe Score Results/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'test-repo' })).toBeInTheDocument();
+    expect(screen.getByText(/Vibe Score Analysis/i)).toBeInTheDocument();
+    expect(screen.getByText('test-repo')).toBeInTheDocument();
     expect(screen.getByText('85')).toBeInTheDocument();
-    expect(screen.getByText(/Excellent Vibes!/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Detailed Metrics/i })).toBeInTheDocument();
-    expect(screen.getByText(/Analysis Insights/i)).toBeInTheDocument();
-    expect(screen.getByText(/Repository Statistics/i)).toBeInTheDocument();
   });
 
-  test('displays the correct vibe message for different scores', () => {
-    const scores = {
-      95: /Excellent Vibes!/i,
-      85: /Excellent Vibes!/i,
-      75: /Good Vibes!/i,
-      65: /Good Vibes!/i,
-      45: /Decent Vibes/i,
-      25: /Room for Improvement/i,
+  test('displays repository information', () => {
+    render(
+      <VibeScoreResults
+        result={mockResult}
+        onNewAnalysis={() => {}}
+      />
+    );
+
+    expect(screen.getByText('test-repo')).toBeInTheDocument();
+    expect(screen.getByText('A test repository')).toBeInTheDocument();
+  });
+
+  test('displays repository statistics correctly', () => {
+    render(
+      <VibeScoreResults
+        result={mockResult}
+        onNewAnalysis={() => {}}
+      />
+    );
+
+    // Check that all stats are displayed
+    expect(screen.getByText('100')).toBeInTheDocument(); // Stars
+    expect(screen.getByText('50')).toBeInTheDocument(); // Forks
+    expect(screen.getByText('15')).toBeInTheDocument(); // Issues
+    expect(screen.getByText('25')).toBeInTheDocument(); // Watchers
+    
+    // Check stat labels
+    expect(screen.getByText('Stars')).toBeInTheDocument();
+    expect(screen.getByText('Forks')).toBeInTheDocument();
+    expect(screen.getByText('Issues')).toBeInTheDocument();
+    expect(screen.getByText('Watchers')).toBeInTheDocument();
+  });
+
+  test('displays score interpretation guide', () => {
+    render(
+      <VibeScoreResults
+        result={mockResult}
+        onNewAnalysis={() => {}}
+      />
+    );
+
+    expect(screen.getByText(/Score Interpretation Guide/i)).toBeInTheDocument();
+    expect(screen.getByText('80-100: Excellent')).toBeInTheDocument();
+    expect(screen.getByText('60-79: Good')).toBeInTheDocument();
+    expect(screen.getByText('40-59: Fair')).toBeInTheDocument();
+    expect(screen.getByText('0-39: Poor')).toBeInTheDocument();
+  });
+
+  test('displays vibe score breakdown', () => {
+    render(
+      <VibeScoreResults
+        result={mockResult}
+        onNewAnalysis={() => {}}
+      />
+    );
+
+    expect(screen.getByText(/Score Breakdown/i)).toBeInTheDocument();
+  });
+
+  test('displays analysis insights', () => {
+    render(
+      <VibeScoreResults
+        result={mockResult}
+        onNewAnalysis={() => {}}
+      />
+    );
+
+    expect(screen.getByText('Great community engagement.')).toBeInTheDocument();
+    expect(screen.getByText('Comprehensive documentation.')).toBeInTheDocument();
+    expect(screen.getByText('Good test coverage.')).toBeInTheDocument();
+    expect(screen.getByText('High code quality.')).toBeInTheDocument();
+  });
+
+  test('handles missing data gracefully', () => {
+    const resultWithMissingData = {
+      ...mockResult,
+      repoInfo: {
+        ...mockRepoInfo,
+        openIssues: undefined,
+        watchers: undefined,
+      },
+      analysis: null,
     };
+    
+    render(<VibeScoreResults result={resultWithMissingData} onNewAnalysis={() => {}} />);
 
-    let rerender;
-
-    for (const [score, message] of Object.entries(scores)) {
-      const vibeScore = { ...mockVibeScore, total: Number(score) };
-      if (rerender) {
-        rerender(
-          <VibeScoreResults
-            result={{
-              repoInfo: mockRepoInfo,
-              vibeScore: vibeScore,
-              analysis: mockAnalysis,
-            }}
-            onAnalyzeAnother={() => {}}
-          />
-        );
-      } else {
-        ({ rerender } = render(
-          <VibeScoreResults
-            result={{
-              repoInfo: mockRepoInfo,
-              vibeScore: vibeScore,
-              analysis: mockAnalysis,
-            }}
-            onAnalyzeAnother={() => {}}
-          />
-        ));
-      }
-      expect(screen.getByText(message, { selector: 'div:not(.sr-only)' })).toBeInTheDocument();
-    }
+    expect(screen.getByText(/Vibe Score Analysis/i)).toBeInTheDocument();
+    expect(screen.getByText('85')).toBeInTheDocument();
+    // Should display 0 for undefined values
+    expect(screen.getAllByText('0').length).toBeGreaterThan(0);
   });
-
-  test('shows loading state when analysis is not available', () => {
-    render(<VibeScoreResults result={{ ...mockResult, analysis: null }} onAnalyzeAnother={() => {}} />);
-    expect(screen.queryByText(/Analysis Insights/i)).not.toBeInTheDocument();
-  });
-
-
 }); 
