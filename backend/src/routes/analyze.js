@@ -191,6 +191,16 @@ async function insightsHandler(request, reply) {
   } catch (error) {
     request.log.error(`Insight generation error:`, error);
     
+    // Log more detailed error information
+    console.error('🔍 Detailed error info:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    
     if (error.message === 'Failed to generate repository insights') {
       return reply.status(503).send({
         success: false,
@@ -198,9 +208,27 @@ async function insightsHandler(request, reply) {
       });
     }
     
+    // Provide more specific error messages
+    if (error.message?.includes('API key') || error.message?.includes('authentication')) {
+      return reply.status(500).send({
+        success: false,
+        error: 'AI service authentication failed',
+        message: 'Please check your GEMINI_API_KEY configuration'
+      });
+    }
+    
+    if (error.message?.includes('quota') || error.message?.includes('rate limit')) {
+      return reply.status(429).send({
+        success: false,
+        error: 'AI service quota exceeded',
+        message: 'Please try again later or check your API quota'
+      });
+    }
+    
     return reply.status(500).send({
       success: false,
-      error: 'Failed to generate insights. Please try again later.'
+      error: 'Failed to generate insights. Please try again later.',
+      details: error.message
     });
   }
 }

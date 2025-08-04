@@ -36,11 +36,17 @@ export class GeminiInsightsService {
       const prompt = this.buildInsightPrompt(repoData);
       
       console.log('📝 Sending request to Gemini AI...');
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      console.log('📋 Prompt length:', prompt.length, 'characters');
       
-      console.log('✅ Received response from Gemini AI');
+      const result = await this.model.generateContent(prompt);
+      console.log('📨 Gemini API response received');
+      
+      const response = await result.response;
+      console.log('📄 Response object obtained');
+      
+      const text = response.text();
+      console.log('✅ Text extracted from response');
+      console.log('📏 Response length:', text.length, 'characters');
       
       // Parse the JSON response from Gemini
       return this.parseInsightResponse(text);
