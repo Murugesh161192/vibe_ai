@@ -10,7 +10,8 @@
     "dev:frontend": "cd frontend && npm run dev",
     "start": "node server.js",
     "start:backend": "cd backend && npm start",
-    "build": "npm install --production"
+    "build": "npm install --production",
+    "setup:deployment": "node setup-deployment.js"
   },
   "keywords": [
     "github",

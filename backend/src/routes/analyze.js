@@ -12,7 +12,8 @@ try {
   console.log('✅ Gemini service initialized successfully');
 } catch (error) {
   console.error('⚠️ Gemini service initialization failed:', error.message);
-  console.log('💡 Smart Summary feature will be disabled until GEMINI_API_KEY is configured');
+  console.log('💡 AI Insights feature will be disabled until GEMINI_API_KEY is configured');
+  console.log('🔧 To enable AI insights, set GEMINI_API_KEY environment variable');
 }
 
 // Schema definitions for request validation
@@ -24,7 +25,7 @@ const analyzeSchema = {
       properties: {
         repoUrl: {
           type: 'string',
-          pattern: '^https?:\\/\\/(www\\.)?github\\.com\\/[a-zA-Z0-9._-]+\\/[a-zA-Z0-9._-]+\\/?$',
+          pattern: '^https?:\\/\\/(www\\.)?github\\.com\\/[a-zA-Z0-9._-]+\\/[a-zA-Z0-9._-]+(?:\\/.*)?$',
           description: 'Valid GitHub repository URL'
         }
       }
@@ -40,7 +41,7 @@ const insightsSchema = {
       properties: {
         repoUrl: {
           type: 'string',
-          pattern: '^https?:\\/\\/(www\\.)?github\\.com\\/[a-zA-Z0-9._-]+\\/[a-zA-Z0-9._-]+\\/?$',
+          pattern: '^https?:\\/\\/(www\\.)?github\\.com\\/[a-zA-Z0-9._-]+\\/[a-zA-Z0-9._-]+(?:\\/.*)?$',
           description: 'Valid GitHub repository URL'
         }
       }
@@ -141,7 +142,8 @@ async function insightsHandler(request, reply) {
       return reply.status(503).send({
         success: false,
         error: 'AI service not available',
-        message: 'Gemini API key is not configured. Please configure GEMINI_API_KEY environment variable.'
+        message: 'Gemini API key is not configured. Please configure GEMINI_API_KEY environment variable.',
+        details: 'To enable AI insights, add GEMINI_API_KEY to your environment variables. Get your API key from https://makersuite.google.com/app/apikey'
       });
     }
     
@@ -277,7 +279,8 @@ async function summarizeHandler(request, reply) {
       return reply.status(503).send({
         success: false,
         error: 'AI service not available',
-        message: 'Gemini API key is not configured. Please configure GEMINI_API_KEY environment variable.'
+        message: 'Gemini API key is not configured. Please configure GEMINI_API_KEY environment variable.',
+        details: 'To enable AI insights, add GEMINI_API_KEY to your environment variables. Get your API key from https://makersuite.google.com/app/apikey'
       });
     }
     

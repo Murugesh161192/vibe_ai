@@ -30,6 +30,7 @@ This comprehensive deployment guide covers enterprise-grade deployment strategie
 ### Prerequisites Checklist
 - [ ] Node.js 18+ installed
 - [ ] GitHub Personal Access Token generated
+- [ ] **Gemini AI API Key generated** (for AI insights)
 - [ ] Git repository access configured
 - [ ] Platform accounts created (Netlify, Railway/Render)
 - [ ] Domain names configured (optional)
@@ -183,6 +184,7 @@ Ensure your `netlify.toml` includes:
    ```bash
    # In Railway Dashboard: Variables tab
    GITHUB_TOKEN=ghp_your_token_here
+   GEMINI_API_KEY=your_gemini_api_key_here  # Required for AI insights
    NODE_ENV=production
    PORT=3000
    CORS_ORIGIN=https://your-frontend-domain.com
@@ -221,6 +223,7 @@ Ensure your `netlify.toml` includes:
 3. **Environment Variables**
    ```bash
    GITHUB_TOKEN=ghp_your_token_here
+   GEMINI_API_KEY=your_gemini_api_key_here  # Required for AI insights
    NODE_ENV=production
    CORS_ORIGIN=https://your-frontend-domain.com
    ```
@@ -243,6 +246,7 @@ heroku create vibe-ai-backend
 
 # Set environment variables
 heroku config:set GITHUB_TOKEN=ghp_your_token_here
+heroku config:set GEMINI_API_KEY=your_gemini_api_key_here  # Required for AI insights
 heroku config:set NODE_ENV=production
 heroku config:set CORS_ORIGIN=https://your-frontend-domain.com
 
@@ -357,6 +361,58 @@ const rateLimitOptions = {
   timeWindow: process.env.RATE_LIMIT_TIME_WINDOW || 900000, // 15 minutes
   skipSuccessfulRequests: false
 };
+```
+
+## 🤖 AI Configuration
+
+### Gemini AI Setup (Required for AI Insights)
+
+The AI insights feature requires a Google Gemini API key:
+
+1. **Get API Key**
+   ```bash
+   # Visit Google AI Studio
+   https://makersuite.google.com/app/apikey
+   
+   # Create new API key
+   # Copy the key (starts with AI...)
+   ```
+
+2. **Configure Environment Variable**
+   ```bash
+   # Add to your deployment platform
+   GEMINI_API_KEY=AIzaSyC...your_key_here
+   ```
+
+3. **Verify Configuration**
+   ```bash
+   # Test the AI insights endpoint
+   curl -X POST https://your-api-domain.com/api/analyze/insights \
+     -H "Content-Type: application/json" \
+     -d '{"repoUrl": "https://github.com/facebook/react"}'
+   ```
+
+### AI Features Available
+- **Repository Insights**: Code hotspot identification
+- **Contributor Analysis**: Collaboration patterns
+- **Development Velocity**: Commit frequency analysis
+- **Code Quality Assessment**: Technical debt evaluation
+- **Smart Recommendations**: Actionable improvements
+
+### Troubleshooting AI Issues
+```bash
+# Check if AI service is available
+curl https://your-api-domain.com/health
+
+# Test AI endpoint
+curl -X POST https://your-api-domain.com/api/analyze/insights \
+  -H "Content-Type: application/json" \
+  -d '{"repoUrl": "https://github.com/facebook/react"}'
+
+# Common error responses:
+# 503: AI service not available (GEMINI_API_KEY not configured)
+# 400: Invalid repository URL
+# 500: AI service error (check API key validity)
 ```
 
 ## 🏗️ CI/CD Pipeline Setup
