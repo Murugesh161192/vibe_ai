@@ -2,6 +2,8 @@
 import { VibeScoreCalculator } from '../src/services/vibeScore.js';
 import { LanguageAnalyzer } from '../src/services/languageAnalyzer.js';
 
+
+
 describe('VibeScoreCalculator', () => {
   let calculator;
 
@@ -210,4 +212,6 @@ describe('LanguageAnalyzer', () => {
       expect(dependencies).toContain('requests');
     });
   });
-}); 
+});
+
+ 
