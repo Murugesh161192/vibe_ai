@@ -4,7 +4,16 @@ import { GeminiInsightsService } from '../services/geminiInsights.js';
 
 const analyzer = new RepositoryAnalyzer();
 const githubService = new GitHubService();
-const geminiService = new GeminiInsightsService();
+
+// Initialize Gemini service with error handling
+let geminiService = null;
+try {
+  geminiService = new GeminiInsightsService();
+  console.log('✅ Gemini service initialized successfully');
+} catch (error) {
+  console.error('⚠️ Gemini service initialization failed:', error.message);
+  console.log('💡 Smart Summary feature will be disabled until GEMINI_API_KEY is configured');
+}
 
 // Schema definitions for request validation
 const analyzeSchema = {
@@ -126,6 +135,15 @@ async function insightsHandler(request, reply) {
   
   try {
     request.log.info(`Generating insights for repository: ${repoUrl}`);
+    
+    // Check if Gemini service is available
+    if (!geminiService) {
+      return reply.status(503).send({
+        success: false,
+        error: 'AI service not available',
+        message: 'Gemini API key is not configured. Please configure GEMINI_API_KEY environment variable.'
+      });
+    }
     
     // Extract repo info using regex to handle various URL formats
     const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
@@ -254,6 +272,15 @@ async function summarizeHandler(request, reply) {
   try {
     request.log.info(`Summarizing repository README: ${owner}/${repo}`);
     
+    // Check if Gemini service is available
+    if (!geminiService) {
+      return reply.status(503).send({
+        success: false,
+        error: 'AI service not available',
+        message: 'Gemini API key is not configured. Please configure GEMINI_API_KEY environment variable.'
+      });
+    }
+    
     // Fetch repository README content
     const readmeContent = await githubService.getReadmeContent(owner, repo);
     
@@ -299,11 +326,11 @@ ${readmeContent}`;
         error: 'Repository not found',
         message: `Repository ${owner}/${repo} not found or is private`
       });
-    } else if (error.message?.includes('API key')) {
+    } else if (error.message?.includes('API key') || error.message?.includes('GEMINI_API_KEY')) {
       reply.status(500).send({
         success: false,
         error: 'AI service not configured',
-        message: 'Gemini API key is not configured'
+        message: 'Gemini API key is not configured. Please set GEMINI_API_KEY environment variable.'
       });
     } else {
       reply.status(500).send({
