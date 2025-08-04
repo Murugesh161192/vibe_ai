@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { MapPin, Calendar, Users, ExternalLink, Star, GitFork, Eye, Building, Mail, Link as LinkIcon, Bot, BarChart3 } from 'lucide-react';
+import { MapPin, Calendar, ExternalLink, Star, GitFork, Building, Mail, Link as LinkIcon, Bot, BarChart3 } from 'lucide-react';
 import { summarizeReadme } from '../services/api';
 
-const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo, onNewSearch }) => {
+const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo }) => {
   const [loadingSummary, setLoadingSummary] = useState({});
   const [loadingAnalyze, setLoadingAnalyze] = useState({});
 

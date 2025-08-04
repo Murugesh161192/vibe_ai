@@ -424,6 +424,21 @@ const {
   extractRepoInfo,
 } = api;
 
+/**
+ * Generate AI-powered insights for a repository
+ * @param {string} repoUrl - GitHub repository URL
+ * @returns {Promise<Object>} - Insights data
+ */
+export const generateInsights = async (repoUrl) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/api/analyze/insights`, { repoUrl });
+    return response.data;
+  } catch (error) {
+    console.error('Generate insights error:', error);
+    throw error;
+  }
+};
+
 export { 
   api,
   analyzeRepository,

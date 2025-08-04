@@ -73,8 +73,9 @@ describe('VibeScoreResults Component', () => {
     render(<VibeScoreResults result={mockResult} onNewAnalysis={() => {}} />);
 
     expect(screen.getByText(/Vibe Score Analysis/i)).toBeInTheDocument();
-    expect(screen.getByText('test-repo')).toBeInTheDocument();
-    expect(screen.getByText('85')).toBeInTheDocument();
+    expect(screen.getAllByText('test-repo').length).toBeGreaterThan(0);
+    // There are multiple score displays, so check that at least one exists
+    expect(screen.getAllByText('85').length).toBeGreaterThan(0);
   });
 
   test('displays repository information', () => {
@@ -85,7 +86,7 @@ describe('VibeScoreResults Component', () => {
       />
     );
 
-    expect(screen.getByText('test-repo')).toBeInTheDocument();
+    expect(screen.getAllByText('test-repo').length).toBeGreaterThan(0);
     expect(screen.getByText('A test repository')).toBeInTheDocument();
   });
 
@@ -98,16 +99,16 @@ describe('VibeScoreResults Component', () => {
     );
 
     // Check that all stats are displayed
-    expect(screen.getByText('100')).toBeInTheDocument(); // Stars
+    expect(screen.getAllByText('100').length).toBeGreaterThan(0); // Stars
     expect(screen.getByText('50')).toBeInTheDocument(); // Forks
     expect(screen.getByText('15')).toBeInTheDocument(); // Issues
-    expect(screen.getByText('25')).toBeInTheDocument(); // Watchers
+    expect(screen.getByText('10')).toBeInTheDocument(); // Contributors
     
     // Check stat labels
     expect(screen.getByText('Stars')).toBeInTheDocument();
     expect(screen.getByText('Forks')).toBeInTheDocument();
     expect(screen.getByText('Issues')).toBeInTheDocument();
-    expect(screen.getByText('Watchers')).toBeInTheDocument();
+    expect(screen.getByText('Contributors')).toBeInTheDocument();
   });
 
   test('displays score interpretation guide', () => {
@@ -164,7 +165,7 @@ describe('VibeScoreResults Component', () => {
     render(<VibeScoreResults result={resultWithMissingData} onNewAnalysis={() => {}} />);
 
     expect(screen.getByText(/Vibe Score Analysis/i)).toBeInTheDocument();
-    expect(screen.getByText('85')).toBeInTheDocument();
+    expect(screen.getAllByText('85').length).toBeGreaterThan(0);
     // Should display 0 for undefined values
     expect(screen.getAllByText('0').length).toBeGreaterThan(0);
   });

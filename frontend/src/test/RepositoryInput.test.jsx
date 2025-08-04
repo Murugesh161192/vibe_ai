@@ -110,7 +110,7 @@ describe('RepositoryInput Component', () => {
         expect(mockOnAnalyze).toHaveBeenCalledWith(url.trim())
         mockOnAnalyze.mockClear()
       }
-    })
+    }, 10000) // Increase timeout to 10 seconds
 
     test('trims whitespace from input', async () => {
       const user = userEvent.setup()

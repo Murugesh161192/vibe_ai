@@ -24,8 +24,8 @@ const Header = ({ analysisState, onNewAnalysis }) => {
         };
       default:
         return {
-          title: 'Vibe GitHub Assistant',
-          subtitle: 'Analyze GitHub repositories with advanced metrics',
+          title: 'Vibe GitHub Analyzer',
+          subtitle: 'Built for Cognizant Vibe Coding 2025',
           icon: Sparkles,
           showButton: false,
           showCapabilities: true

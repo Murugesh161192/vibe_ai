@@ -81,13 +81,18 @@ fastify.setErrorHandler((error, request, reply) => {
 // Start function for server deployment
 const start = async () => {
   try {
+    const host = process.env.HOST || '0.0.0.0';
     const port = process.env.PORT || 3000;
-    const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : (process.env.HOST || 'localhost');
     
-    await fastify.listen({ port, host });
-    fastify.log.info(`🚀 Vibe AI Backend server running on http://${host}:${port}`);
-    fastify.log.info(`📊 Health check available at http://${host}:${port}/health`);
-    fastify.log.info(`🔍 API endpoints available at http://${host}:${port}${process.env.API_PREFIX || '/api'}`);
+    await fastify.listen({ 
+      port, 
+      host
+    });
+    
+    fastify.log.info(`🚀 Vibe GitHub Analyzer Backend running on http://${host}:${port}`);
+    fastify.log.info(`📊 Health check available at http://localhost:${port}/health`);
+    fastify.log.info(`🔍 API endpoints available at http://localhost:${port}/api`);
+    fastify.log.info(`💡 Built for Cognizant Vibe Coding 2025`);
     
     // Graceful shutdown handling
     process.on('SIGTERM', async () => {

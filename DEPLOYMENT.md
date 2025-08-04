@@ -63,7 +63,7 @@ npm run deploy
 3. **Configure Build Settings**
    ```yaml
    # Build settings in Netlify UI
-   Build command: cd frontend && npm ci && npm run build
+   Build command: cd frontend && npm install && npm run build
    Publish directory: frontend/dist
    Base directory: /
    Node version: 18

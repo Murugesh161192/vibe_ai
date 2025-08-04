@@ -54,18 +54,15 @@ const AnalysisInsights = ({ analysis }) => {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 md:space-y-12">
+    <div className="space-y-6 sm:space-y-8">
       {/* Key Insights */}
       {insights && insights.length > 0 && (
-        <div className="card-glass p-6 sm:p-8 md:p-10">
-          <h3 className="text-heading-md text-lg sm:text-2xl md:text-3xl mb-8 flex items-center gap-3">
-            <div className="icon-container icon-container-primary p-2">
-              <Lightbulb className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            Analysis Insights
-          </h3>
+        <div>
+          <h4 className="text-base sm:text-lg font-medium text-white/80 mb-4">
+            📊 Basic Analysis Results
+          </h4>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {insights.map((insight, index) => {
               const iconData = getInsightIcon(insight);
               const IconComponent = iconData.icon;
@@ -73,14 +70,10 @@ const AnalysisInsights = ({ analysis }) => {
               return (
                 <div
                   key={index}
-                  className="card-content p-5 border-l-4 border-white/20"
+                  className={`flex items-start gap-3 p-3 sm:p-4 rounded-lg ${iconData.bgColor} backdrop-blur-md transition-all hover:bg-white/10`}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className={`${iconData.bgColor} rounded-xl p-3 flex-shrink-0`}>
-                      <IconComponent className="w-5 h-5 text-white" />
-                    </div>
-                    <p className="text-white text-base leading-relaxed flex-1 my-0">{insight}</p>
-                  </div>
+                  <IconComponent className={`w-5 h-5 sm:w-6 sm:h-6 ${iconData.color} flex-shrink-0 mt-0.5`} />
+                  <span className="text-white text-sm sm:text-base leading-relaxed">{insight}</span>
                 </div>
               );
             })}

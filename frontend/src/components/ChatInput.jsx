@@ -84,7 +84,7 @@ const ChatInput = ({ onSubmit, loading, showWelcome = true }) => {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Welcome Message */}
-      {showWelcome && (
+      {showWelcome && !loading && (
         <div className="card-glass p-4 sm:p-6 md:p-8 text-center">
           <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4">
             <div className="icon-container icon-container-primary p-2 sm:p-3 w-12 h-12 sm:w-14 sm:h-14">
@@ -148,7 +148,7 @@ const ChatInput = ({ onSubmit, loading, showWelcome = true }) => {
         )}
 
         {/* Examples Section */}
-        {showWelcome && (
+        {showWelcome && !loading && (
           <div className="mt-4 sm:mt-6">
             <div className="text-white/70 text-xs sm:text-sm mb-3 flex items-center gap-2">
               <span>Examples:</span>

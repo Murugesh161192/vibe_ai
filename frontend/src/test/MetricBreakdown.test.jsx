@@ -56,7 +56,8 @@ describe('MetricBreakdown Component', () => {
 
   test('handles empty data gracefully', () => {
     render(<MetricBreakdown breakdown={{}} weights={{}} />);
-    expect(screen.queryByText('Code Quality')).toBeInTheDocument();
+    expect(screen.getByText('No Metrics Available')).toBeInTheDocument();
+    expect(screen.getByText(/Metric breakdown data is not available for this repository/i)).toBeInTheDocument();
   });
 
   test('renders with fallback weights', () => {

@@ -1,12 +1,24 @@
-import React from 'react';
-import { ArrowLeft, Star, GitBranch, Calendar, Users, Bot } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Star, GitBranch, Calendar, Users, Bot, ChevronUp, ChevronDown, Sparkles } from 'lucide-react';
 import RadarChart from './RadarChart';
 import MetricBreakdown from './MetricBreakdown';
 import RepositoryInfo from './RepositoryInfo';
 import AnalysisInsights from './AnalysisInsights';
+import RepositoryInsights from './RepositoryInsights';
 
 const VibeScoreResults = ({ result, onNewAnalysis }) => {
-  const { repoInfo, vibeScore, analysis } = result;
+  const { repoInfo, vibeScore, analysis, aiInsights, aiInsightsError } = result;
+  
+  // Initialize state from localStorage or default to false
+  const [showAIInsights, setShowAIInsights] = useState(() => {
+    const saved = localStorage.getItem('showAIInsights');
+    return saved ? JSON.parse(saved) : false;
+  });
+  
+  // Save preference to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('showAIInsights', JSON.stringify(showAIInsights));
+  }, [showAIInsights]);
   
   /**
    * Get vibe score color class based on score value
@@ -159,7 +171,7 @@ const VibeScoreResults = ({ result, onNewAnalysis }) => {
               { label: 'Stars', value: repoInfo.stars || 0, icon: '⭐', color: 'text-yellow-400' },
               { label: 'Forks', value: repoInfo.forks || 0, icon: '🔱', color: 'text-blue-400' },
               { label: 'Issues', value: repoInfo.openIssues || 0, icon: '🐛', color: 'text-red-400' },
-              { label: 'Watchers', value: repoInfo.watchers || 0, icon: '👀', color: 'text-green-400' }
+              { label: 'Contributors', value: repoInfo.contributors || 0, icon: '👥', color: 'text-purple-400' }
             ].map((stat, index) => (
               <div 
                 key={index} 
@@ -176,8 +188,136 @@ const VibeScoreResults = ({ result, onNewAnalysis }) => {
         </div>
       </div>
 
-      {/* Analysis Insights */}
-      <AnalysisInsights analysis={analysis} />
+      {/* Analysis Insights - Combined Section */}
+      <div className="mb-6 sm:mb-8">
+        <div className="card-glass p-6 sm:p-8">
+          <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mb-6 flex items-center gap-3">
+            <div className="icon-container icon-container-primary p-2">
+              <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </div>
+            Repository Insights & Recommendations
+          </h3>
+          
+          {/* Basic insights from initial analysis */}
+          <AnalysisInsights analysis={analysis} />
+          
+          {/* AI-powered insights integrated below */}
+          <div className="mt-8">
+            {/* Enhanced Analysis Card */}
+            <div className="bg-gradient-to-br from-purple-900/20 to-purple-800/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-purple-500/20 hover:border-purple-500/30 transition-all duration-300">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <h4 className="text-base sm:text-lg font-medium text-white flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 animate-pulse" />
+                  <span className="bg-gradient-to-r from-purple-400 to-purple-300 bg-clip-text text-transparent">
+                    Enhanced Analysis
+                  </span>
+                  {aiInsights && !showAIInsights && !aiInsightsError && (
+                    <span className="text-xs sm:text-sm text-purple-300/60 ml-2 font-normal">
+                      ({aiInsights.insights?.recommendations?.length || 0} insights)
+                    </span>
+                  )}
+                </h4>
+                {/* Only show toggle button if there are insights to show */}
+                {aiInsights && !aiInsightsError && (
+                  <button
+                    onClick={() => setShowAIInsights(!showAIInsights)}
+                    className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-500/30 transition-all duration-200 text-xs sm:text-sm font-medium text-purple-300 hover:text-purple-200"
+                    aria-expanded={showAIInsights}
+                    aria-controls="ai-insights-content"
+                  >
+                    {showAIInsights ? (
+                      <>
+                        <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4 group-hover:transform group-hover:-translate-y-0.5 transition-transform" />
+                        Hide Details
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 group-hover:transform group-hover:translate-y-0.5 transition-transform" />
+                        View Details
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+              
+              {/* Preview Grid when collapsed */}
+              {!showAIInsights && aiInsights && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {aiInsights.insights?.hotspotFiles?.length > 0 && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                      <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+                      <p className="text-xs sm:text-sm text-orange-200/80">
+                        {aiInsights.insights.hotspotFiles.length} code hotspots identified
+                      </p>
+                    </div>
+                  )}
+                  {aiInsights.insights?.codeQuality && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                      <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+                      <p className="text-xs sm:text-sm text-yellow-200/80">
+                        Code quality assessment ready
+                      </p>
+                    </div>
+                  )}
+                  {aiInsights.insights?.developmentPatterns && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                      <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                      <p className="text-xs sm:text-sm text-green-200/80">
+                        Development patterns analyzed
+                      </p>
+                    </div>
+                  )}
+                  {aiInsights.insights?.recommendations?.length > 0 && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                      <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                      <p className="text-xs sm:text-sm text-purple-200/80">
+                        {aiInsights.insights.recommendations.length} actionable insights
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Error State */}
+              {!showAIInsights && aiInsightsError && (
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                  <div className="flex-shrink-0 w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center">
+                    <span className="text-red-400 text-xs">!</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-red-300/80">
+                    {aiInsightsError.includes('API key') 
+                      ? 'AI insights require Gemini API configuration'
+                      : 'AI insights temporarily unavailable • Basic analysis complete'}
+                  </p>
+                </div>
+              )}
+
+              {/* Expandable Content */}
+              {aiInsights && !aiInsightsError && (
+                <div
+                  id="ai-insights-content"
+                  className={`transition-all duration-300 ease-in-out ${
+                    showAIInsights ? 'opacity-100 mt-4' : 'opacity-0 max-h-0 overflow-hidden'
+                  }`}
+                >
+                  {showAIInsights && (
+                    <div className="animate-fadeIn">
+                      <RepositoryInsights 
+                        repoUrl={`https://github.com/${repoInfo.owner}/${repoInfo.name}`}
+                        repoName={repoInfo.name}
+                        preloadedInsights={aiInsights}
+                        preloadedError={aiInsightsError}
+                        hideTitle={true}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

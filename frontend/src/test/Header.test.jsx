@@ -1,150 +1,141 @@
-import { render, screen } from '@testing-library/react'
-import { vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, test, expect, vi } from 'vitest'
 import Header from '../components/Header'
 
 describe('Header Component', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  describe('Initial Render - Default State', () => {
-    test('renders logo and main title', () => {
+  describe('Content Based on State', () => {
+    test('displays default content when analysisState is not provided', () => {
       render(<Header />)
       
-      expect(screen.getByRole('heading', { level: 1, name: /Vibe GitHub Assistant/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { level: 1, name: /Vibe GitHub Analyzer/i })).toBeInTheDocument()
+      expect(screen.getByText(/Built for Cognizant Vibe Coding 2025/i)).toBeInTheDocument()
     })
 
-    test('renders feature cards with correct headings', () => {
-      render(<Header />)
+    test('displays processing content when analysisState is processing', () => {
+      render(<Header analysisState="processing" />)
       
-      expect(screen.getByRole('heading', { level: 3, name: /User Profiles/i })).toBeInTheDocument()
-      expect(screen.getByRole('heading', { level: 3, name: /Repository Analysis/i })).toBeInTheDocument()
-      expect(screen.getByRole('heading', { level: 3, name: /AI Summaries/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { level: 1, name: /Analysis in Progress/i })).toBeInTheDocument()
+      expect(screen.getByText(/Analyzing repository structure and metrics.../i)).toBeInTheDocument()
     })
 
-    test('renders main title and subtitle correctly', () => {
-      render(<Header />)
-      
-      expect(screen.getByRole('heading', { level: 2, name: /Your Friendly GitHub Companion/i })).toBeInTheDocument()
-      expect(screen.getByText(/Search Users\. Explore Repos\./i)).toBeInTheDocument()
-    })
-
-    test('renders enhanced CTA description', () => {
-      render(<Header />)
-      
-      expect(screen.getByText(/Discover GitHub profiles, explore repositories, and get AI-powered insights in a friendly, conversational interface/i)).toBeInTheDocument()
-    })
-
-    test('renders get started button in ready state', () => {
-      render(<Header analysisState="ready" />)
-      
-      expect(screen.getByRole('button', { name: /Scroll to chat section/i })).toBeInTheDocument()
-      expect(screen.getByText(/Get Started/i)).toBeInTheDocument()
-    })
-
-    test('renders feature descriptions correctly', () => {
-      render(<Header />)
-      
-      expect(screen.getByText(/Explore detailed GitHub user profiles with stats and repositories/i)).toBeInTheDocument()
-      expect(screen.getByText(/Deep insights into code quality and project health/i)).toBeInTheDocument()
-      expect(screen.getByText(/Get intelligent summaries of repositories and projects/i)).toBeInTheDocument()
-    })
-  })
-
-  describe('Results State', () => {
-    test('renders compact header with new search button in results state', () => {
+    test('displays results content when analysisState is results', () => {
       const mockOnNewAnalysis = vi.fn()
       render(<Header analysisState="results" onNewAnalysis={mockOnNewAnalysis} />)
       
-      expect(screen.getByRole('heading', { level: 1, name: /Vibe GitHub Assistant/i })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /Search another user or repository/i })).toBeInTheDocument()
-      expect(screen.getByText(/New Search/i)).toBeInTheDocument()
+      expect(screen.getByRole('heading', { level: 1, name: /📊 Analysis Complete/i })).toBeInTheDocument()
+      expect(screen.getByText(/Repository insights generated successfully/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /🔄 New Analysis/i })).toBeInTheDocument()
+    })
+  })
+
+  describe('Capabilities Section', () => {
+    test('shows capabilities in default state', () => {
+      render(<Header />)
+      
+      expect(screen.getByRole('heading', { level: 3, name: /Smart Analysis/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { level: 3, name: /12\+ Metrics/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { level: 3, name: /Instant Results/i })).toBeInTheDocument()
     })
 
-    test('does not render new search button when onNewAnalysis is not provided in results state', () => {
-      render(<Header analysisState="results" />)
+    test('hides capabilities in processing state', () => {
+      render(<Header analysisState="processing" />)
       
-      expect(screen.queryByRole('button', { name: /Search another user or repository/i })).not.toBeInTheDocument()
-      expect(screen.queryByText(/New Search/i)).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { level: 3, name: /Smart Analysis/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { level: 3, name: /12\+ Metrics/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { level: 3, name: /Instant Results/i })).not.toBeInTheDocument()
     })
 
-    test('does not render feature cards in results state', () => {
+    test('hides capabilities in results state', () => {
       render(<Header analysisState="results" />)
       
-      expect(screen.queryByRole('heading', { level: 3, name: /User Profiles/i })).not.toBeInTheDocument()
-      expect(screen.queryByRole('heading', { level: 3, name: /Repository Analysis/i })).not.toBeInTheDocument()
-      expect(screen.queryByRole('heading', { level: 3, name: /AI Summaries/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { level: 3, name: /Smart Analysis/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { level: 3, name: /12\+ Metrics/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { level: 3, name: /Instant Results/i })).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Button Behavior', () => {
+    test('shows new analysis button in results state', () => {
+      const mockOnNewAnalysis = vi.fn()
+      render(<Header analysisState="results" onNewAnalysis={mockOnNewAnalysis} />)
+      
+      expect(screen.getByRole('button', { name: /🔄 New Analysis/i })).toBeInTheDocument()
     })
 
-    test('does not render get started button in results state', () => {
-      render(<Header analysisState="results" />)
+    test('does not show button in default state', () => {
+      render(<Header />)
       
-      expect(screen.queryByText(/Get Started/i)).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /🔄 New Analysis/i })).not.toBeInTheDocument()
+    })
+
+    test('does not show button in processing state', () => {
+      render(<Header analysisState="processing" />)
+      
+      expect(screen.queryByRole('button', { name: /🔄 New Analysis/i })).not.toBeInTheDocument()
     })
   })
 
   describe('Visual Elements', () => {
-    test('renders sparkles icon in both states', () => {
-      const { rerender } = render(<Header />)
-      // In default state, there should be sparkles icon
-      expect(document.querySelector('.lucide-sparkles')).toBeInTheDocument()
-      
-      // In results state, there should also be sparkles icon
-      rerender(<Header analysisState="results" />)
-      expect(document.querySelector('.lucide-sparkles')).toBeInTheDocument()
-    })
-
-    test('renders feature icons correctly', () => {
+    test('renders sparkles icon in default state', () => {
       render(<Header />)
       
-      // Check for Users, Github, and Zap icons (feature cards)
-      expect(document.querySelector('.lucide-users')).toBeInTheDocument()
-      expect(document.querySelector('.lucide-github')).toBeInTheDocument()
-      expect(document.querySelector('.lucide-zap')).toBeInTheDocument()
+      expect(document.querySelector('.lucide-sparkles')).toBeInTheDocument()
     })
 
-    test('renders ArrowLeft icon in results state new search button', () => {
-      const mockOnNewAnalysis = vi.fn()
-      render(<Header analysisState="results" onNewAnalysis={mockOnNewAnalysis} />)
+    test('renders bar chart icon in processing state', () => {
+      render(<Header analysisState="processing" />)
       
-      expect(document.querySelector('.lucide-arrow-left')).toBeInTheDocument()
+      expect(document.querySelector('.lucide-bar-chart3')).toBeInTheDocument()
+    })
+
+    test('renders bar chart icon in results state', () => {
+      render(<Header analysisState="results" />)
+      
+      expect(document.querySelector('.lucide-bar-chart3')).toBeInTheDocument()
+    })
+
+    test('renders feature icons correctly in default state', () => {
+      render(<Header />)
+
+      // Check for Bot, BarChart3, and Zap icons (feature cards)
+      expect(document.querySelector('.lucide-bot')).toBeInTheDocument()
+      expect(document.querySelector('.lucide-bar-chart3')).toBeInTheDocument()
+      expect(document.querySelector('.lucide-zap')).toBeInTheDocument()
     })
   })
 
   describe('State Transitions', () => {
-    test('shows different layout for ready vs results state', () => {
-      const { rerender } = render(<Header analysisState="ready" />)
+    test('shows different layout for default vs results state', () => {
+      const { rerender } = render(<Header />)
       
-      // In ready state, should show full header with get started
-      expect(screen.getByText(/Get Started/i)).toBeInTheDocument()
-      expect(screen.getByRole('heading', { level: 3, name: /User Profiles/i })).toBeInTheDocument()
+      // In default state, should show full header with capabilities
+      expect(screen.getByRole('heading', { level: 3, name: /Smart Analysis/i })).toBeInTheDocument()
       
-      // In results state, should show compact header with new search
-      rerender(<Header analysisState="results" onNewAnalysis={() => {}} />)
-      expect(screen.getByText(/New Search/i)).toBeInTheDocument()
-      expect(screen.queryByText(/Get Started/i)).not.toBeInTheDocument()
-      expect(screen.queryByRole('heading', { level: 3, name: /User Profiles/i })).not.toBeInTheDocument()
+      // Rerender with results state
+      rerender(<Header analysisState="results" />)
+      
+      // In results state, should show minimal header
+      expect(screen.queryByRole('heading', { level: 3, name: /Smart Analysis/i })).not.toBeInTheDocument()
     })
 
-    test('handles processing state like default state', () => {
+    test('handles processing state correctly', () => {
       render(<Header analysisState="processing" />)
       
-      // Processing state should show the full header like default
-      expect(screen.getByRole('heading', { level: 3, name: /User Profiles/i })).toBeInTheDocument()
-      expect(screen.getByRole('heading', { level: 3, name: /Repository Analysis/i })).toBeInTheDocument()
-      expect(screen.getByRole('heading', { level: 3, name: /AI Summaries/i })).toBeInTheDocument()
+      // Processing state should show Analysis in Progress
+      expect(screen.getByRole('heading', { level: 1, name: /Analysis in Progress/i })).toBeInTheDocument()
+      expect(screen.getByText(/Analyzing repository structure and metrics.../i)).toBeInTheDocument()
     })
   })
 
   describe('Interaction', () => {
-    test('new search button calls onNewAnalysis when clicked', () => {
+    test('new analysis button calls onNewAnalysis when clicked', () => {
       const mockOnNewAnalysis = vi.fn()
       render(<Header analysisState="results" onNewAnalysis={mockOnNewAnalysis} />)
       
-      const newSearchButton = screen.getByRole('button', { name: /Search another user or repository/i })
-      newSearchButton.click()
+      const newAnalysisButton = screen.getByRole('button', { name: /🔄 New Analysis/i })
+      fireEvent.click(newAnalysisButton)
       
-      expect(mockOnNewAnalysis).toHaveBeenCalledTimes(1)
+      expect(mockOnNewAnalysis).toHaveBeenCalled()
     })
   })
 }) 

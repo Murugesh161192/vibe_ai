@@ -218,6 +218,47 @@ export class GitHubService {
   }
 
   /**
+   * Get user profile information
+   * @param {string} username - GitHub username
+   * @returns {Object} User profile data
+   */
+  async getUserProfile(username) {
+    try {
+      console.log(`Fetching profile for user: ${username}`);
+      const response = await this.request(`/users/${username}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch user profile for ${username}:`, error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Get user's repositories
+   * @param {string} username - GitHub username
+   * @param {number} page - Page number for pagination
+   * @param {number} perPage - Number of items per page
+   * @returns {Array} Array of repository objects
+   */
+  async getUserRepositories(username, page = 1, perPage = 30) {
+    try {
+      console.log(`Fetching repositories for user: ${username} (page ${page})`);
+      const response = await this.request(`/users/${username}/repos`, {
+        params: {
+          page,
+          per_page: perPage,
+          sort: 'updated',
+          direction: 'desc'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch repositories for ${username}:`, error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Get repository languages for language detection
    * @param {string} owner - Repository owner
    * @param {string} repo - Repository name
@@ -323,6 +364,30 @@ export class GitHubService {
     } catch (error) {
       console.error(`Failed to fetch topics for ${owner}/${repo}:`, error.message);
       return [];
+    }
+  }
+
+  /**
+   * Get repository README content
+   */
+  async getReadmeContent(owner, repo) {
+    try {
+      // Try to get README from GitHub API
+      const { data } = await this.api.get(`/repos/${owner}/${repo}/readme`);
+      
+      // Decode base64 content
+      if (data.content) {
+        const content = Buffer.from(data.content, 'base64').toString('utf-8');
+        return content;
+      }
+      
+      return null;
+    } catch (error) {
+      if (error.response?.status === 404) {
+        // README not found
+        return null;
+      }
+      throw error;
     }
   }
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { Github, Sparkles, HelpCircle, BarChart3, ExternalLink, MessageCircle, Bot, Zap } from 'lucide-react';
 import Header from './components/Header';
 import ChatInput from './components/ChatInput';
@@ -6,7 +6,7 @@ import GitHubUserProfile from './components/GitHubUserProfile';
 import VibeScoreResults from './components/VibeScoreResults';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
-import { analyzeRepository, getUserProfile, getUserRepositories } from './services/api';
+import { analyzeRepository, getUserProfile, getUserRepositories, generateInsights } from './services/api';
 
 function App() {
   const [loading, setLoading] = useState(false);
@@ -23,6 +23,7 @@ function App() {
   const handleError = useCallback((errorMessage) => {
     setError(errorMessage);
     setLoading(false);
+    setCurrentView('ready'); // Ensure we go back to 'ready' view to display the error
   }, []);
 
   const clearState = useCallback(() => {
@@ -48,22 +49,31 @@ function App() {
 
   const handleRepositoryAnalysis = useCallback(async (repoUrl) => {
     setLoading(true);
-    setError(null);
-    setCurrentInput({ type: 'repository', input: repoUrl });
-    
-    // Clear previous state immediately and switch view
-    setUserProfile(null);
-    setUserRepositories([]);
-    setAnalysisResult(null);
-    setCurrentView('analysis');
-    
+    setCurrentView('loading');
+    setCurrentInput({ type: 'repo', value: repoUrl });
+
     try {
-      const result = await analyzeRepository(repoUrl);
-      setAnalysisResult(result.data);
-    } catch (err) {
-      // Reset to ready view on error
-      setCurrentView('ready');
-      handleError(err.message || 'An error occurred while analyzing the repository. Please try again.');
+      // Fetch both basic analysis and AI insights in parallel
+      const [analysisResult, insightsResult] = await Promise.allSettled([
+        analyzeRepository(repoUrl),
+        generateInsights(repoUrl)
+      ]);
+      
+      // Handle basic analysis result
+      if (analysisResult.status === 'fulfilled') {
+        const result = {
+          ...analysisResult.value.data,
+          aiInsights: insightsResult.status === 'fulfilled' ? insightsResult.value.data : null,
+          aiInsightsError: insightsResult.status === 'rejected' ? insightsResult.reason?.message : null
+        };
+        
+        setAnalysisResult(result);
+        setCurrentView('analysis');
+      } else {
+        throw new Error(analysisResult.reason?.message || 'Analysis failed');
+      }
+    } catch (error) {
+      handleError(error.message || 'Failed to analyze repository');
     } finally {
       setLoading(false);
     }
@@ -73,6 +83,16 @@ function App() {
     setLoading(true);
     setError(null);
     setCurrentInput({ type: 'user', input: username });
+
+    // Scroll to the loader
+    setTimeout(() => {
+      if (chatSectionRef.current) {
+        chatSectionRef.current.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }, 100); // Small delay to ensure DOM updates
 
     try {
       // Validate username before making API calls
@@ -152,12 +172,24 @@ function App() {
   );
 
   const loadingComponent = useMemo(
-    () => <LoadingSpinner message="Analyzing repository..." />,
-    []
+    () => (
+      <div data-testid="loading-spinner">
+        <LoadingSpinner message={
+          currentInput.type === 'user' 
+            ? 'Loading user profile...' 
+            : 'Analyzing repository...'
+        } />
+      </div>
+    ),
+    [currentInput.type]
   );
 
   const errorComponent = useMemo(
-    () => error && <ErrorMessage message={error} onRetry={handleNewAnalysis} />,
+    () => error && (
+      <div data-testid="error-message">
+        <ErrorMessage message={error} onRetry={handleNewAnalysis} />
+      </div>
+    ),
     [error, handleNewAnalysis]
   );
 
@@ -180,10 +212,12 @@ function App() {
           currentView === 'analysis' ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'
         }`}>
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Header 
-              analysisState={analysisState}
-              onNewAnalysis={handleNewAnalysis}
-            />
+            <div data-testid="header">
+              <Header 
+                analysisState={analysisState}
+                onNewAnalysis={handleNewAnalysis}
+              />
+            </div>
           </div>
         </div>
         
@@ -192,10 +226,10 @@ function App() {
           <section ref={chatSectionRef} className="mb-8 sm:mb-12">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
               
-                             {/* Welcome Section - First time users */}
-               <div className="mb-6 sm:mb-8">
-                 {memoizedChatInput}
-               </div>
+              {/* Welcome Section - First time users */}
+              <div className="mb-6 sm:mb-8">
+                {memoizedChatInput}
+              </div>
               
               {/* Loading State - Optimized */}
               {loading && loadingComponent}
@@ -206,14 +240,25 @@ function App() {
           </section>
         )}
 
+        {/* Loading View */}
+        {currentView === 'loading' && (
+          <section className="mb-8 sm:mb-12">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+              {loadingComponent}
+            </div>
+          </section>
+        )}
+
         {/* Results Section - Conditionally rendered for performance */}
         {currentView === 'analysis' && analysisResult && (
           <section className="space-y-6 sm:space-y-8">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <VibeScoreResults 
-                result={analysisResult} 
-                onNewAnalysis={handleNewAnalysis}
-              />
+              <div data-testid="vibe-score-results">
+                <VibeScoreResults 
+                  result={analysisResult} 
+                  onNewAnalysis={handleNewAnalysis}
+                />
+              </div>
             </div>
           </section>
         )}
@@ -265,14 +310,11 @@ function App() {
         </section>
       )}
 
-      {/* Footer - Simplified and responsive */}
-      <footer className="py-6 sm:py-8 text-center text-white/60 border-t border-white/10">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <p className="text-xs sm:text-sm">
-            Made with ❤️ for the GitHub community • 
-            <span className="hidden sm:inline text-xs sm:text-sm"> Powered by GitHub API & Advanced Analytics</span>
-          </p>
-        </div>
+      {/* Footer */}
+      <footer className="mt-12 text-center text-white/60 text-sm">
+        <p>
+          Built with ❤️ for <span className="text-purple-400 font-semibold">Cognizant Vibe Coding 2025</span> • 
+        </p>
       </footer>
     </div>
   );

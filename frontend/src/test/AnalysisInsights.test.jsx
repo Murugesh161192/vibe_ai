@@ -23,7 +23,7 @@ describe('AnalysisInsights Component', () => {
     test('renders component with analysis data', () => {
       render(<AnalysisInsights analysis={mockAnalysis} />)
       
-      expect(screen.getByText(/Analysis Insights/i)).toBeInTheDocument()
+      expect(screen.getByText(/Basic Analysis Results/i)).toBeInTheDocument()
       expect(screen.getAllByText(/Test Coverage/i).length).toBeGreaterThan(0)
       expect(screen.getAllByText(/Dependencies/i).length).toBeGreaterThan(0)
     })

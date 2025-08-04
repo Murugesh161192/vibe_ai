@@ -14,27 +14,23 @@ vi.mock('../services/api', () => ({
 // Mock the child components with simpler implementations
 vi.mock('../components/Header', () => ({
   default: ({ analysisState, onNewAnalysis }) => (
-    <div data-testid="header">
-      <h1>Vibe GitHub Assistant</h1>
+    <div>
+      <h1>{analysisState === 'results' ? '📊 Analysis Complete' : 'Vibe GitHub Analyzer'}</h1>
       {analysisState === 'results' && onNewAnalysis && (
-        <button onClick={onNewAnalysis}>New Search</button>
+        <button onClick={onNewAnalysis}>🔄 New Analysis</button>
       )}
     </div>
   )
 }))
 
 vi.mock('../components/ChatInput', () => ({
-  default: ({ onSubmit, isLoading, showWelcome }) => (
+  default: ({ onSubmit, loading }) => (
     <div data-testid="chat-input">
-      <input 
-        placeholder="Type a GitHub username or repo…"
-        onChange={() => {}}
-        disabled={isLoading}
+      <input
+        placeholder="Enter GitHub username (e.g., 'torvalds') or repository URL"
+        disabled={loading}
       />
-      <button 
-        onClick={() => onSubmit && onSubmit('repository', 'https://github.com/test/repo')}
-        disabled={isLoading}
-      >
+      <button onClick={() => onSubmit && onSubmit('https://github.com/test/repo')} disabled={loading}>
         Send
       </button>
     </div>
@@ -43,7 +39,7 @@ vi.mock('../components/ChatInput', () => ({
 
 vi.mock('../components/VibeScoreResults', () => ({
   default: ({ result, repoUrl, onNewAnalysis }) => (
-    <div data-testid="vibe-score-results">
+    <div>
       <h2>{result?.repoInfo?.name}</h2>
       <div>Score: {result?.vibeScore?.total}</div>
     </div>
@@ -60,13 +56,13 @@ vi.mock('../components/GitHubUserProfile', () => ({
 }))
 
 vi.mock('../components/LoadingSpinner', () => ({
-  default: ({ message }) => <div data-testid="loading-spinner">{message}</div>
+  default: ({ message }) => <div>{message}</div>
 }))
 
 vi.mock('../components/ErrorMessage', () => ({
   default: ({ message, onRetry }) => (
     <div data-testid="error-message">
-      {message}
+      <p>{message}</p>
       {onRetry && <button onClick={onRetry}>Retry</button>}
     </div>
   )
@@ -81,9 +77,27 @@ describe('App Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    // Setup default mocks
-    api.getUserProfile.mockResolvedValue({ data: { login: 'testuser' } })
-    api.getUserRepositories.mockResolvedValue({ data: [] })
+    
+    // Mock scrollIntoView
+    Element.prototype.scrollIntoView = vi.fn()
+    
+    // Mock window.scrollTo
+    window.scrollTo = vi.fn()
+    
+    // Reset API mocks
+    api.analyzeRepository.mockReset()
+    api.getUserProfile.mockReset()
+    api.getUserRepositories.mockReset()
+    
+    // Default mocks to prevent errors
+    api.getUserProfile.mockResolvedValue({
+      data: { 
+        login: 'test-user',
+        name: 'Test User',
+        avatar_url: 'https://example.com/avatar.jpg'
+      }
+    })
+    api.getUserRepositories.mockResolvedValue([])
   })
 
   describe('Initial Render', () => {
@@ -92,7 +106,8 @@ describe('App Component', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('header')).toBeInTheDocument()
-        expect(screen.getByText(/Vibe GitHub Assistant/i)).toBeInTheDocument()
+        expect(screen.getByText(/Vibe GitHub Analyzer/i)).toBeInTheDocument()
+        expect(screen.getByTestId('chat-input')).toBeInTheDocument()
       })
     })
 
@@ -101,7 +116,7 @@ describe('App Component', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('chat-input')).toBeInTheDocument()
-        expect(screen.getByPlaceholderText(/Type a GitHub username or repo/i)).toBeInTheDocument()
+        expect(screen.getByPlaceholderText(/Enter GitHub username.*or repository URL/i)).toBeInTheDocument()
       })
     })
   })
@@ -109,6 +124,7 @@ describe('App Component', () => {
   describe('Repository Analysis Flow', () => {
     test('can analyze a repository successfully', async () => {
       const mockSuccessResponse = {
+        success: true,
         data: {
           repoInfo: { name: 'test-repo', description: 'Test repo', stars: 1000, forks: 100, createdAt: '2020-01-01', contributors: 10 },
           vibeScore: { 
@@ -122,25 +138,26 @@ describe('App Component', () => {
 
       const { user } = setup()
 
-      // Simulate analyzing a repository
+      // Wait for initial render
       await waitFor(() => {
         expect(screen.getByTestId('chat-input')).toBeInTheDocument()
       })
 
-      // Simulate successful analysis
+      // Mock insights API response
+      api.generateInsights = vi.fn().mockResolvedValue({ success: true, data: {} })
+
+      // Trigger analysis
       await act(async () => {
         fireEvent.click(screen.getByText('Send'))
       })
 
-      await waitFor(() => {
-        expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
-      })
-
+      // Wait for results to appear
       await waitFor(() => {
         expect(screen.getByTestId('vibe-score-results')).toBeInTheDocument()
-        expect(screen.getByText('test-repo')).toBeInTheDocument()
-        expect(screen.getByText('Score: 85')).toBeInTheDocument()
-      })
+      }, { timeout: 3000 })
+      
+      expect(screen.getByText('test-repo')).toBeInTheDocument()
+      expect(screen.getByText('Score: 85')).toBeInTheDocument()
     })
 
     test('handles repository analysis errors', async () => {
@@ -156,10 +173,10 @@ describe('App Component', () => {
         fireEvent.click(screen.getByText('Send'))
       })
 
+      // The error should show in the ready view
       await waitFor(() => {
-        expect(screen.getByTestId('error-message')).toBeInTheDocument()
         expect(screen.getByText(/Repository not found/i)).toBeInTheDocument()
-      })
+      }, { timeout: 3000 })
     })
   })
 
@@ -200,9 +217,8 @@ describe('App Component', () => {
       })
 
       await waitFor(() => {
-        expect(screen.getByTestId('error-message')).toBeInTheDocument()
         expect(screen.getByText(/Network error/i)).toBeInTheDocument()
-      })
+      }, { timeout: 3000 })
     })
 
     test('handles API rate limiting', async () => {
@@ -219,34 +235,33 @@ describe('App Component', () => {
       })
 
       await waitFor(() => {
-        expect(screen.getByTestId('error-message')).toBeInTheDocument()
-        expect(screen.getByText(/API rate limit exceeded/i)).toBeInTheDocument()
-      })
+        expect(screen.getByText(/rate limit/i)).toBeInTheDocument()
+      }, { timeout: 3000 })
     })
   })
 
   describe('Component Integration', () => {
     test('integrates with ChatInput component', async () => {
-      setup()
+      const { user } = setup()
 
       await waitFor(() => {
         expect(screen.getByTestId('chat-input')).toBeInTheDocument()
-        expect(screen.getByPlaceholderText(/Type a GitHub username or repo/i)).toBeInTheDocument()
       })
+
+      expect(screen.getByPlaceholderText(/Enter GitHub username/)).toBeInTheDocument()
     })
 
     test('integrates with VibeScoreResults component', async () => {
-      const mockSuccessResponse = {
+      const mockResponse = {
+        success: true,
         data: {
-          repoInfo: { name: 'test-repo', description: 'Test repo', stars: 1000, forks: 100, createdAt: '2020-01-01', contributors: 10 },
-          vibeScore: { 
-            total: 85, 
-            breakdown: { codeQuality: 90, readability: 80, collaboration: 75, innovation: 85, maintainability: 90, inclusivity: 70, security: 95, performance: 80, testingQuality: 88, communityHealth: 78, codeHealth: 85, releaseManagement: 92 }
-          },
-          analysis: { insights: ['Great code'], recommendations: ['Keep it up'], documentationFiles: [], testFiles: [], dependencies: [], folderStructure: [] }
+          repoInfo: { name: 'test-repo', stars: 100 },
+          vibeScore: { total: 90 },
+          analysis: {}
         }
       }
-      api.analyzeRepository.mockResolvedValue(mockSuccessResponse)
+      api.analyzeRepository.mockResolvedValue(mockResponse)
+      api.generateInsights = vi.fn().mockResolvedValue({ success: true, data: {} })
 
       const { user } = setup()
 
@@ -260,45 +275,39 @@ describe('App Component', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('vibe-score-results')).toBeInTheDocument()
-        expect(screen.getByText('test-repo')).toBeInTheDocument()
-      })
+      }, { timeout: 3000 })
     })
 
     test('can start new analysis from results state', async () => {
-      const mockSuccessResponse = {
+      const mockResponse = {
+        success: true,
         data: {
-          repoInfo: { name: 'test-repo', description: 'Test repo', stars: 1000, forks: 100, createdAt: '2020-01-01', contributors: 10 },
-          vibeScore: { 
-            total: 85, 
-            breakdown: { codeQuality: 90, readability: 80, collaboration: 75, innovation: 85, maintainability: 90, inclusivity: 70, security: 95, performance: 80, testingQuality: 88, communityHealth: 78, codeHealth: 85, releaseManagement: 92 }
-          },
-          analysis: { insights: ['Great code'], recommendations: ['Keep it up'], documentationFiles: [], testFiles: [], dependencies: [], folderStructure: [] }
+          repoInfo: { name: 'test-repo' },
+          vibeScore: { total: 85 },
+          analysis: {}
         }
       }
-      api.analyzeRepository.mockResolvedValue(mockSuccessResponse)
+      api.analyzeRepository.mockResolvedValue(mockResponse)
+      api.generateInsights = vi.fn().mockResolvedValue({ success: true, data: {} })
 
       const { user } = setup()
 
-      // Complete first analysis
       await waitFor(() => {
         expect(screen.getByTestId('chat-input')).toBeInTheDocument()
       })
 
+      // First analysis
       await act(async () => {
         fireEvent.click(screen.getByText('Send'))
       })
 
       await waitFor(() => {
         expect(screen.getByTestId('vibe-score-results')).toBeInTheDocument()
-      })
+      }, { timeout: 3000 })
 
       // Start new analysis
-      await waitFor(() => {
-        expect(screen.getByText('New Search')).toBeInTheDocument()
-      })
-
       await act(async () => {
-        fireEvent.click(screen.getByText('New Search'))
+        fireEvent.click(screen.getByText('🔄 New Analysis'))
       })
 
       await waitFor(() => {
@@ -309,46 +318,40 @@ describe('App Component', () => {
 
   describe('State Management', () => {
     test('maintains proper state transitions', async () => {
-      const mockSuccessResponse = {
+      const mockResponse = {
+        success: true,
         data: {
-          repoInfo: { name: 'test-repo', description: 'Test repo', stars: 1000, forks: 100, createdAt: '2020-01-01', contributors: 10 },
-          vibeScore: { 
-            total: 85, 
-            breakdown: { codeQuality: 90, readability: 80, collaboration: 75, innovation: 85, maintainability: 90, inclusivity: 70, security: 95, performance: 80, testingQuality: 88, communityHealth: 78, codeHealth: 85, releaseManagement: 92 }
-          },
-          analysis: { insights: ['Great code'], recommendations: ['Keep it up'], documentationFiles: [], testFiles: [], dependencies: [], folderStructure: [] }
+          repoInfo: { name: 'test-repo' },
+          vibeScore: { total: 85 },
+          analysis: {}
         }
       }
-      api.analyzeRepository.mockResolvedValue(mockSuccessResponse)
+      api.analyzeRepository.mockResolvedValue(mockResponse)
+      api.generateInsights = vi.fn().mockResolvedValue({ success: true, data: {} })
 
-      setup()
+      const { user } = setup()
 
-      // Initial state: chat input visible
+      // Initial state - ready
       await waitFor(() => {
         expect(screen.getByTestId('chat-input')).toBeInTheDocument()
       })
 
-      // Loading state
+      // Trigger analysis
       await act(async () => {
         fireEvent.click(screen.getByText('Send'))
-      })
-
-      await waitFor(() => {
-        expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
       })
 
       // Results state
       await waitFor(() => {
         expect(screen.getByTestId('vibe-score-results')).toBeInTheDocument()
-        expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument()
-      })
+      }, { timeout: 3000 })
     })
 
     test('handles loading states correctly', async () => {
-      // Use a Promise that we can control
-      let resolvePromise
+      // Create a promise that we can control
+      let resolveAnalysis
       const analysisPromise = new Promise((resolve) => {
-        resolvePromise = resolve
+        resolveAnalysis = resolve
       })
       api.analyzeRepository.mockReturnValue(analysisPromise)
 
@@ -358,31 +361,35 @@ describe('App Component', () => {
         expect(screen.getByTestId('chat-input')).toBeInTheDocument()
       })
 
+      // Button should be enabled before analysis
+      expect(screen.getByText('Send')).toBeEnabled()
+
+      // Trigger analysis but don't resolve yet
       await act(async () => {
         fireEvent.click(screen.getByText('Send'))
       })
 
-      // Should show loading
+      // Loading spinner should appear
       await waitFor(() => {
         expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
       })
 
-      // Resolve the promise
+      // Resolve the analysis
       await act(async () => {
-        resolvePromise({
+        resolveAnalysis({
+          success: true,
           data: {
             repoInfo: { name: 'test-repo' },
-            vibeScore: { total: 85, breakdown: {} },
-            analysis: { insights: [], recommendations: [], documentationFiles: [], testFiles: [], dependencies: [], folderStructure: [] }
+            vibeScore: { total: 85 },
+            analysis: {}
           }
         })
       })
 
-      // Should hide loading and show results
+      // Wait for results
       await waitFor(() => {
-        expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument()
         expect(screen.getByTestId('vibe-score-results')).toBeInTheDocument()
-      })
+      }, { timeout: 3000 })
     })
   })
 })

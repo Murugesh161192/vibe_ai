@@ -18,7 +18,7 @@ cp env.example .env
 GITHUB_TOKEN=ghp_your_github_token_here
 
 # Gemini AI API Configuration (for AI features)
-GEMINI_API_KEY=AIzaSyDayeDCHIWbooOYZkILjLkjPtTqJZvx7gg
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Server Configuration
 PORT=3000

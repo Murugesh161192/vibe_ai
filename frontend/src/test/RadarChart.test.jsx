@@ -1,109 +1,90 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 import RadarChart from '../components/RadarChart';
-import * as d3 from 'd3';
 
-// Create a more comprehensive mock for d3
-vi.mock('d3', async () => {
-  const originalD3 = await vi.importActual('d3');
-  
-  // Mock chainable object for selections
-  const createMockSelection = () => ({
-    selectAll: vi.fn(() => createMockSelection()),
-    select: vi.fn(() => createMockSelection()),
-    remove: vi.fn(() => createMockSelection()),
-    data: vi.fn(() => createMockEnterSelection()),
-    enter: vi.fn(() => createMockEnterSelection()),
-    append: vi.fn(() => createMockSelection()),
-    attr: vi.fn(() => createMockSelection()),
-    style: vi.fn(() => createMockSelection()),
-    text: vi.fn(() => createMockSelection()),
-    on: vi.fn(() => createMockSelection()),
-    datum: vi.fn(() => createMockSelection()),
-    forEach: vi.fn(() => createMockSelection()),
-  });
-
-  const createMockEnterSelection = () => ({
-    enter: vi.fn(() => createMockEnterSelection()),
-    append: vi.fn(() => createMockSelection()),
-    data: vi.fn(() => createMockEnterSelection()),
-  });
-
-  // Mock scale functions that are both callable and chainable
-  const createMockScale = () => {
-    const scaleFunction = vi.fn((value) => value * 2); // Simple scaling function
-    scaleFunction.domain = vi.fn(() => scaleFunction);
-    scaleFunction.range = vi.fn(() => scaleFunction);
-    return scaleFunction;
-  };
-
-  const createMockOrdinalScale = () => {
-    const ordinalScale = vi.fn((value) => '#0ea5e9'); // Return a color
-    ordinalScale.range = vi.fn(() => ordinalScale);
-    return ordinalScale;
-  };
-
-  return {
-    ...originalD3,
-    select: vi.fn(() => createMockSelection()),
-    selectAll: vi.fn(() => createMockSelection()),
-    scaleLinear: vi.fn(() => createMockScale()),
-    scaleOrdinal: vi.fn(() => createMockOrdinalScale()),
-    range: vi.fn(() => [1, 2, 3, 4, 5]),
-    lineRadial: vi.fn(() => ({
-      radius: vi.fn(() => ({
-        angle: vi.fn(() => ({
-          curve: vi.fn(() => vi.fn(() => 'mocked-path'))
-        }))
-      }))
+// Mock d3 module
+vi.mock('d3', () => ({
+  default: {
+    select: vi.fn(() => ({
+      selectAll: vi.fn(() => ({ remove: vi.fn() })),
+      attr: vi.fn().mockReturnThis(),
+      append: vi.fn().mockReturnThis(),
+      classed: vi.fn().mockReturnThis(),
+      style: vi.fn().mockReturnThis(),
     })),
-    curveLinearClosed: 'mocked-curve',
-  };
-});
+    scaleLinear: vi.fn(() => ({ domain: vi.fn().mockReturnThis(), range: vi.fn().mockReturnThis() })),
+    line: vi.fn(() => ({ curve: vi.fn().mockReturnThis() })),
+    curveLinearClosed: vi.fn(),
+  },
+  select: vi.fn(() => ({
+    selectAll: vi.fn(() => ({ remove: vi.fn() })),
+    attr: vi.fn().mockReturnThis(),
+    append: vi.fn().mockReturnThis(),
+    classed: vi.fn().mockReturnThis(),
+    style: vi.fn().mockReturnThis(),
+  })),
+  scaleLinear: vi.fn(() => ({ domain: vi.fn().mockReturnThis(), range: vi.fn().mockReturnThis() })),
+  line: vi.fn(() => ({ curve: vi.fn().mockReturnThis() })),
+  curveLinearClosed: vi.fn(),
+}));
 
 describe('RadarChart Component', () => {
   const mockData = {
-    codeQuality: 95,
+    codeQuality: 90,
     readability: 80,
-    collaboration: 90,
-    innovation: 70,
+    collaboration: 70,
+    innovation: 85,
+    maintainability: 75,
+    inclusivity: 65,
+    security: 88,
+    performance: 82,
+    testingQuality: 78,
+    communityHealth: 72,
+    codeHealth: 80,
+    releaseManagement: 68,
   };
 
   test('renders the chart with the correct data', () => {
     const { container } = render(<RadarChart data={mockData} />);
 
     // Check that the chart container is rendered
-    const chartContainer = container.querySelector('.radar-chart');
-    expect(chartContainer).toBeTruthy();
-    
+    const svgElement = container.querySelector('svg');
+    expect(svgElement).toBeInTheDocument();
+
     // Check that it's not showing error state
     expect(screen.queryByText(/Error rendering chart/i)).not.toBeInTheDocument();
-    
-    // Check that it's not showing empty state
     expect(screen.queryByText(/No data available for chart/i)).not.toBeInTheDocument();
-    
-    // Check that the relative container exists (the main component wrapper)
-    const relativeContainer = container.querySelector('.relative');
-    expect(relativeContainer).toBeTruthy();
   });
 
   test('handles empty data gracefully', () => {
     render(<RadarChart data={{}} />);
-    expect(screen.getByText(/No data available for chart/i)).toBeInTheDocument();
+    expect(screen.getByText('No data available for chart')).toBeInTheDocument();
   });
 
-  test('handles d3 errors gracefully', () => {
+  test('handles d3 errors gracefully', async () => {
     const originalError = console.error;
-    console.error = vi.fn();
+    console.error = vi.fn(); // Suppress error logs
 
-    // Reset and mock d3.select to throw an error
-    vi.mocked(d3.select).mockImplementation(() => {
-      throw new Error('d3 error');
+    // Temporarily modify the mocked d3.select to throw an error
+    const d3Module = await import('d3');
+    const originalSelect = d3Module.select;
+    
+    d3Module.select = vi.fn(() => {
+      throw new Error('D3 rendering error');
     });
 
     render(<RadarChart data={mockData} />);
-    expect(screen.getByText(/Error rendering chart/i)).toBeInTheDocument();
+    
+    // Wait for the component to mount and render error
+    await waitFor(() => {
+      expect(console.error).toHaveBeenCalledWith('Error rendering radar chart:', expect.any(Error));
+    }, { timeout: 1000 });
 
+    // The error should be displayed
+    expect(screen.getByText(/Error rendering chart/)).toBeInTheDocument();
+
+    // Restore mocks
     console.error = originalError;
+    d3Module.select = originalSelect;
   });
 }); 

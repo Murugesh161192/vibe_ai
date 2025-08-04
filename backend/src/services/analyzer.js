@@ -65,6 +65,7 @@ export class RepositoryAnalyzer {
         repoInfo: {
           name: repoInfo.name,
           fullName: repoInfo.full_name,
+          owner: owner, // Add the owner field here
           description: repoInfo.description,
           language: repoInfo.language,
           stars: repoInfo.stargazers_count,

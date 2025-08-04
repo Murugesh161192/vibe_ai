@@ -1,7 +1,7 @@
 {
-  "name": "vibe-ai-backend",
+  "name": "vibe-github-analyzer",
   "version": "1.0.0",
-  "description": "Vibe AI Backend API for GitHub repository analysis",
+  "description": "A powerful web application that analyzes GitHub repositories and provides comprehensive insights into code quality, community health, and project vibes using advanced metrics and AI-powered analysis",
   "main": "start.js",
   "type": "module",
   "scripts": {
@@ -18,10 +18,16 @@
     "analysis",
     "vibe-score",
     "fastify",
+    "react",
     "api",
-    "render"
+    "ai-insights",
+    "gemini",
+    "cognizant",
+    "vibe-coding-2025",
+    "code-quality",
+    "analytics"
   ],
-  "author": "Vibe AI Team",
+  "author": "Cognizant Vibe Coding 2025 Team",
   "license": "MIT",
   "repository": {
     "type": "git",

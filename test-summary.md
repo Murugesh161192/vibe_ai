@@ -9,7 +9,7 @@
 
 ### Frontend Tests ⚠️
 - **Status**: Some tests need updates
-- **Test Files**: 11 test files
+- **Test Files**: 11 test files using Vitest
 - **Issues Found**:
   1. VibeScoreResults test - Updated ✅
   2. RadarChart test - May need error handling updates

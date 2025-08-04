@@ -28,7 +28,7 @@ const mockAxiosInstance = {
 axios.create = vi.fn(() => mockAxiosInstance);
 
 // Import after mocking to ensure the mocks are in place
-const { analyzeRepository, isValidGitHubUrl, extractRepoInfo } = await import('../services/api.js');
+const { analyzeRepository, isValidGitHubUrl, extractRepoInfo, generateInsights } = await import('../services/api.js');
 
 describe('API Service', () => {
   beforeEach(() => {
@@ -41,16 +41,17 @@ describe('API Service', () => {
 
   describe('analyzeRepository', () => {
     test('successfully analyzes a repository', async () => {
-      const mockResponse = {
+      const mockResponseData = {
+        success: true,
         data: {
-          success: true,
-          data: {
-            vibeScore: { total: 85 },
-          },
-        },
+          vibeScore: {
+            total: 85
+          }
+        }
       };
 
-      mockAxiosInstance.post.mockResolvedValue(mockResponse);
+      // Axios returns response.data, so we need to wrap it
+      mockAxiosInstance.post.mockResolvedValue({ data: mockResponseData });
 
       const result = await analyzeRepository('https://github.com/user/repo');
 
@@ -59,7 +60,8 @@ describe('API Service', () => {
         { repoUrl: 'https://github.com/user/repo' },
         { timeout: 30000 }
       );
-      expect(result).toEqual(mockResponse.data.data);
+      // The API returns the response object with success and data properties
+      expect(result).toEqual(mockResponseData);
     });
 
     test('handles analysis failure', async () => {
@@ -86,6 +88,62 @@ describe('API Service', () => {
 
     test('throws error for invalid URL', () => {
       expect(() => extractRepoInfo('invalid-url')).toThrow('Invalid GitHub repository URL');
+    });
+  });
+
+  describe('generateInsights', () => {
+    test('successfully generates insights for a repository', async () => {
+      const mockResponse = {
+        data: {
+          success: true,
+          data: {
+            insights: {
+              hotspotFiles: [],
+              contributorInsights: {
+                mostActive: ['user1'],
+                collaborationPattern: 'Active collaboration',
+                recommendation: 'Keep up the good work'
+              },
+              developmentPatterns: {
+                commitFrequency: 'Daily',
+                releasePattern: 'Weekly',
+                velocity: 'High'
+              },
+              codeQuality: {
+                strengths: ['Clean code'],
+                concerns: ['No tests'],
+                technicalDebt: 'Low'
+              },
+              recommendations: []
+            }
+          }
+        }
+      };
+
+      // Need to mock axios directly since generateInsights uses axios.post
+      axios.post = vi.fn().mockResolvedValue(mockResponse);
+
+      const result = await generateInsights('https://github.com/user/repo');
+
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('/api/analyze/insights'),
+        { repoUrl: 'https://github.com/user/repo' }
+      );
+      expect(result).toEqual(mockResponse.data);
+    });
+
+    test('handles insights generation failure', async () => {
+      axios.post = vi.fn().mockRejectedValue(new Error('Insights generation failed'));
+      
+      await expect(generateInsights('https://github.com/user/repo')).rejects.toThrow('Insights generation failed');
+    });
+
+    test('handles network errors gracefully', async () => {
+      const networkError = new Error('Network error');
+      networkError.code = 'ECONNREFUSED';
+      axios.post = vi.fn().mockRejectedValue(networkError);
+      
+      await expect(generateInsights('https://github.com/user/repo')).rejects.toThrow('Network error');
     });
   });
 }); 
