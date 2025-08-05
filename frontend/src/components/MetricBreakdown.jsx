@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, memo } from 'react';
-import { CheckCircle, AlertCircle, Info, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { CheckCircle, AlertCircle, Info, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, BarChart3 } from 'lucide-react';
 
 const MetricBreakdown = memo(({ breakdown, weights }) => {
   const [expandedMetrics, setExpandedMetrics] = useState({});
@@ -212,7 +212,10 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
         <div className="card-content p-4 lg:p-5 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 border border-indigo-400/30">
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
-              📊 Metrics Overview
+              <div className="icon-container icon-container-primary p-1.5 icon-align-center">
+                <BarChart3 className="icon-sm text-white" />
+              </div>
+              <span>Metrics Overview</span>
             </h4>
             <button
               onClick={toggleQuickSummary}
@@ -271,7 +274,7 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
             <span className="text-sm font-normal text-white/60">({categoryMetrics.length})</span>
           </h4>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid-responsive-md">
             {categoryMetrics.map((metric) => {
               const score = breakdown[metric.key];
               const status = {

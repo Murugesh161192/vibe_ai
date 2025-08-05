@@ -19,17 +19,15 @@ describe('GeminiInsightsService', () => {
     });
   });
 
-  describe('buildInsightPrompt', () => {
+  describe('buildOptimizedPrompt', () => {
     let service;
     const originalEnv = process.env;
 
     beforeEach(() => {
       process.env = { ...originalEnv, GEMINI_API_KEY: 'test-key' };
-      // Note: This will initialize the real Gemini service, but we'll only test methods that don't make API calls
       try {
         service = new GeminiInsightsService();
       } catch (error) {
-        // If initialization fails, we'll skip these tests
         console.log('Skipping tests - Gemini initialization failed');
       }
     });
@@ -46,51 +44,41 @@ describe('GeminiInsightsService', () => {
           name: 'test-repo',
           description: 'Test description',
           language: 'JavaScript',
-          stargazers_count: 50
+          stargazers_count: 100,
+          forks_count: 50,
+          updated_at: new Date().toISOString()
         },
         commits: [
-          {
-            commit: {
-              message: 'Fix bug',
-              author: { name: 'Alice' }
-            }
-          }
+          { commit: { message: 'Test commit' } }
         ],
         contributors: [
-          { login: 'alice', contributions: 10 }
-        ],
-        contents: [
-          { path: 'index.js', type: 'file' },
-          { path: 'src', type: 'dir' }
+          { login: 'user1' }
         ]
       };
 
-      const prompt = service.buildInsightPrompt(repoData);
+      const prompt = service.buildOptimizedPrompt(repoData);
 
       expect(prompt).toContain('test-repo');
-      expect(prompt).toContain('Test description');
       expect(prompt).toContain('JavaScript');
-      expect(prompt).toContain('50');
-      expect(prompt).toContain('Fix bug by Alice');
-      expect(prompt).toContain('alice: 10 commits');
-      expect(prompt).toContain('index.js (file)');
+      expect(prompt).toContain('100');
+      expect(prompt).toContain('user1');
     });
 
     it('should handle missing data gracefully', () => {
       if (!service) return;
 
       const repoData = {
-        repoInfo: {},
-        commits: null,
-        contributors: undefined,
-        contents: []
+        repoInfo: {
+          name: 'test-repo'
+        },
+        commits: [],
+        contributors: []
       };
 
-      const prompt = service.buildInsightPrompt(repoData);
+      const prompt = service.buildOptimizedPrompt(repoData);
 
-      expect(prompt).toContain('No description');
+      expect(prompt).toContain('test-repo');
       expect(prompt).toContain('Unknown');
-      expect(prompt).toContain('No files');
     });
   });
 
@@ -111,37 +99,37 @@ describe('GeminiInsightsService', () => {
       process.env = originalEnv;
     });
 
-    it('should parse valid JSON response', () => {
+    it('should parse valid response correctly', () => {
       if (!service) return;
 
       const validResponse = `Here is the analysis:
       {
-        "hotspotFiles": [],
-        "contributorInsights": {
-          "mostActive": ["user1"],
-          "collaborationPattern": "Active collaboration",
-          "recommendation": "Keep up the good work"
-        },
-        "developmentPatterns": {
-          "commitFrequency": "Daily",
-          "releasePattern": "Weekly",
-          "velocity": "High"
-        },
-        "codeQuality": {
-          "strengths": ["Clean code"],
-          "concerns": ["No tests"],
-          "technicalDebt": "Low"
-        },
-        "recommendations": []
+        "summary": "Well-maintained repository",
+        "strengths": ["Clean code", "Good structure", "Active development"],
+        "improvements": ["Add more tests", "Update documentation"],
+        "recommendation": "Focus on test coverage",
+        "collaboration": "Active collaboration with regular commits",
+        "activity": "active",
+        "quality": 85
       }
       Additional text here`;
+      
+      const mockRepoData = {
+        contributors: [
+          { login: 'user1' },
+          { login: 'user2' },
+          { login: 'user3' }
+        ]
+      };
 
-      const result = service.parseInsightResponse(validResponse);
+      const result = service.parseInsightResponse(validResponse, mockRepoData);
 
       expect(result).toHaveProperty('hotspotFiles');
       expect(result).toHaveProperty('contributorInsights');
-      expect(result.contributorInsights.mostActive).toContain('user1');
-      expect(result.developmentPatterns.velocity).toBe('High');
+      expect(result.contributorInsights.mostActive).toEqual(['user1', 'user2', 'user3']);
+      expect(result.contributorInsights.collaborationPattern).toBe('Active collaboration with regular commits');
+      expect(result.codeQuality.strengths).toContain('Clean code');
+      expect(result.codeQuality.concerns).toContain('Add more tests');
     });
 
     it('should handle invalid JSON with fallback structure', () => {
@@ -149,25 +137,29 @@ describe('GeminiInsightsService', () => {
 
       const invalidResponse = 'This is not JSON at all';
 
-      const result = service.parseInsightResponse(invalidResponse);
-
-      expect(result).toHaveProperty('hotspotFiles');
-      expect(result.hotspotFiles).toEqual([]);
-      expect(result.contributorInsights.collaborationPattern).toBe('Analysis unavailable');
-      expect(result.codeQuality.technicalDebt).toBe('Analysis unavailable');
+      expect(() => service.parseInsightResponse(invalidResponse)).toThrow();
     });
 
     it('should extract JSON from mixed content', () => {
       if (!service) return;
 
       const mixedResponse = `Some preamble text
-      {"hotspotFiles": [{"file": "test.js", "reason": "Complex", "recommendation": "Refactor"}]}
+      {"summary": "Test repo", "strengths": ["Good"], "improvements": ["Test"], "quality": 75}
       Some trailing text`;
+      
+      const mockRepoData = {
+        contributors: [
+          { login: 'user1' },
+          { login: 'user2' }
+        ]
+      };
 
-      const result = service.parseInsightResponse(mixedResponse);
+      const result = service.parseInsightResponse(mixedResponse, mockRepoData);
 
-      expect(result.hotspotFiles).toHaveLength(1);
-      expect(result.hotspotFiles[0].file).toBe('test.js');
+      expect(result).toHaveProperty('contributorInsights');
+      expect(result.contributorInsights.mostActive).toEqual(['user1', 'user2']);
+      expect(result.codeQuality.strengths).toEqual(['Good']);
+      expect(result.codeQuality.concerns).toEqual(['Test']);
     });
   });
 
@@ -188,45 +180,47 @@ describe('GeminiInsightsService', () => {
       process.env = originalEnv;
     });
 
-    it('should calculate commit frequency by date', () => {
+    it('should calculate commit frequency by week', () => {
       if (!service) return;
 
       const commits = [
-        { commit: { author: { date: '2024-01-01T10:00:00Z' } } },
-        { commit: { author: { date: '2024-01-01T14:00:00Z' } } },
-        { commit: { author: { date: '2024-01-02T10:00:00Z' } } },
-        { commit: { author: { date: '2024-01-02T11:00:00Z' } } },
-        { commit: { author: { date: '2024-01-02T12:00:00Z' } } }
+        { commit: { author: { date: '2024-01-01T10:00:00Z' } } }, // Monday
+        { commit: { author: { date: '2024-01-01T14:00:00Z' } } }, // Monday
+        { commit: { author: { date: '2024-01-02T10:00:00Z' } } }, // Tuesday
+        { commit: { author: { date: '2024-01-02T11:00:00Z' } } }, // Tuesday
+        { commit: { author: { date: '2024-01-02T12:00:00Z' } } }, // Tuesday
+        { commit: { author: { date: '2024-01-08T10:00:00Z' } } }  // Next Monday
       ];
 
       const frequency = service.calculateCommitFrequency(commits);
 
-      expect(frequency).toHaveLength(2);
-      expect(frequency[0]).toEqual({ date: '2024-01-01', count: 2 });
-      expect(frequency[1]).toEqual({ date: '2024-01-02', count: 3 });
+      expect(frequency).toHaveLength(2); // 2 weeks
+      expect(frequency[0].count).toBe(5); // First week
+      expect(frequency[1].count).toBe(1); // Second week
     });
 
-    it('should return empty array for no commits', () => {
+    it('should handle empty commits', () => {
       if (!service) return;
 
       const frequency = service.calculateCommitFrequency([]);
       expect(frequency).toEqual([]);
     });
 
-    it('should sort dates chronologically', () => {
+    it('should limit to last 8 weeks', () => {
       if (!service) return;
 
-      const commits = [
-        { commit: { author: { date: '2024-01-03T10:00:00Z' } } },
-        { commit: { author: { date: '2024-01-01T10:00:00Z' } } },
-        { commit: { author: { date: '2024-01-02T10:00:00Z' } } }
-      ];
+      // Create commits across 10 weeks
+      const commits = [];
+      for (let i = 0; i < 10; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - (i * 7)); // Each week
+        commits.push({
+          commit: { author: { date: date.toISOString() } }
+        });
+      }
 
       const frequency = service.calculateCommitFrequency(commits);
-
-      expect(frequency[0].date).toBe('2024-01-01');
-      expect(frequency[1].date).toBe('2024-01-02');
-      expect(frequency[2].date).toBe('2024-01-03');
+      expect(frequency.length).toBeLessThanOrEqual(8);
     });
   });
 
@@ -253,8 +247,8 @@ describe('GeminiInsightsService', () => {
       const repoData = {
         commits: [
           { commit: { author: { date: '2024-01-01T10:00:00Z' } } },
-          { commit: { author: { date: '2024-01-01T11:00:00Z' } } },
-          { commit: { author: { date: '2024-01-02T10:00:00Z' } } }
+          { commit: { author: { date: '2024-01-02T10:00:00Z' } } },
+          { commit: { author: { date: '2024-01-08T10:00:00Z' } } }
         ],
         contributors: [
           { login: 'user1', contributions: 30 },
@@ -266,7 +260,7 @@ describe('GeminiInsightsService', () => {
 
       expect(vizData).toHaveProperty('commitFrequency');
       expect(vizData).toHaveProperty('contributorDistribution');
-      expect(vizData.commitFrequency).toHaveLength(2); // 2 unique dates
+      expect(vizData.commitFrequency).toHaveLength(2); // 2 unique weeks
       expect(vizData.contributorDistribution).toHaveLength(2);
       expect(vizData.contributorDistribution[0].percentage).toBe(60); // 30/50 * 100
     });

@@ -33,32 +33,14 @@ describe('RepositoryInsights Component', () => {
           collaborationPattern: 'Strong collaboration with regular code reviews',
           recommendation: 'Maintain current collaboration practices'
         },
-        developmentPatterns: {
-          commitFrequency: 'High - Multiple commits daily',
-          releasePattern: 'Regular weekly releases',
-          velocity: 'Fast development pace'
-        },
         codeQuality: {
           strengths: ['Well-documented', 'Good test coverage', 'Clean architecture'],
-          concerns: ['Some legacy code', 'Complex build process'],
-          technicalDebt: 'Moderate - Some refactoring needed'
+          concerns: ['Some legacy code', 'Complex build process']
         },
         recommendations: [
-          {
-            priority: 'high',
-            area: 'Performance',
-            suggestion: 'Optimize bundle size by implementing code splitting'
-          },
-          {
-            priority: 'medium',
-            area: 'Testing',
-            suggestion: 'Increase integration test coverage'
-          },
-          {
-            priority: 'low',
-            area: 'Documentation',
-            suggestion: 'Add more inline code comments'
-          }
+          { priority: 'high', area: 'Performance', suggestion: 'Optimize bundle size by implementing code splitting' },
+          { priority: 'medium', area: 'Testing', suggestion: 'Increase integration test coverage' },
+          { priority: 'low', area: 'Documentation', suggestion: 'Add more inline code comments' }
         ]
       }
     }
@@ -133,7 +115,7 @@ describe('RepositoryInsights Component', () => {
       });
     });
 
-    it('should display contributor insights section', async () => {
+    it('should display contributor insights', async () => {
       render(<RepositoryInsights repoUrl={mockRepoUrl} repoName={mockRepoName} />);
       
       fireEvent.click(screen.getByRole('button', { name: /Generate AI Insights/i }));
@@ -142,21 +124,6 @@ describe('RepositoryInsights Component', () => {
         expect(screen.getByText('Team Insights')).toBeInTheDocument();
         expect(screen.getByText('user1, user2, user3')).toBeInTheDocument();
         expect(screen.getByText('Strong collaboration with regular code reviews')).toBeInTheDocument();
-        expect(screen.getByText('✨ Maintain current collaboration practices')).toBeInTheDocument();
-      });
-    });
-
-    it('should display development patterns section', async () => {
-      render(<RepositoryInsights repoUrl={mockRepoUrl} repoName={mockRepoName} />);
-      
-      fireEvent.click(screen.getByRole('button', { name: /Generate AI Insights/i }));
-      
-      await waitFor(() => {
-        expect(screen.getByText('Development Patterns')).toBeInTheDocument();
-        expect(screen.getByText('Commit Frequency')).toBeInTheDocument();
-        expect(screen.getByText('High - Multiple commits daily')).toBeInTheDocument();
-        expect(screen.getByText('Release Pattern')).toBeInTheDocument();
-        expect(screen.getByText('Regular weekly releases')).toBeInTheDocument();
       });
     });
 
@@ -171,7 +138,6 @@ describe('RepositoryInsights Component', () => {
         expect(screen.getByText('• Well-documented')).toBeInTheDocument();
         expect(screen.getByText('Areas of Concern')).toBeInTheDocument();
         expect(screen.getByText('• Some legacy code')).toBeInTheDocument();
-        expect(screen.getByText('Moderate - Some refactoring needed')).toBeInTheDocument();
       });
     });
 
@@ -211,15 +177,9 @@ describe('RepositoryInsights Component', () => {
               collaborationPattern: 'Strong collaboration with regular code reviews',
               recommendation: 'Maintain current collaboration practices'
             },
-            developmentPatterns: {
-              commitFrequency: 'High - Multiple commits daily',
-              releasePattern: 'Regular weekly releases',
-              velocity: 'Fast development pace'
-            },
             codeQuality: {
               strengths: ['Well-documented', 'Good test coverage', 'Clean architecture'],
-              concerns: ['Some legacy code', 'Complex build process'],
-              technicalDebt: 'Moderate - Some refactoring needed'
+              concerns: ['Some legacy code', 'Complex build process']
             },
             recommendations: [
               {
@@ -279,15 +239,9 @@ describe('RepositoryInsights Component', () => {
               collaborationPattern: 'Strong collaboration with regular code reviews',
               recommendation: 'Maintain current collaboration practices'
             },
-            developmentPatterns: {
-              commitFrequency: 'High - Multiple commits daily',
-              releasePattern: 'Regular weekly releases',
-              velocity: 'Fast development pace'
-            },
             codeQuality: {
               strengths: ['Well-documented', 'Good test coverage', 'Clean architecture'],
-              concerns: ['Some legacy code', 'Complex build process'],
-              technicalDebt: 'Moderate - Some refactoring needed'
+              concerns: ['Some legacy code', 'Complex build process']
             },
             recommendations: [
               {
@@ -365,13 +319,11 @@ describe('RepositoryInsights Component', () => {
           insights: {
             hotspotFiles: [],
             contributorInsights: null,
-            developmentPatterns: {},
             codeQuality: {
               strengths: [],
-              concerns: [],
-              technicalDebt: null
+              concerns: []
             },
-            recommendations: []
+            recommendations: null
           }
         }
       };

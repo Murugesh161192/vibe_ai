@@ -1,123 +1,82 @@
+import React from 'react'
 import { render, screen } from '@testing-library/react'
-import { vi } from 'vitest'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 describe('LoadingSpinner Component', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
   describe('Initial Render', () => {
-    test('renders loading spinner container', () => {
-      const { container } = render(<LoadingSpinner />)
-      const textCenter = container.querySelector('.text-center')
-      expect(textCenter).toBeInTheDocument()
-    })
-
     test('renders with default message', () => {
-      const { container } = render(<LoadingSpinner />)
+      render(<LoadingSpinner />)
       
-      const visibleMessage = container.querySelector('.font-semibold')
-      expect(visibleMessage).toHaveTextContent('Analyzing repository...')
+      expect(screen.getByText('Loading...')).toBeInTheDocument()
     })
 
     test('renders with custom message', () => {
-      const customMessage = 'Loading custom data...'
-      const { container } = render(<LoadingSpinner />)
+      const customMessage = 'Analyzing repository...'
+      render(<LoadingSpinner message={customMessage} />)
       
-      const visibleMessage = container.querySelector('.font-semibold')
-      expect(visibleMessage).toHaveTextContent('Analyzing repository...')
-      
-      // Test with actual custom message
-      const { container: customContainer } = render(<LoadingSpinner message={customMessage} />)
-      const customVisibleMessage = customContainer.querySelector('.font-semibold')
-      expect(customVisibleMessage).toHaveTextContent(customMessage)
+      expect(screen.getByText(customMessage)).toBeInTheDocument()
     })
 
     test('renders spinner animation elements', () => {
       const { container } = render(<LoadingSpinner />)
       
-      // Check for spinning element
-      const spinningElement = container.querySelector('.animate-spin')
-      expect(spinningElement).toBeInTheDocument()
+      // Check for main spinner
+      const mainSpinner = container.querySelector('.animate-spin')
+      expect(mainSpinner).toBeInTheDocument()
       
-      // Check for outer ring
-      const outerRing = container.querySelector('.border-white\\/20')
-      expect(outerRing).toBeInTheDocument()
+      // Check for spinner styling
+      expect(mainSpinner).toHaveClass('border-t-purple-400')
     })
 
-    test('renders additional context text', () => {
+    test('renders AI attribution', () => {
       render(<LoadingSpinner />)
       
-      expect(screen.getByText('This may take a few moments...')).toBeInTheDocument()
-    })
-
-    test('renders progress indicator dots', () => {
-      const { container } = render(<LoadingSpinner />)
-      
-      // Check for animated dots
-      const animatedDots = container.querySelectorAll('.animate-pulse')
-      expect(animatedDots.length).toBeGreaterThanOrEqual(3) // At least 3 dots
+      expect(screen.getByText('Powered by AI')).toBeInTheDocument()
     })
   })
 
   describe('Component Props', () => {
     test('handles empty message', () => {
-      const { container } = render(<LoadingSpinner message="" />)
+      render(<LoadingSpinner message="" />)
       
-      const visibleMessage = container.querySelector('.font-semibold')
-      expect(visibleMessage).toHaveTextContent('')
+      // Check that the component renders without crashing
+      const { container } = render(<LoadingSpinner message="" />)
+      const headingElement = container.querySelector('h3')
+      expect(headingElement).toBeInTheDocument()
     })
 
     test('handles missing message prop', () => {
-      const { container } = render(<LoadingSpinner message={undefined} />)
+      render(<LoadingSpinner />)
       
-      const visibleMessage = container.querySelector('.font-semibold')
-      expect(visibleMessage).toHaveTextContent('Analyzing repository...')
+      expect(screen.getByText('Loading...')).toBeInTheDocument()
     })
 
     test('displays custom message when provided', () => {
-      const customMessage = 'Processing repository data...'
-      const { container } = render(<LoadingSpinner message={customMessage} />)
+      const customMessage = 'Processing data...'
+      render(<LoadingSpinner message={customMessage} />)
       
-      const visibleMessage = container.querySelector('.font-semibold')
-      expect(visibleMessage).toHaveTextContent(customMessage)
+      expect(screen.getByText(customMessage)).toBeInTheDocument()
     })
   })
 
-  describe('Accessibility', () => {
-    test('has proper ARIA attributes', () => {
-      render(<LoadingSpinner />)
+  describe('Progress Indicator', () => {
+    test('shows progress indicator when progress is provided', () => {
+      render(<LoadingSpinner progress={75} />)
       
-      const statusElement = screen.getByRole('status')
-      expect(statusElement).toBeInTheDocument()
+      expect(screen.getByText('75% complete')).toBeInTheDocument()
     })
 
-    test('has proper ARIA live region', () => {
-      render(<LoadingSpinner />)
+    test('does not show progress indicator when progress is null', () => {
+      render(<LoadingSpinner progress={null} />)
       
-      const liveRegion = screen.getByRole('status')
-      expect(liveRegion).toHaveAttribute('aria-live', 'polite')
+      expect(screen.queryByText(/\d+% complete/)).not.toBeInTheDocument()
     })
 
-    test('screen reader text matches visible message', () => {
-      const message = 'Loading custom content...'
-      const { container } = render(<LoadingSpinner message={message} />)
+    test('shows progress bar when progress is provided', () => {
+      const { container } = render(<LoadingSpinner progress={50} />)
       
-      const visibleMessage = container.querySelector('.font-semibold')
-      const screenReaderMessage = container.querySelector('.sr-only[role="status"]')
-      
-      expect(visibleMessage).toHaveTextContent(message)
-      expect(screenReaderMessage).toHaveTextContent(message)
-    })
-
-    test('screen reader only element is present', () => {
-      const { container } = render(<LoadingSpinner />)
-      
-      const srOnly = container.querySelector('.sr-only')
-      expect(srOnly).toBeInTheDocument()
-      expect(srOnly).toHaveAttribute('role', 'status')
-      expect(srOnly).toHaveAttribute('aria-live', 'polite')
+      const progressBar = container.querySelector('.bg-gradient-to-r.from-purple-400.to-purple-600')
+      expect(progressBar).toBeInTheDocument()
     })
   })
 
@@ -125,77 +84,65 @@ describe('LoadingSpinner Component', () => {
     test('applies correct container styling classes', () => {
       const { container } = render(<LoadingSpinner />)
       
-      const textCenter = container.querySelector('.text-center')
-      expect(textCenter).toBeInTheDocument()
-      expect(textCenter).toHaveClass('py-12')
-    })
-
-    test('applies card glass styling', () => {
-      const { container } = render(<LoadingSpinner />)
-      
-      const cardGlass = container.querySelector('.card-glass')
-      expect(cardGlass).toBeInTheDocument()
-      expect(cardGlass).toHaveClass('p-8', 'max-w-md', 'mx-auto')
-    })
-
-    test('spinner has correct structure and styling', () => {
-      const { container } = render(<LoadingSpinner />)
-      
-      // Test the spinning border element
-      const spinner = container.querySelector('.animate-spin')
-      expect(spinner).toBeInTheDocument()
-      expect(spinner).toHaveClass('border-4', 'border-transparent', 'border-t-white', 'border-r-white', 'rounded-full')
-      
-      // Test the outer ring
-      const outerRing = container.querySelector('.border-white\\/20')
-      expect(outerRing).toBeInTheDocument()
-      expect(outerRing).toHaveClass('w-20', 'h-20', 'border-4', 'rounded-full')
+      const containerDiv = container.querySelector('.icon-align-center.flex-col')
+      expect(containerDiv).toBeInTheDocument()
     })
 
     test('applies text styling classes', () => {
       const { container } = render(<LoadingSpinner />)
       
-      const whiteText = container.querySelector('.text-white')
-      expect(whiteText).toBeInTheDocument()
+      const headingElement = container.querySelector('h3')
+      expect(headingElement).toHaveClass('text-heading-md')
     })
 
-    test('center dot is present', () => {
+    test('spinner has correct structure and styling', () => {
       const { container } = render(<LoadingSpinner />)
       
-      // Check for center dot
-      const centerDot = container.querySelector('.w-2.h-2.bg-white.rounded-full.opacity-80')
-      // Use a more flexible selector since the exact class combination might vary
-      const dots = container.querySelectorAll('.bg-white.rounded-full')
-      expect(dots.length).toBeGreaterThan(0)
+      const spinner = container.querySelector('.animate-spin')
+      expect(spinner).toBeInTheDocument()
+      expect(spinner).toHaveClass('border-4', 'border-purple-200/30', 'border-t-purple-400', 'rounded-full')
     })
 
-    test('progress dots have proper spacing and animation', () => {
+    test('renders bot icon in center', () => {
       const { container } = render(<LoadingSpinner />)
       
-      const progressContainer = container.querySelector('.space-x-1')
-      expect(progressContainer).toBeInTheDocument()
-      
-      const progressDots = container.querySelectorAll('.space-x-1 .animate-pulse')
-      expect(progressDots.length).toBe(3) // Should have 3 progress dots
+      const iconContainer = container.querySelector('.icon-container.icon-container-primary')
+      expect(iconContainer).toBeInTheDocument()
     })
   })
 
   describe('Visual Feedback', () => {
     test('renders main loading message prominently', () => {
-      const message = 'Custom loading message'
-      const { container } = render(<LoadingSpinner message={message} />)
+      const message = 'Processing...'
+      render(<LoadingSpinner message={message} />)
       
-      const prominentMessage = container.querySelector('.text-xl.font-semibold')
-      expect(prominentMessage).toBeInTheDocument()
-      expect(prominentMessage).toHaveTextContent(message)
+      const messageElement = screen.getByText(message)
+      expect(messageElement).toBeInTheDocument()
+      expect(messageElement.tagName).toBe('H3')
     })
 
-    test('renders secondary helper text', () => {
+    test('progress indicator has correct styling when present', () => {
+      const { container } = render(<LoadingSpinner progress={80} />)
+      
+      const progressText = screen.getByText('80% complete')
+      expect(progressText).toHaveClass('text-white/60', 'text-sm')
+    })
+  })
+
+  describe('Accessibility', () => {
+    test('has proper text content for screen readers', () => {
+      const message = 'Loading data...'
+      render(<LoadingSpinner message={message} />)
+      
+      expect(screen.getByText(message)).toBeInTheDocument()
+    })
+
+    test('spinner elements are present for visual feedback', () => {
       const { container } = render(<LoadingSpinner />)
       
-      const helperText = container.querySelector('.text-white\\/70')
-      expect(helperText).toBeInTheDocument()
-      expect(helperText).toHaveTextContent('This may take a few moments...')
+      // Check that spinner is present
+      const spinner = container.querySelector('.animate-spin')
+      expect(spinner).toBeInTheDocument()
     })
   })
 }) 

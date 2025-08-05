@@ -5,7 +5,8 @@ import { summarizeReadme } from '../services/api';
 const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo }) => {
   const [loadingSummary, setLoadingSummary] = useState({});
   const [loadingAnalyze, setLoadingAnalyze] = useState({});
-
+  const [summaryData, setSummaryData] = useState({});
+  const [summaryErrors, setSummaryErrors] = useState({});
 
 
   // Provide default values if user data is missing or incomplete
@@ -57,7 +58,12 @@ const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo }) => {
   const formatDate = (dateString) => {
     if (!dateString) return 'Unknown';
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
+      const date = new Date(dateString);
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return 'Invalid date';
+      }
+      return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
@@ -71,27 +77,41 @@ const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo }) => {
     console.log('Summary clicked for repo:', repo.name);
     
     setLoadingSummary(prev => ({ ...prev, [repo.id]: true }));
+    setSummaryErrors(prev => ({ ...prev, [repo.id]: null }));
     
     try {
       const response = await summarizeReadme(repo.owner.login, repo.name);
       console.log('API response received for', repo.name);
       
       // Enhanced summary with better branding
-      const summaryText = response.summary || 'No summary available';
-                      const aiInfo = response.isMock ? 
-          '\n\n⚠️ Demo Mode: Configure API key for full capabilities' : 
-          `\n\n📝 Generated: ${new Date().toLocaleTimeString()}`;
-        
-        const alertMessage = `📄 Repository Summary: ${repo.name}\n\n${summaryText}${aiInfo}`;
+      const summaryText = response?.summary || 'No summary available';
+      const aiInfo = response?.isMock ? 
+        '\n\n⚠️ Demo Mode: Configure API key for full capabilities' : 
+        `\n\n📝 Generated: ${new Date().toLocaleTimeString()}`;
       
-      alert(alertMessage);
+      const summaryMessage = `📄 Repository Summary: ${repo.name}\n\n${summaryText}${aiInfo}`;
+      
+      // Store summary in state instead of alert
+      setSummaryData(prev => ({ ...prev, [repo.id]: summaryMessage }));
+      
+      // For production, still use alert but check if it exists
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert(summaryMessage);
+      }
       
     } catch (error) {
       console.error('Summarization failed for', repo.name, ':', error);
       
-              // Enhanced error message
-        const errorMessage = `❌ Summary Failed for ${repo.name}\n\nUnable to generate summary for this repository.\n\nReason: ${error.message}\n\n💡 Tip: Try again or ensure the repository is public and has documentation.`;
-      alert(errorMessage);
+      // Enhanced error message
+      const errorMessage = `❌ Summary Failed for ${repo.name}\n\nUnable to generate summary for this repository.\n\nReason: ${error.message}\n\n💡 Tip: Try again or ensure the repository is public and has documentation.`;
+      
+      // Store error in state
+      setSummaryErrors(prev => ({ ...prev, [repo.id]: errorMessage }));
+      
+      // For production, still use alert but check if it exists
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert(errorMessage);
+      }
       
     } finally {
       setLoadingSummary(prev => ({ ...prev, [repo.id]: false }));
@@ -243,7 +263,7 @@ const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo }) => {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid-responsive-lg">
               {repositories.map((repo) => (
                 <div key={repo.id || repo.name} className="card-content p-4 group hover:scale-[1.02] transition-transform">
                   <div className="mb-3">

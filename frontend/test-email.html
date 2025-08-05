@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Email Functionality</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            display: none;
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Email Share Functionality Test</h1>
+        <p>Click the buttons below to test different email methods:</p>
+        
+        <div class="test-section">
+            <h3>Method 1: Direct window.location.href</h3>
+            <button onclick="testMethod1()">Test Method 1</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Method 2: Hidden Anchor Click</h3>
+            <button onclick="testMethod2()">Test Method 2</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Method 3: Visible Anchor (Manual Click)</h3>
+            <a id="emailLink" href="" style="display: inline-block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;">Click to Send Email</a>
+            <button onclick="testMethod3()">Prepare Email Link</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Method 4: Window.open</h3>
+            <button onclick="testMethod4()">Test Method 4</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>Method 5: Copy to Clipboard</h3>
+            <button onclick="testMethod5()">Copy Email Content</button>
+        </div>
+        
+        <div id="result" class="result"></div>
+    </div>
+    
+    <script>
+        const subject = "Test Vibe Score Analysis";
+        const body = `Hi,
+
+I just analyzed a repository using Vibe GitHub Analyzer!
+
+Vibe Score: 85/100
+
+This is a test email to verify the email functionality is working correctly.
+
+Breakdown:
+• Code Quality: 80
+• Readability: 70
+• Collaboration: 85
+• Security: 90
+
+Check it out yourself:
+https://vibe-analyzer.netlify.app?repo=facebook/react
+
+Best regards`;
+        
+        function showResult(message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = message;
+        }
+        
+        function testMethod1() {
+            try {
+                const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.location.href = mailtoUrl;
+                showResult('Method 1 executed: window.location.href\nIf email client didn\'t open, your system may not have a default email client configured.');
+            } catch (err) {
+                showResult('Method 1 failed: ' + err.message);
+            }
+        }
+        
+        function testMethod2() {
+            try {
+                const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                const anchor = document.createElement('a');
+                anchor.href = mailtoUrl;
+                anchor.style.display = 'none';
+                document.body.appendChild(anchor);
+                anchor.click();
+                document.body.removeChild(anchor);
+                showResult('Method 2 executed: Hidden anchor click\nIf email client didn\'t open, your system may not have a default email client configured.');
+            } catch (err) {
+                showResult('Method 2 failed: ' + err.message);
+            }
+        }
+        
+        function testMethod3() {
+            try {
+                const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                document.getElementById('emailLink').href = mailtoUrl;
+                showResult('Method 3 prepared: Email link is ready. Click the blue button above to send email.');
+            } catch (err) {
+                showResult('Method 3 failed: ' + err.message);
+            }
+        }
+        
+        function testMethod4() {
+            try {
+                const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.open(mailtoUrl, '_self');
+                showResult('Method 4 executed: window.open\nIf email client didn\'t open, your system may not have a default email client configured.');
+            } catch (err) {
+                showResult('Method 4 failed: ' + err.message);
+            }
+        }
+        
+        function testMethod5() {
+            const emailContent = `Subject: ${subject}\n\n${body}`;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(emailContent)
+                    .then(() => {
+                        showResult('Method 5 SUCCESS: Email content copied to clipboard!\nYou can now paste it into any email client.');
+                        alert('Email content copied! Paste it into your email client.');
+                    })
+                    .catch(err => {
+                        showResult('Method 5 failed: ' + err.message);
+                    });
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = emailContent;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showResult('Method 5 SUCCESS (fallback): Email content copied to clipboard!\nYou can now paste it into any email client.');
+                alert('Email content copied! Paste it into your email client.');
+            }
+        }
+    </script>
+</body>
+</html> 

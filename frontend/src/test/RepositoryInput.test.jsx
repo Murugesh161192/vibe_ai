@@ -347,4 +347,93 @@ describe('RepositoryInput Component', () => {
     })
   })
 
+  describe('Metrics Breakdown', () => {
+    test('toggles metrics breakdown visibility', async () => {
+      const user = userEvent.setup()
+      render(<RepositoryInput onAnalyze={mockOnAnalyze} />)
+      
+      // Initially metrics should not be visible
+      expect(screen.queryByText(/High Priority Metrics/i)).not.toBeInTheDocument()
+      
+      // Click the toggle button
+      const toggleButton = screen.getByRole('button', { name: /View Metrics Breakdown/i })
+      await user.click(toggleButton)
+      
+      // Metrics should now be visible
+      expect(screen.getByText(/High Priority Metrics/i)).toBeInTheDocument()
+      expect(screen.getByText(/Medium Priority Metrics/i)).toBeInTheDocument()
+      expect(screen.getByText(/Supporting Factors/i)).toBeInTheDocument()
+      
+      // Button text should change
+      expect(screen.getByRole('button', { name: /Hide Metrics Breakdown/i })).toBeInTheDocument()
+      
+      // Click again to hide
+      await user.click(screen.getByRole('button', { name: /Hide Metrics Breakdown/i }))
+      expect(screen.queryByText(/High Priority Metrics/i)).not.toBeInTheDocument()
+    })
+
+    test('displays all metric categories when expanded', async () => {
+      const user = userEvent.setup()
+      render(<RepositoryInput onAnalyze={mockOnAnalyze} />)
+      
+      const toggleButton = screen.getByRole('button', { name: /View Metrics Breakdown/i })
+      await user.click(toggleButton)
+      
+      // Check high priority metrics
+      expect(screen.getByText('Code Quality')).toBeInTheDocument()
+      expect(screen.getByText('Collaboration')).toBeInTheDocument()
+      expect(screen.getByText('Readability')).toBeInTheDocument()
+      expect(screen.getByText('Security & Safety')).toBeInTheDocument()
+      
+      // Check medium priority metrics
+      expect(screen.getByText('Innovation')).toBeInTheDocument()
+      expect(screen.getByText('Maintainability')).toBeInTheDocument()
+      expect(screen.getByText('Performance')).toBeInTheDocument()
+      expect(screen.getByText('Testing Quality')).toBeInTheDocument()
+      
+      // Check supporting factors
+      expect(screen.getByText('Inclusivity')).toBeInTheDocument()
+      expect(screen.getByText('Community')).toBeInTheDocument()
+      expect(screen.getByText('Code Health')).toBeInTheDocument()
+      expect(screen.getByText('Release Mgmt')).toBeInTheDocument()
+    })
+
+    test('displays metric weights and descriptions', async () => {
+      const user = userEvent.setup()
+      render(<RepositoryInput onAnalyze={mockOnAnalyze} />)
+      
+      const toggleButton = screen.getByRole('button', { name: /View Metrics Breakdown/i })
+      await user.click(toggleButton)
+      
+      // Check weights using getAllByText for duplicate weights
+      expect(screen.getByText('16%')).toBeInTheDocument()
+      expect(screen.getByText('15%')).toBeInTheDocument()
+      expect(screen.getAllByText('12%')).toHaveLength(2) // There are two 12% weights
+      expect(screen.getAllByText('8%')).toHaveLength(3) // There are three 8% weights
+      expect(screen.getByText('6%')).toBeInTheDocument()
+      expect(screen.getByText('5%')).toBeInTheDocument()
+      expect(screen.getAllByText('4%')).toHaveLength(2) // There are two 4% weights
+      expect(screen.getByText('2%')).toBeInTheDocument()
+      
+      // Check descriptions
+      expect(screen.getByText(/Test coverage & complexity analysis/i)).toBeInTheDocument()
+      expect(screen.getByText(/Team dynamics & contribution patterns/i)).toBeInTheDocument()
+      expect(screen.getByText(/Documentation & code clarity/i)).toBeInTheDocument()
+      expect(screen.getByText(/Vulnerability scanning & compliance/i)).toBeInTheDocument()
+    })
+
+    test('metric section shows correct weight ranges', async () => {
+      const user = userEvent.setup()
+      render(<RepositoryInput onAnalyze={mockOnAnalyze} />)
+      
+      const toggleButton = screen.getByRole('button', { name: /View Metrics Breakdown/i })
+      await user.click(toggleButton)
+      
+      // Check weight range labels
+      expect(screen.getByText('12-16% weight')).toBeInTheDocument()
+      expect(screen.getByText('6-8% weight')).toBeInTheDocument()
+      expect(screen.getByText('2-5% weight')).toBeInTheDocument()
+    })
+  })
+
 }) 

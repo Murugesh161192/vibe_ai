@@ -189,23 +189,24 @@ export class GitHubService {
   }
 
   /**
-   * Get repository contributors for diversity analysis
+   * Get repository contributors
    * @param {string} owner - Repository owner
    * @param {string} repo - Repository name
-   * @returns {Array} Array of contributor objects with basic information
+   * @param {number} limit - Maximum number of contributors to return (default: 30)
+   * @returns {Array} Array of contributor objects
    */
-  async getContributors(owner, repo) {
+  async getContributors(owner, repo, limit = 30) {
     try {
       this.ensureToken();
       const response = await this.api.get(`/repos/${owner}/${repo}/contributors`, {
         params: {
-          per_page: 30, // Reduced to avoid rate limits
+          per_page: Math.min(limit, 100), // GitHub API max is 100 per page
           page: 1
         }
       });
       
       // Return basic contributor data without detailed user info to avoid rate limits
-      return response.data.map(contributor => ({
+      return response.data.slice(0, limit).map(contributor => ({
         login: contributor.login,
         contributions: contributor.contributions,
         avatar_url: contributor.avatar_url,

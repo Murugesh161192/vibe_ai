@@ -1,7 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 /**
- * Service for generating AI-powered repository insights using Google Gemini 1.5 Flash
+ * Optimized service for generating AI-powered repository insights using Google Gemini
+ * Focuses on performance and fast response times
  */
 export class GeminiInsightsService {
   constructor() {
@@ -16,9 +17,24 @@ export class GeminiInsightsService {
     
     try {
       this.genAI = new GoogleGenerativeAI(apiKey);
-      // Use gemini-1.5-flash model for fast and efficient insights
-      this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      console.log('✅ Gemini AI 1.5 Flash initialized successfully');
+      
+      // Use only the flash model for speed
+      this.model = this.genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024, // Limit output size for faster response
+        }
+      });
+      
+      console.log('✅ Gemini AI Flash model initialized for optimal performance');
+      
+      // Simple in-memory cache for recent analyses
+      this.cache = new Map();
+      this.cacheTimeout = 10 * 60 * 1000; // 10 minutes
+      
     } catch (error) {
       console.error('❌ Failed to initialize Gemini AI:', error);
       throw error;
@@ -26,150 +42,277 @@ export class GeminiInsightsService {
   }
 
   /**
-   * Generate comprehensive repository insights
-   * @param {Object} repoData - Repository data including commits, contributors, files
-   * @returns {Object} AI-generated insights
+   * Get cache key for repository
    */
-  async generateInsights(repoData) {
-    try {
-      console.log('🔍 Generating insights for repository...');
-      const prompt = this.buildInsightPrompt(repoData);
-      
-      console.log('📝 Sending request to Gemini AI...');
-      console.log('📋 Prompt length:', prompt.length, 'characters');
-      
-      const result = await this.model.generateContent(prompt);
-      console.log('📨 Gemini API response received');
-      
-      const response = await result.response;
-      console.log('📄 Response object obtained');
-      
-      const text = response.text();
-      console.log('✅ Text extracted from response');
-      console.log('📏 Response length:', text.length, 'characters');
-      
-      // Parse the JSON response from Gemini
-      return this.parseInsightResponse(text);
-    } catch (error) {
-      console.error('❌ Gemini insight generation failed:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      
-      // Provide more specific error messages
-      if (error.message?.includes('API key')) {
-        throw new Error('Invalid or missing Gemini API key');
-      }
-      if (error.message?.includes('quota')) {
-        throw new Error('Gemini API quota exceeded');
-      }
-      if (error.message?.includes('model')) {
-        throw new Error('Gemini model not available');
-      }
-      
-      throw new Error('Failed to generate repository insights: ' + error.message);
+  getCacheKey(repoData) {
+    const { repoInfo } = repoData;
+    return `${repoInfo.full_name}-${repoInfo.updated_at}`;
+  }
+
+  /**
+   * Try to get cached insights
+   */
+  getCachedInsights(repoData) {
+    const cacheKey = this.getCacheKey(repoData);
+    const cached = this.cache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      console.log('📦 Returning cached insights');
+      return cached.data;
+    }
+    
+    return null;
+  }
+
+  /**
+   * Cache insights for future use
+   */
+  cacheInsights(repoData, insights) {
+    const cacheKey = this.getCacheKey(repoData);
+    this.cache.set(cacheKey, {
+      data: insights,
+      timestamp: Date.now()
+    });
+    
+    // Clean old cache entries
+    if (this.cache.size > 50) {
+      const oldestKey = this.cache.keys().next().value;
+      this.cache.delete(oldestKey);
     }
   }
 
   /**
-   * Build a structured prompt for Gemini
+   * Quick analysis with minimal API calls - FAST VERSION
    */
-  buildInsightPrompt(repoData) {
-    const { repoInfo, commits, contributors, contents, languages } = repoData;
+  async generateQuickInsights(repoData) {
+    try {
+      // Check cache first
+      const cached = this.getCachedInsights(repoData);
+      if (cached) {
+        return cached;
+      }
+
+      console.log('🚀 Generating quick insights...');
+      const prompt = this.buildOptimizedPrompt(repoData);
+      
+      // Single attempt with short timeout
+      const result = await Promise.race([
+        this.model.generateContent(prompt),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000))
+      ]);
+      
+      const response = await result.response;
+      const text = response.text();
+      console.log('✅ Quick insights generated');
+      
+      const insights = this.parseInsightResponse(text, repoData);
+      
+      // Cache the results
+      this.cacheInsights(repoData, insights);
+      
+      return insights;
+      
+    } catch (error) {
+      console.log('⚡ Falling back to instant basic insights');
+      // Return immediate basic insights
+      return this.generateInstantInsights(repoData);
+    }
+  }
+
+  /**
+   * Generate insights with optimized performance
+   */
+  async generateInsights(repoData) {
+    try {
+      // Always try quick insights first
+      return await this.generateQuickInsights(repoData);
+    } catch (error) {
+      console.error('❌ Insight generation failed:', error);
+      return {
+        success: true,
+        fallback: true,
+        insights: this.generateInstantInsights(repoData),
+        message: 'Showing quick analysis'
+      };
+    }
+  }
+
+  /**
+   * Build a smaller, optimized prompt for faster response
+   */
+  buildOptimizedPrompt(repoData) {
+    const { repoInfo, commits, contributors } = repoData;
     
-    // Calculate some basic stats for context
-    const fileCount = contents?.filter(item => item.type === 'file').length || 0;
-    const recentCommits = commits?.slice(0, 10) || [];
-    const topContributors = contributors?.slice(0, 5) || [];
+    // Use only essential data
+    const recentCommits = commits?.slice(0, 5) || [];
+    const topContributors = contributors?.slice(0, 3) || [];
     
-    return `You are analyzing a GitHub repository. Provide actionable insights in valid JSON format.
+    return `Analyze this GitHub repository concisely. Return ONLY valid JSON.
 
 Repository: ${repoInfo.name}
-Description: ${repoInfo.description || 'No description'}
-Primary Language: ${repoInfo.language || 'Unknown'}
+Language: ${repoInfo.language || 'Unknown'}
 Stars: ${repoInfo.stargazers_count || 0}
-Total Files: ${fileCount}
+Forks: ${repoInfo.forks_count || 0}
+Last Updated: ${new Date(repoInfo.updated_at).toLocaleDateString()}
 
-Recent Commits (last 10):
-${recentCommits.map(c => `- ${c.commit.message} by ${c.commit.author.name}`).join('\n')}
+Recent Activity:
+${recentCommits.slice(0, 3).map(c => `- ${c.commit.message.slice(0, 50)}`).join('\n')}
 
-Top Contributors:
-${topContributors.map(c => `- ${c.login}: ${c.contributions} commits`).join('\n')}
+Contributors: ${topContributors.map(c => c.login).join(', ')}
 
-File Structure Sample:
-${contents?.slice(0, 20).map(f => `- ${f.path} (${f.type})`).join('\n') || 'No files'}
-
-Return ONLY valid JSON with no additional text, following this exact structure:
+Return this exact JSON structure (be concise):
 {
-  "hotspotFiles": [
-    {
-      "file": "filename",
-      "reason": "why this is a hotspot",
-      "recommendation": "what to do about it"
-    }
-  ],
-  "contributorInsights": {
-    "mostActive": ["contributor1", "contributor2"],
-    "collaborationPattern": "description of how team works together",
-    "recommendation": "suggestions for team improvement"
-  },
-  "developmentPatterns": {
-    "commitFrequency": "analysis of commit patterns",
-    "releasePattern": "how often releases happen",
-    "velocity": "development speed analysis"
-  },
-  "codeQuality": {
-    "strengths": ["strength1", "strength2"],
-    "concerns": ["concern1", "concern2"],
-    "technicalDebt": "assessment of technical debt"
-  },
-  "recommendations": [
-    {
-      "priority": "high|medium|low",
-      "area": "category",
-      "suggestion": "specific recommendation"
-    }
-  ]
+  "summary": "2-3 sentence repository overview",
+  "strengths": ["strength1", "strength2", "strength3"],
+  "improvements": ["area1", "area2"],
+  "recommendation": "One key actionable recommendation",
+  "collaboration": "Brief insight about team collaboration patterns",
+  "activity": "active|moderate|low",
+  "quality": 1-100
 }`;
+  }
+
+  /**
+   * Generate instant basic insights (no AI needed)
+   */
+  generateInstantInsights(repoData) {
+    const { repoInfo, commits, contributors } = repoData;
+    
+    // Basic metrics
+    const starCount = repoInfo?.stargazers_count || 0;
+    const forkCount = repoInfo?.forks_count || 0;
+    const openIssues = repoInfo?.open_issues_count || 0;
+    const contributorCount = contributors?.length || 0;
+    const commitCount = commits?.length || 0;
+    
+    // Calculate basic quality score
+    let quality = 50; // Base score
+    if (starCount > 100) quality += 15;
+    else if (starCount > 10) quality += 10;
+    else if (starCount > 0) quality += 5;
+    
+    if (forkCount > 50) quality += 10;
+    else if (forkCount > 10) quality += 5;
+    
+    if (contributorCount > 10) quality += 10;
+    else if (contributorCount > 5) quality += 5;
+    
+    if (openIssues < 10) quality += 5;
+    
+    // Calculate activity level
+    const daysSinceUpdate = Math.floor((Date.now() - new Date(repoInfo?.updated_at || Date.now())) / (1000 * 60 * 60 * 24));
+    const activity = daysSinceUpdate < 7 ? 'Very active' : daysSinceUpdate < 30 ? 'Active' : daysSinceUpdate < 90 ? 'Moderate' : 'Low';
+    
+    // Generate basic insights
+    const insights = {
+      summary: `${repoInfo?.name || 'Repository'} is ${starCount > 50 ? 'a popular' : starCount > 10 ? 'a growing' : 'an emerging'} project with ${contributorCount} contributor${contributorCount !== 1 ? 's' : ''} and ${starCount} star${starCount !== 1 ? 's' : ''}.`,
+      strengths: [],
+      improvements: []
+    };
+    
+    // Determine strengths
+    if (starCount > 50) insights.strengths.push('Popular project with strong community interest');
+    if (contributorCount > 10) insights.strengths.push('Good contributor engagement');
+    if (daysSinceUpdate < 30) insights.strengths.push('Actively maintained');
+    if (repoInfo?.license) insights.strengths.push('Properly licensed');
+    if (forkCount > 20) insights.strengths.push('High fork count indicates reusability');
+    
+    // Determine improvements
+    if (openIssues > 50) insights.improvements.push('High number of open issues');
+    if (contributorCount < 3) insights.improvements.push('Attract more contributors');
+    if (daysSinceUpdate > 30) insights.improvements.push('Regular maintenance needed');
+    if (!repoInfo?.description) insights.improvements.push('Add project description');
+    
+    // Ensure we have at least some items
+    if (insights.strengths.length === 0) {
+      insights.strengths.push('Project is established');
+    }
+    if (insights.improvements.length === 0) {
+      insights.improvements.push('Continue current practices');
+    }
+    
+    // Add recommendation
+    if (quality < 60) {
+      insights.recommendation = 'Focus on documentation and attracting contributors to improve project health.';
+    } else if (quality < 80) {
+      insights.recommendation = 'Consider adding more features and improving test coverage.';
+    } else {
+      insights.recommendation = 'Maintain current momentum and consider expanding the project scope.';
+    }
+    
+    // Transform to match expected format
+    return {
+      hotspotFiles: [],
+      contributorInsights: {
+        mostActive: contributors?.slice(0, 3).map(c => c?.login).filter(Boolean) || [],
+        collaborationPattern: `${contributorCount} contributor${contributorCount !== 1 ? 's' : ''} working on the project`,
+        recommendation: contributorCount < 5 ? 'Encourage more contributors' : 'Good collaboration'
+      },
+      codeQuality: {
+        strengths: insights.strengths,
+        concerns: insights.improvements
+      },
+      recommendations: [
+        {
+          priority: quality < 60 ? 'high' : quality < 80 ? 'medium' : 'low',
+          area: 'Overall',
+          suggestion: insights.recommendation
+        }
+      ],
+      _summary: insights.summary,
+      _quality: quality
+    };
   }
 
   /**
    * Parse Gemini's response into structured insights
    */
-  parseInsightResponse(text) {
+  parseInsightResponse(text, repoData) {
     try {
-      // Extract JSON from the response (Gemini might add explanation text)
+      // Extract JSON from response
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error('No JSON found in response');
       }
       
-      return JSON.parse(jsonMatch[0]);
-    } catch (error) {
-      console.error('Failed to parse Gemini response:', error);
-      // Return a fallback structure
+      const parsed = JSON.parse(jsonMatch[0]);
+      const { contributors } = repoData || {};
+      const contributorCount = contributors?.length || 0;
+      const topContributors = contributors?.slice(0, 3) || [];
+      
+      // Convert simple format to expected format
       return {
         hotspotFiles: [],
         contributorInsights: {
-          mostActive: [],
-          collaborationPattern: 'Analysis unavailable',
-          recommendation: 'Unable to generate recommendation'
-        },
-        developmentPatterns: {
-          commitFrequency: 'Analysis unavailable',
-          releasePattern: 'Analysis unavailable',
-          velocity: 'Analysis unavailable'
+          mostActive: topContributors.map(c => c.login),
+          collaborationPattern: parsed.collaboration || (contributorCount > 10 
+            ? `Strong collaboration with ${contributorCount} contributors` 
+            : contributorCount > 5 
+            ? `Good team size with ${contributorCount} contributors`
+            : `Small team with ${contributorCount} contributors`),
+          recommendation: contributorCount < 5 
+            ? 'Consider encouraging more contributors to join the project'
+            : contributorCount < 10
+            ? 'Good contributor base, consider expanding the team'
+            : 'Excellent contributor engagement, maintain current practices'
         },
         codeQuality: {
-          strengths: [],
-          concerns: [],
-          technicalDebt: 'Analysis unavailable'
+          strengths: parsed.strengths || [],
+          concerns: parsed.improvements || []
         },
-        recommendations: []
+        recommendations: [
+          {
+            priority: parsed.quality > 80 ? 'low' : parsed.quality > 60 ? 'medium' : 'high',
+            area: 'AI Analysis',
+            suggestion: parsed.recommendation || 'Continue improving code quality'
+          }
+        ],
+        _summary: parsed.summary,
+        _quality: parsed.quality || 70
       };
+    } catch (error) {
+      console.error('Failed to parse response:', error);
+      throw error;
     }
   }
 
@@ -179,15 +322,20 @@ Return ONLY valid JSON with no additional text, following this exact structure:
   async generateVisualizationData(repoData) {
     const { commits, contributors } = repoData;
     
-    // Commit frequency over time
-    const commitFrequency = this.calculateCommitFrequency(commits);
+    // Limit data for performance
+    const limitedCommits = commits?.slice(0, 30) || [];
+    const limitedContributors = contributors?.slice(0, 10) || [];
+    
+    // Commit frequency over time (simplified)
+    const commitFrequency = this.calculateCommitFrequency(limitedCommits);
     
     // Contributor distribution
-    const contributorDistribution = contributors?.map(c => ({
+    const totalCommits = limitedContributors.reduce((sum, c) => sum + c.contributions, 0) || 1;
+    const contributorDistribution = limitedContributors.map(c => ({
       name: c.login,
       commits: c.contributions,
-      percentage: (c.contributions / contributors.reduce((sum, cont) => sum + cont.contributions, 0)) * 100
-    })) || [];
+      percentage: Math.round((c.contributions / totalCommits) * 100)
+    }));
     
     return {
       commitFrequency,
@@ -198,17 +346,23 @@ Return ONLY valid JSON with no additional text, following this exact structure:
   calculateCommitFrequency(commits) {
     if (!commits || commits.length === 0) return [];
     
-    // Group commits by date
+    // Group by week for better performance
     const frequencyMap = {};
     
     commits.forEach(commit => {
-      const date = new Date(commit.commit.author.date).toISOString().split('T')[0];
-      frequencyMap[date] = (frequencyMap[date] || 0) + 1;
+      const date = new Date(commit.commit.author.date);
+      const weekStart = new Date(date);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+      const weekKey = weekStart.toISOString().split('T')[0];
+      
+      frequencyMap[weekKey] = (frequencyMap[weekKey] || 0) + 1;
     });
     
-    // Convert to array for charting
+    // Return only last 8 weeks
     return Object.entries(frequencyMap)
       .map(([date, count]) => ({ date, count }))
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 8)
+      .reverse();
   }
 } 

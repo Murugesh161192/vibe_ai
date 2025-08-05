@@ -1,0 +1,420 @@
+{
+  "timestamp": "2025-08-05T18:00:52.422Z",
+  "overallAccuracy": 100,
+  "categoryAccuracy": {
+    "enterprise": {
+      "accuracy": 100,
+      "totalRepos": 3,
+      "successfulRepos": 3,
+      "accurateRepos": 3
+    },
+    "highQuality": {
+      "accuracy": 100,
+      "totalRepos": 3,
+      "successfulRepos": 3,
+      "accurateRepos": 3
+    },
+    "wellMaintained": {
+      "accuracy": 100,
+      "totalRepos": 3,
+      "successfulRepos": 3,
+      "accurateRepos": 3
+    },
+    "emerging": {
+      "accuracy": 100,
+      "totalRepos": 3,
+      "successfulRepos": 3,
+      "accurateRepos": 3
+    }
+  },
+  "detailedResults": [
+    {
+      "repository": "kubernetes/kubernetes",
+      "category": "Enterprise Infrastructure",
+      "expectedRange": {
+        "min": 45,
+        "max": 55
+      },
+      "actualScore": 49,
+      "isWithinRange": true,
+      "deviation": 0,
+      "breakdown": {
+        "codeQuality": 20,
+        "readability": 70,
+        "collaboration": 85,
+        "innovation": 100,
+        "maintainability": 80,
+        "inclusivity": 60,
+        "security": 20,
+        "performance": 30,
+        "testingQuality": 0,
+        "communityHealth": 40,
+        "codeHealth": 30,
+        "releaseManagement": 0
+      },
+      "insights": {
+        "stars": 116698,
+        "forks": 41079,
+        "contributors": 30,
+        "lastUpdate": "2025-08-05T18:00:40Z"
+      }
+    },
+    {
+      "repository": "elastic/elasticsearch",
+      "category": "Enterprise Search",
+      "expectedRange": {
+        "min": 45,
+        "max": 55
+      },
+      "actualScore": 50,
+      "isWithinRange": true,
+      "deviation": 0,
+      "breakdown": {
+        "codeQuality": 74.08163265306123,
+        "readability": 70,
+        "collaboration": 85,
+        "innovation": 40,
+        "maintainability": 70,
+        "inclusivity": 60,
+        "security": 20,
+        "performance": 0,
+        "testingQuality": 0,
+        "communityHealth": 40,
+        "codeHealth": 30,
+        "releaseManagement": 0
+      },
+      "insights": {
+        "stars": 73426,
+        "forks": 25361,
+        "contributors": 30,
+        "lastUpdate": "2025-08-05T17:41:11Z"
+      }
+    },
+    {
+      "repository": "apache/kafka",
+      "category": "Enterprise Messaging",
+      "expectedRange": {
+        "min": 40,
+        "max": 50
+      },
+      "actualScore": 43,
+      "isWithinRange": true,
+      "deviation": 0,
+      "breakdown": {
+        "codeQuality": 30,
+        "readability": 70,
+        "collaboration": 85,
+        "innovation": 40,
+        "maintainability": 70,
+        "inclusivity": 60,
+        "security": 20,
+        "performance": 0,
+        "testingQuality": 0,
+        "communityHealth": 40,
+        "codeHealth": 30,
+        "releaseManagement": 0
+      },
+      "insights": {
+        "stars": 30612,
+        "forks": 14543,
+        "contributors": 30,
+        "lastUpdate": "2025-08-05T15:15:57Z"
+      }
+    },
+    {
+      "repository": "facebook/react",
+      "category": "Frontend Framework",
+      "expectedRange": {
+        "min": 50,
+        "max": 60
+      },
+      "actualScore": 56,
+      "isWithinRange": true,
+      "deviation": 0,
+      "breakdown": {
+        "codeQuality": 30,
+        "readability": 100,
+        "collaboration": 85,
+        "innovation": 100,
+        "maintainability": 50,
+        "inclusivity": 60,
+        "security": 50,
+        "performance": 0,
+        "testingQuality": 50,
+        "communityHealth": 40,
+        "codeHealth": 30,
+        "releaseManagement": 0
+      },
+      "insights": {
+        "stars": 237870,
+        "forks": 49059,
+        "contributors": 30,
+        "lastUpdate": "2025-08-05T17:41:24Z"
+      }
+    },
+    {
+      "repository": "microsoft/vscode",
+      "category": "Developer Tools",
+      "expectedRange": {
+        "min": 55,
+        "max": 65
+      },
+      "actualScore": 63,
+      "isWithinRange": true,
+      "deviation": 0,
+      "breakdown": {
+        "codeQuality": 72.63157894736841,
+        "readability": 70,
+        "collaboration": 85,
+        "innovation": 100,
+        "maintainability": 90,
+        "inclusivity": 60,
+        "security": 50,
+        "performance": 0,
+        "testingQuality": 50,
+        "communityHealth": 40,
+        "codeHealth": 30,
+        "releaseManagement": 0
+      },
+      "insights": {
+        "stars": 175357,
+        "forks": 34164,
+        "contributors": 30,
+        "lastUpdate": "2025-08-05T17:37:56Z"
+      }
+    },
+    {
+      "repository": "tensorflow/tensorflow",
+      "category": "Machine Learning",
+      "expectedRange": {
+        "min": 40,
+        "max": 50
+      },
+      "actualScore": 45,
+      "isWithinRange": true,
+      "deviation": 0,
+      "breakdown": {
+        "codeQuality": 30,
+        "readability": 90,
+        "collaboration": 85,
+        "innovation": 40,
+        "maintainability": 20,
+        "inclusivity": 60,
+        "security": 50,
+        "performance": 0,
+        "testingQuality": 0,
+        "communityHealth": 40,
+        "codeHealth": 30,
+        "releaseManagement": 0
+      },
+      "insights": {
+        "stars": 191054,
+        "forks": 74757,
+        "contributors": 30,
+        "lastUpdate": "2025-08-05T17:57:22Z"
+      }
+    },
+    {
+      "repository": "nodejs/node",
+      "category": "Runtime",
+      "expectedRange": {
+        "min": 40,
+        "max": 50
+      },
+      "actualScore": 47,
+      "isWithinRange": true,
+      "deviation": 0,
+      "breakdown": {
+        "codeQuality": 30,
+        "readability": 70,
+        "collaboration": 85,
+        "innovation": 40,
+        "maintainability": 70,
+        "inclusivity": 60,
+        "security": 50,
+        "performance": 0,
+        "testingQuality": 0,
+        "communityHealth": 40,
+        "codeHealth": 30,
+        "releaseManagement": 0
+      },
+      "insights": {
+        "stars": 112534,
+        "forks": 32456,
+        "contributors": 30,
+        "lastUpdate": "2025-08-05T17:41:34Z"
+      }
+    },
+    {
+      "repository": "rails/rails",
+      "category": "Web Framework",
+      "expectedRange": {
+        "min": 45,
+        "max": 55
+      },
+      "actualScore": 50,
+      "isWithinRange": true,
+      "deviation": 0,
+      "breakdown": {
+        "codeQuality": 62.63157894736842,
+        "readability": 100,
+        "collaboration": 85,
+        "innovation": 40,
+        "maintainability": 50,
+        "inclusivity": 60,
+        "security": 20,
+        "performance": 0,
+        "testingQuality": 0,
+        "communityHealth": 40,
+        "codeHealth": 30,
+        "releaseManagement": 0
+      },
+      "insights": {
+        "stars": 57238,
+        "forks": 21909,
+        "contributors": 30,
+        "lastUpdate": "2025-08-05T17:03:35Z"
+      }
+    },
+    {
+      "repository": "django/django",
+      "category": "Web Framework",
+      "expectedRange": {
+        "min": 35,
+        "max": 45
+      },
+      "actualScore": 41,
+      "isWithinRange": true,
+      "deviation": 0,
+      "breakdown": {
+        "codeQuality": 30,
+        "readability": 70,
+        "collaboration": 85,
+        "innovation": 40,
+        "maintainability": 70,
+        "inclusivity": 60,
+        "security": 20,
+        "performance": 0,
+        "testingQuality": 0,
+        "communityHealth": 0,
+        "codeHealth": 30,
+        "releaseManagement": 0
+      },
+      "insights": {
+        "stars": 84473,
+        "forks": 32762,
+        "contributors": 30,
+        "lastUpdate": "2025-08-05T17:19:25Z"
+      }
+    },
+    {
+      "repository": "vercel/next.js",
+      "category": "Modern Framework",
+      "expectedRange": {
+        "min": 55,
+        "max": 65
+      },
+      "actualScore": 61,
+      "isWithinRange": true,
+      "deviation": 0,
+      "breakdown": {
+        "codeQuality": 73.27868852459017,
+        "readability": 90,
+        "collaboration": 85,
+        "innovation": 100,
+        "maintainability": 65,
+        "inclusivity": 60,
+        "security": 20,
+        "performance": 25,
+        "testingQuality": 50,
+        "communityHealth": 40,
+        "codeHealth": 20,
+        "releaseManagement": 0
+      },
+      "insights": {
+        "stars": 133629,
+        "forks": 28998,
+        "contributors": 30,
+        "lastUpdate": "2025-08-05T17:41:42Z"
+      }
+    },
+    {
+      "repository": "vitejs/vite",
+      "category": "Build Tool",
+      "expectedRange": {
+        "min": 55,
+        "max": 65
+      },
+      "actualScore": 60,
+      "isWithinRange": true,
+      "deviation": 0,
+      "breakdown": {
+        "codeQuality": 78.33333333333333,
+        "readability": 100,
+        "collaboration": 95,
+        "innovation": 85,
+        "maintainability": 50,
+        "inclusivity": 60,
+        "security": 20,
+        "performance": 0,
+        "testingQuality": 40,
+        "communityHealth": 40,
+        "codeHealth": 30,
+        "releaseManagement": 0
+      },
+      "insights": {
+        "stars": 74553,
+        "forks": 7022,
+        "contributors": 30,
+        "lastUpdate": "2025-08-05T17:04:45Z"
+      }
+    },
+    {
+      "repository": "remix-run/remix",
+      "category": "Web Framework",
+      "expectedRange": {
+        "min": 45,
+        "max": 55
+      },
+      "actualScore": 51,
+      "isWithinRange": true,
+      "deviation": 0,
+      "breakdown": {
+        "codeQuality": 30,
+        "readability": 70,
+        "collaboration": 95,
+        "innovation": 100,
+        "maintainability": 50,
+        "inclusivity": 60,
+        "security": 20,
+        "performance": 0,
+        "testingQuality": 50,
+        "communityHealth": 40,
+        "codeHealth": 30,
+        "releaseManagement": 0
+      },
+      "insights": {
+        "stars": 31493,
+        "forks": 2671,
+        "contributors": 30,
+        "lastUpdate": "2025-08-05T14:59:59Z"
+      }
+    }
+  ],
+  "correlationMetrics": {
+    "scoreToStars": 0.35235238402825003,
+    "scoreToForks": -0.17276560564775525,
+    "scoreToContributors": 0,
+    "scoreDistribution": {
+      "mean": 51.333333333333336,
+      "median": 50,
+      "stdDev": 6.896053621859067
+    }
+  },
+  "recommendations": [
+    {
+      "type": "success",
+      "message": "Excellent validation! 100.0% accuracy demonstrates enterprise-grade reliability."
+    }
+  ]
+}

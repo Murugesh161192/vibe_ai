@@ -1,9 +1,9 @@
-# Vibe AI - Enterprise Deployment Guide
+# Vibe GitHub Analyzer - Enterprise Deployment Guide
 
-[![Deployment Status](https://img.shields.io/badge/Deployment-Production%20Ready-green)](https://vibe-ai.netlify.app)
+[![Deployment Status](https://img.shields.io/badge/Deployment-Production%20Ready-green)](https://vibe-github-analyzer.netlify.app)
 [![Security](https://img.shields.io/badge/Security-Enterprise%20Grade-blue)](https://security.md)
 
-This comprehensive deployment guide covers enterprise-grade deployment strategies for the Vibe AI repository intelligence platform across multiple environments and platforms.
+This comprehensive deployment guide covers enterprise-grade deployment strategies for the Vibe GitHub Analyzer repository intelligence platform across multiple environments and platforms.
 
 ## 🏢 Deployment Overview
 
@@ -38,8 +38,8 @@ This comprehensive deployment guide covers enterprise-grade deployment strategie
 ### One-Command Deployment
 ```bash
 # Clone and deploy
-git clone https://github.com/your-username/vibe-ai.git
-cd vibe_ai
+git clone https://github.com/your-username/vibe-github-analyzer.git
+cd vibe-github-analyzer
 npm run setup
 npm run build
 npm run deploy
@@ -74,7 +74,7 @@ npm run deploy
 ```bash
 # In Netlify Dashboard: Site settings → Environment variables
 VITE_API_URL=https://your-backend-api.railway.app
-VITE_APP_NAME=Vibe AI
+VITE_APP_NAME=Vibe GitHub Analyzer
 VITE_APP_VERSION=1.0.0
 VITE_ENABLE_ANALYTICS=true
 NODE_VERSION=18
@@ -315,7 +315,7 @@ HOST=0.0.0.0
 VITE_API_URL=https://your-backend-api-domain.com
 
 # Optional branding
-VITE_APP_NAME=Vibe AI
+VITE_APP_NAME=Vibe GitHub Analyzer
 VITE_APP_VERSION=1.0.0
 
 # Feature flags
@@ -421,7 +421,7 @@ curl -X POST https://your-api-domain.com/api/analyze/insights \
 Create `.github/workflows/deploy.yml`:
 
 ```yaml
-name: Deploy Vibe AI
+name: Deploy Vibe GitHub Analyzer
 
 on:
   push:
@@ -770,4 +770,4 @@ NIST: Cybersecurity framework implementation
 
 ---
 
-**🎉 Successfully deploying Vibe AI ensures enterprise-grade repository intelligence is available to your organization with maximum reliability and performance.** 
+**🎉 Successfully deploying Vibe GitHub Analyzer ensures enterprise-grade repository intelligence is available to your organization with maximum reliability and performance.** 

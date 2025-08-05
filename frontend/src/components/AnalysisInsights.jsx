@@ -58,8 +58,11 @@ const AnalysisInsights = ({ analysis }) => {
       {/* Key Insights */}
       {insights && insights.length > 0 && (
         <div>
-          <h4 className="text-base sm:text-lg font-medium text-white/80 mb-4">
-            📊 Basic Analysis Results
+          <h4 className="text-base sm:text-lg font-medium mb-4 flex items-center gap-3">
+            <span className="text-xl sm:text-2xl">📊</span>
+            <span className="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent font-bold">
+              Basic Analysis Results
+            </span>
           </h4>
 
           <div className="space-y-3">
@@ -82,14 +85,16 @@ const AnalysisInsights = ({ analysis }) => {
       )}
 
       {/* Repository Analysis Details - Updated to 2 columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid-responsive-md">
         {/* Test Coverage */}
         <div className="card-glass p-5 sm:p-6 md:p-7">
           <div className="text-center mb-6">
             <div className="icon-container icon-container-success p-3 sm:p-4 mx-auto mb-4">
               <Code className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
-            <h4 className="text-xl sm:text-2xl font-bold text-white mb-2">Test Coverage</h4>
+            <h4 className="text-xl sm:text-2xl font-bold mb-2 bg-gradient-to-r from-green-200 to-emerald-200 bg-clip-text text-transparent">
+              Test Coverage
+            </h4>
             <p className="text-white/60 text-sm">Automated testing files detected</p>
           </div>
 
@@ -140,7 +145,9 @@ const AnalysisInsights = ({ analysis }) => {
             <div className="icon-container icon-container-warning p-3 sm:p-4 mx-auto mb-4">
               <Globe className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
-            <h4 className="text-xl sm:text-2xl font-bold text-white mb-2">Dependencies</h4>
+            <h4 className="text-xl sm:text-2xl font-bold mb-2 bg-gradient-to-r from-yellow-200 to-orange-200 bg-clip-text text-transparent">
+              Dependencies
+            </h4>
             <p className="text-white/60 text-sm">External packages and libraries</p>
           </div>
 
@@ -192,17 +199,21 @@ const AnalysisInsights = ({ analysis }) => {
           <div className="icon-container icon-container-primary p-2">
             <Target className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
-          Smart Recommendations
+          <span className="bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent font-bold">
+            Smart Recommendations
+          </span>
         </h3>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-10">
+        <div className="grid-responsive-lg">
           {/* Improvement Recommendations */}
           <div className="card-content p-6 sm:p-8">
-            <h4 className="text-xl sm:text-2xl font-bold text-white mb-6 flex items-center gap-3">
+            <h4 className="text-xl sm:text-2xl font-bold mb-6 flex items-center gap-3">
               <div className="icon-container icon-container-success p-2">
                 <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              Improve Your Vibe Score
+              <span className="bg-gradient-to-r from-green-200 to-emerald-200 bg-clip-text text-transparent">
+                Improve Your Vibe Score
+              </span>
             </h4>
 
             <div className="space-y-4 sm:space-y-5">
@@ -240,11 +251,13 @@ const AnalysisInsights = ({ analysis }) => {
 
           {/* Best Practices */}
           <div className="card-content p-6 sm:p-8">
-            <h4 className="text-xl sm:text-2xl font-bold text-white mb-6 flex items-center gap-3">
+            <h4 className="text-xl sm:text-2xl font-bold mb-6 flex items-center gap-3">
               <div className="icon-container icon-container-info p-2">
                 <Star className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              Best Practices
+              <span className="bg-gradient-to-r from-blue-200 to-cyan-200 bg-clip-text text-transparent">
+                Best Practices
+              </span>
             </h4>
 
             <div className="space-y-4 sm:space-y-5">

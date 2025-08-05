@@ -20,11 +20,12 @@ const RadarChart = memo(({ data }) => {
     const containerHeight = dimensions.height;
     const isMobile = containerWidth < 480;
     const isTablet = containerWidth < 768;
+    const isLarge = containerWidth >= 1024;
     
     // Use the smaller dimension to ensure the chart fits in the container
-    const size = Math.min(containerWidth, containerHeight, 500);
+    const size = Math.min(containerWidth, containerHeight, isLarge ? 600 : 500);
     // Increase margins for better label visibility
-    const margin = isMobile ? 60 : isTablet ? 80 : 100;
+    const margin = isMobile ? 70 : isTablet ? 90 : 110;
     
     return {
       width: size,
@@ -34,11 +35,11 @@ const RadarChart = memo(({ data }) => {
       maxValue: 100,
       roundStrokes: true,
       color: '#0ea5e9',
-      labelFontSize: isMobile ? '11px' : isTablet ? '12px' : '14px',
-      gridLabelFontSize: isMobile ? '9px' : '10px',
-      pointRadius: isMobile ? 3 : 4,
-      pointHoverRadius: isMobile ? 5 : 6,
-      labelOffset: isMobile ? 10 : 15
+      labelFontSize: isMobile ? '10px' : isTablet ? '11px' : '13px',
+      gridLabelFontSize: isMobile ? '8px' : '9px',
+      pointRadius: isMobile ? 2.5 : isTablet ? 3 : 4,
+      pointHoverRadius: isMobile ? 4 : isTablet ? 5 : 6,
+      labelOffset: isMobile ? 12 : isTablet ? 15 : 18
     };
   }, [dimensions.width, dimensions.height]);
 
@@ -83,11 +84,14 @@ const RadarChart = memo(({ data }) => {
 
   // Memoize event handlers to prevent recreation
   const handleMouseOver = useCallback((event, d) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 768;
+    
     setTooltip({
       show: true,
       content: `${d.axis}: ${Math.round(d.value)}/100`,
-      x: event.pageX,
-      y: event.pageY - 10
+      x: isMobile ? rect.left + rect.width / 2 : event.pageX,
+      y: isMobile ? rect.top - 10 : event.pageY - 10
     });
   }, []);
 
@@ -100,12 +104,14 @@ const RadarChart = memo(({ data }) => {
     // Add a small delay to ensure container is properly rendered
     const initTimeout = setTimeout(() => {
       handleResize(); // Set initial dimensions
-      setIsReady(true);
+      if (typeof window !== 'undefined') {
+        setIsReady(true);
+      }
     }, 100);
     
     // Use ResizeObserver for better performance
     let resizeObserver;
-    if (containerRef.current && window.ResizeObserver) {
+    if (containerRef.current && typeof window !== 'undefined' && window.ResizeObserver) {
       resizeObserver = new ResizeObserver((entries) => {
         for (let entry of entries) {
           const { width, height } = entry.contentRect;
@@ -121,9 +127,14 @@ const RadarChart = memo(({ data }) => {
       resizeTimeout = setTimeout(handleResize, 150); // Debounce resize events
     };
 
-    window.addEventListener('resize', debouncedResize);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', debouncedResize);
+    }
+    
     return () => {
-      window.removeEventListener('resize', debouncedResize);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', debouncedResize);
+      }
       if (resizeObserver) {
         resizeObserver.disconnect();
       }
@@ -291,6 +302,8 @@ const RadarChart = memo(({ data }) => {
         .on('mouseout', handleMouseOut)
         .on('focus', handleMouseOver)
         .on('blur', handleMouseOut)
+        .on('touchstart', handleMouseOver)
+        .on('touchend', handleMouseOut)
         .attr('tabindex', 0);
 
       // Animate points
@@ -336,21 +349,21 @@ const RadarChart = memo(({ data }) => {
         <svg ref={svgRef} className="w-full h-full" style={{ display: 'block' }} />
       </div>
       
-      {tooltip.show && (
-        <div
-          className="tooltip"
-          style={{
-            position: 'fixed',
-            left: tooltip.x + 'px',
-            top: tooltip.y + 'px',
-            transform: 'translate(-50%, -100%)',
-            marginTop: '-10px',
-            pointerEvents: 'none'
-          }}
-        >
-          {tooltip.content}
-        </div>
-      )}
+      <div
+        data-testid="radar-chart-tooltip"
+        className="tooltip"
+        style={{
+          position: 'fixed',
+          left: tooltip.x + 'px',
+          top: tooltip.y + 'px',
+          pointerEvents: 'none',
+          zIndex: 1000,
+          opacity: tooltip.show ? 1 : 0,
+          visibility: tooltip.show ? 'visible' : 'hidden'
+        }}
+      >
+        {tooltip.content}
+      </div>
     </div>
   );
 });

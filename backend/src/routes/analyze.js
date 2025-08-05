@@ -159,23 +159,21 @@ async function insightsHandler(request, reply) {
     const owner = match[1];
     const repo = match[2].replace(/\.git$/, ''); // Remove .git suffix if present
     
-    // Fetch repository data
-    const [repoInfo, contents, commits, contributors] = await Promise.all([
+    // Fetch only essential data for faster response
+    const [repoInfo, commits, contributors] = await Promise.all([
       githubService.getRepositoryInfo(owner, repo),
-      githubService.getRepositoryContents(owner, repo),
-      githubService.getCommitHistory(owner, repo, 50), // Get more commits for better analysis
-      githubService.getContributors(owner, repo)
+      githubService.getCommitHistory(owner, repo, 20), // Reduced from 50 to 20
+      githubService.getContributors(owner, repo, 10) // Limit to top 10 contributors
     ]);
     
-    // Generate insights using AI service
+    // Generate insights using optimized AI service
     const insights = await geminiService.generateInsights({
       repoInfo,
-      contents,
       commits,
       contributors
     });
     
-    // Generate visualization data
+    // Generate visualization data in parallel
     const visualizations = await geminiService.generateVisualizationData({
       commits,
       contributors

@@ -1,44 +1,97 @@
 import React from 'react';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, HelpCircle } from 'lucide-react';
 
-const ErrorMessage = ({ message, onRetry }) => {
+const ErrorMessage = ({ message, onRetry, errorType = 'general' }) => {
+  const getErrorIcon = () => {
+    switch (errorType) {
+      case 'network':
+        return <AlertCircle className="icon-lg text-red-400" />;
+      case 'not-found':
+        return <HelpCircle className="icon-lg text-yellow-400" />;
+      case 'rate-limit':
+        return <AlertCircle className="icon-lg text-orange-400" />;
+      default:
+        return <AlertCircle className="icon-lg text-red-400" />;
+    }
+  };
+
+  const getErrorSuggestions = () => {
+    switch (errorType) {
+      case 'network':
+        return [
+          'Check your internet connection',
+          'Try again in a few moments',
+          'Verify the repository URL is correct'
+        ];
+      case 'not-found':
+        return [
+          'Check the spelling of the username or repository',
+          'Ensure the repository is public',
+          'Try a different repository or user'
+        ];
+      case 'rate-limit':
+        return [
+          'GitHub API rate limit reached',
+          'Try again in a few minutes',
+          'Consider using a GitHub token for higher limits'
+        ];
+      default:
+        return [
+          'Double-check the input format',
+          'Try a different repository or user',
+          'Contact support if the issue persists'
+        ];
+    }
+  };
+
   return (
-    <div className="card-glass border-red-400/50">
-      <div className="flex items-start gap-3">
-        <AlertCircle className="w-6 h-6 text-red-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
+    <div className="card-glass p-6 max-w-2xl mx-auto" data-testid="error-message">
+      <div className="icon-align-left space-x-4">
+        {getErrorIcon()}
+        
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-white mb-2">
-            Analysis Failed
+          <h3 className="text-heading-sm text-white mb-2">
+            {errorType === 'not-found' ? 'Not Found' : 
+             errorType === 'rate-limit' ? 'Rate Limit Exceeded' :
+             errorType === 'network' ? 'Connection Error' : 'Something went wrong'}
           </h3>
-          <p className="text-white/80 mb-4">
-            {message}
-          </p>
           
-          {onRetry && (
+          <p className="text-white/80 mb-4 text-responsive">{message}</p>
+          
+          {/* Suggestions */}
+          <div className="mb-4">
+            <p className="text-sm text-white/60 mb-2">Try these solutions:</p>
+            <ul className="text-sm text-white/70 space-y-1">
+              {getErrorSuggestions().map((suggestion, index) => (
+                <li key={index} className="icon-text-align-sm">
+                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+                  <span>{suggestion}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-3">
+            {onRetry && (
+              <button
+                onClick={onRetry}
+                className="btn-primary icon-text-align px-4 py-2 text-responsive touch-target"
+                data-testid="retry-button"
+              >
+                <RefreshCw className="icon-sm" />
+                <span>Try Again</span>
+              </button>
+            )}
+            
             <button
-              onClick={onRetry}
-              className="btn-secondary flex items-center gap-2"
-              aria-describedby="error-description"
+              onClick={() => window.location.reload()}
+              className="btn-secondary px-4 py-2 text-responsive touch-target"
             >
-              <RefreshCw className="w-4 h-4" />
-              Try Again
+              Refresh Page
             </button>
-          )}
-          
-          <div id="error-description" className="sr-only">
-            Click to retry the repository analysis
           </div>
         </div>
-      </div>
-      
-      <div className="mt-4 card-content p-3">
-        <h4 className="font-medium text-white mb-2">Troubleshooting Tips:</h4>
-        <ul className="text-sm text-white/70 space-y-1">
-          <li>• Ensure the repository URL is correct and the repository is public</li>
-          <li>• Check that the repository exists and is accessible</li>
-          <li>• Try again in a few moments if you've hit rate limits</li>
-          <li>• Make sure you have a stable internet connection</li>
-        </ul>
       </div>
     </div>
   );

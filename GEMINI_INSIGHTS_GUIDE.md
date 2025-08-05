@@ -11,20 +11,15 @@ The Vibe GitHub Analyzer uses Google's Gemini 1.5 Flash model to provide intelli
 - Highlights areas that may need refactoring or additional testing
 - Provides specific recommendations for each identified hotspot
 
-### 👥 Contributor Insights
+### 👥 Team Insights
 - Analyzes collaboration patterns within the team
 - Identifies the most active contributors
 - Suggests ways to improve team collaboration
 
-### 📈 Development Patterns
-- Tracks commit frequency and patterns
-- Analyzes release cycles
-- Measures development velocity
-
 ### 🔍 Code Quality Assessment
 - Identifies strengths in the codebase
 - Highlights areas of concern
-- Provides technical debt assessment
+- Provides actionable improvement suggestions
 
 ### 📋 Prioritized Recommendations
 - High/Medium/Low priority suggestions
@@ -77,10 +72,10 @@ Here's what you might see for a typical repository:
 - **Pattern**: Centralized development with 2-3 core contributors
 - **Recommendation**: Encourage broader code ownership through documentation
 
-### Development Patterns
-- **Commit Frequency**: High (15-20 commits/week)
-- **Release Pattern**: Regular bi-weekly releases
-- **Velocity**: Increasing over the last 3 months
+### Code Quality Assessment
+- **Strengths**: Well-structured components, Good test coverage
+- **Concerns**: Large file sizes, Complex state management
+- **Recommendations**: Consider splitting large components
 
 ## Benefits
 

@@ -166,36 +166,6 @@ const RepositoryInsights = ({ repoUrl, repoName, autoGenerate = false, preloaded
             </div>
           )}
 
-          {/* Development Patterns */}
-          {insights.insights?.developmentPatterns && (
-            <div className="space-y-3">
-              <h4 className="text-lg font-semibold text-white flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-green-400" />
-                Development Patterns
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <div className="text-white/60 text-sm mb-1">Commit Frequency</div>
-                  <p className="text-white text-sm">
-                    {insights.insights.developmentPatterns.commitFrequency}
-                  </p>
-                </div>
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <div className="text-white/60 text-sm mb-1">Release Pattern</div>
-                  <p className="text-white text-sm">
-                    {insights.insights.developmentPatterns.releasePattern}
-                  </p>
-                </div>
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <div className="text-white/60 text-sm mb-1">Velocity</div>
-                  <p className="text-white text-sm">
-                    {insights.insights.developmentPatterns.velocity}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Code Quality */}
           {insights.insights?.codeQuality && (
             <div className="space-y-3">
@@ -203,7 +173,7 @@ const RepositoryInsights = ({ repoUrl, repoName, autoGenerate = false, preloaded
                 <AlertCircle className="w-5 h-5 text-yellow-400" />
                 Code Quality Assessment
               </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid-responsive-md">
                 {insights.insights.codeQuality.strengths?.length > 0 && (
                   <div className="bg-green-500/10 rounded-lg p-4 border border-green-500/20">
                     <div className="font-medium text-green-400 mb-2 flex items-center gap-2">
@@ -231,12 +201,6 @@ const RepositoryInsights = ({ repoUrl, repoName, autoGenerate = false, preloaded
                   </div>
                 )}
               </div>
-              {insights.insights.codeQuality.technicalDebt && (
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <div className="text-white/60 text-sm mb-1">Technical Debt Assessment</div>
-                  <p className="text-white">{insights.insights.codeQuality.technicalDebt}</p>
-                </div>
-              )}
             </div>
           )}
 

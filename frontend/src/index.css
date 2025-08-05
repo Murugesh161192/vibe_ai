@@ -47,6 +47,222 @@
 
 /* Optimized component styles */
 @layer components {
+  /* Enhanced Icon Alignment Utilities */
+  .icon-align-center {
+    @apply flex items-center justify-center;
+  }
+  
+  .icon-align-left {
+    @apply flex items-center justify-start;
+  }
+  
+  .icon-align-right {
+    @apply flex items-center justify-end;
+  }
+  
+  .icon-align-top {
+    @apply flex items-start justify-center;
+  }
+  
+  .icon-align-bottom {
+    @apply flex items-end justify-center;
+  }
+  
+  .icon-align-baseline {
+    @apply flex items-baseline;
+  }
+  
+  /* Consistent Icon Sizes */
+  .icon-xs {
+    @apply w-3 h-3;
+  }
+  
+  .icon-sm {
+    @apply w-4 h-4;
+  }
+  
+  .icon-md {
+    @apply w-5 h-5;
+  }
+  
+  .icon-lg {
+    @apply w-6 h-6;
+  }
+  
+  .icon-xl {
+    @apply w-8 h-8;
+  }
+  
+  .icon-2xl {
+    @apply w-10 h-10;
+  }
+  
+  .icon-3xl {
+    @apply w-12 h-12;
+  }
+  
+  /* Icon with Text Alignment */
+  .icon-text-align {
+    @apply flex items-center gap-2;
+  }
+  
+  .icon-text-align-sm {
+    @apply flex items-center gap-1.5;
+  }
+  
+  .icon-text-align-lg {
+    @apply flex items-center gap-3;
+  }
+  
+  /* Button with Icon Alignment */
+  .btn-icon-left {
+    @apply flex items-center gap-2;
+  }
+  
+  .btn-icon-right {
+    @apply flex items-center gap-2 flex-row-reverse;
+  }
+  
+  .btn-icon-only {
+    @apply flex items-center justify-center;
+  }
+  
+  /* Input with Icon Alignment */
+  .input-icon-left {
+    @apply relative;
+  }
+  
+  .input-icon-left input {
+    @apply pl-10;
+  }
+  
+  .input-icon-left .icon {
+    @apply absolute left-3 top-1/2 transform -translate-y-1/2;
+  }
+  
+  .input-icon-right {
+    @apply relative;
+  }
+  
+  .input-icon-right input {
+    @apply pr-10;
+  }
+  
+  .input-icon-right .icon {
+    @apply absolute right-3 top-1/2 transform -translate-y-1/2;
+  }
+  
+  .input-icon-both {
+  @apply relative;
+}
+
+.input-icon-both input {
+  @apply pl-10 pr-10;
+}
+
+.input-icon-both .icon-left {
+  @apply absolute left-3 top-1/2 transform -translate-y-1/2;
+  z-index: 10;
+}
+
+.input-icon-both .icon-right {
+  @apply absolute right-3 top-1/2 transform -translate-y-1/2;
+  z-index: 10;
+}
+
+/* Desktop and larger screens - better spacing */
+@media (min-width: 1024px) {
+  .input-icon-both input {
+    @apply pl-12 pr-11;
+  }
+  
+  .input-icon-both .icon-left {
+    @apply left-3.5;
+  }
+  
+  .input-icon-both .icon-right {
+    @apply right-3.5;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .input-icon-both input {
+    @apply pl-11 pr-10;
+  }
+  
+  .input-icon-both .icon-left {
+    @apply left-3;
+  }
+  
+  .input-icon-both .icon-right {
+    @apply right-3;
+  }
+}
+
+/* Mobile input icon improvements */
+@media (max-width: 640px) {
+  .input-icon-both input {
+    @apply pl-9 pr-11;
+  }
+  
+  .input-icon-both .icon-left {
+    @apply left-2.5;
+  }
+  
+  .input-icon-both .icon-right {
+    @apply right-3;
+  }
+  
+  /* Better send button alignment on mobile */
+  .input-icon-both button.icon-right {
+    @apply right-3 w-8 h-8 p-0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .input-icon-both input {
+    @apply pl-8 pr-10;
+  }
+  
+  .input-icon-both .icon-left {
+    @apply left-2;
+  }
+  
+  .input-icon-both .icon-right {
+    @apply right-2.5;
+  }
+  
+  /* Enhanced send button alignment for very small screens */
+  .input-icon-both button.icon-right {
+    @apply right-2.5 w-8 h-8 p-0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  /* Send icon maintains consistent size on all screens */
+  
+  /* Better input field alignment on mobile */
+  .input-glass {
+    @apply py-2.5 px-4 text-sm;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Optimize placeholder text for mobile */
+  .input-glass::placeholder {
+    @apply text-sm;
+    opacity: 0.8;
+  }
+}
+
   /* Lightweight Button Styles */
   .btn-primary {
     @apply bg-gradient-to-r from-indigo-600 to-purple-700 text-white font-semibold 
@@ -103,225 +319,212 @@
   }
 
   .card-content {
-    @apply bg-black/10 rounded-xl border border-white/20 
-           hover:bg-black/15 hover:border-white/25;
-    backdrop-filter: blur(3px);
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    contain: layout style;
-  }
-  
-  /* Optimized Input Styles */
-  .input-glass {
-    @apply w-full px-4 py-3 bg-black/20 border-2 border-white/25 rounded-xl 
-           text-white placeholder-white/60 focus:outline-none focus:border-indigo-400 
-           focus:bg-black/25 shadow-md font-medium;
+    @apply bg-black/20 rounded-2xl border border-white/15 shadow-xl 
+           hover:bg-black/25 hover:border-white/20;
     backdrop-filter: blur(8px);
-    transition: all 0.2s ease;
-    contain: layout style;
+    transition: all 0.3s ease;
+    contain: layout style paint;
   }
+
+  .card-content:hover {
+    box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.2);
+  }
+
+  .input-glass {
+  @apply bg-white/10 border border-white/20 rounded-xl text-white 
+         placeholder-white/60 focus:outline-none focus:ring-2 
+         focus:ring-indigo-500 focus:border-transparent;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+  contain: layout style paint;
+}
+
+.input-glass::placeholder {
+  text-align: center;
+  opacity: 0.7;
+}
 
   .input-glass:focus {
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
-    border-color: rgba(129, 140, 248, 0.8);
+    @apply bg-white/15 border-indigo-400 shadow-lg;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
   }
 
-  /* Lightweight hover effects */
   .hover-lift {
-    transition: transform 0.1s ease, box-shadow 0.15s ease;
-    contain: layout style;
+    transition: all 0.3s ease;
+    contain: layout style paint;
   }
 
   .hover-lift:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25);
   }
 
-  /* Optimized text styles */
   .text-heading-xl {
-    @apply text-4xl md:text-5xl font-bold text-white;
-    contain: layout style;
+    @apply text-4xl sm:text-5xl lg:text-6xl font-bold;
   }
 
   .text-heading-lg {
-    @apply text-3xl font-bold text-white;
-    contain: layout style;
+    @apply text-2xl sm:text-3xl lg:text-4xl font-bold;
   }
 
   .text-heading-md {
-    @apply text-2xl font-bold text-white;
-    contain: layout style;
+    @apply text-xl sm:text-2xl lg:text-3xl font-semibold;
   }
 
   .text-heading-sm {
-    @apply text-xl font-semibold text-white;
-    contain: layout style;
+    @apply text-lg sm:text-xl lg:text-2xl font-semibold;
   }
 
   .text-body {
-    @apply text-white/80 leading-relaxed;
+    @apply text-base sm:text-lg;
   }
 
   .text-body-sm {
-    @apply text-white/70 text-sm;
+    @apply text-sm sm:text-base;
   }
 
   .text-accent {
-    @apply text-indigo-300 font-medium;
-  }
-  
-  /* Vibe Score Colors */
-  .vibe-score-excellent {
-    @apply text-green-300 font-bold;
-  }
-  
-  .vibe-score-good {
-    @apply text-yellow-300 font-bold;
-  }
-  
-  .vibe-score-poor {
-    @apply text-red-300 font-bold;
-  }
-  
-  .vibe-score-neutral {
-    @apply text-blue-300 font-bold;
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-600;
   }
 
-  /* Simplified Progress Bar */
+  .vibe-score-excellent {
+    @apply text-green-400;
+  }
+
+  .vibe-score-good {
+    @apply text-blue-400;
+  }
+
+  .vibe-score-poor {
+    @apply text-red-400;
+  }
+
+  .vibe-score-neutral {
+    @apply text-yellow-400;
+  }
+
   .progress-bar-container {
-    @apply w-full bg-black/30 rounded-full h-2.5 border border-white/10 overflow-hidden;
-    contain: layout style;
+    @apply w-full bg-white/10 rounded-full overflow-hidden;
   }
 
   .progress-bar {
-    @apply h-full rounded-full shadow-sm;
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    contain: layout style;
+    @apply h-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full;
+    transition: width 0.3s ease;
   }
 
   .progress-bar-excellent,
-  .vibe-score-excellent.progress-bar {
-    @apply bg-gradient-to-r from-green-400 to-emerald-500;
-    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
-  }
-
   .progress-bar-good,
-  .vibe-score-good.progress-bar {
-    @apply bg-gradient-to-r from-yellow-400 to-amber-500;
-    box-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
-  }
-
   .progress-bar-neutral,
-  .vibe-score-neutral.progress-bar {
-    @apply bg-gradient-to-r from-blue-400 to-cyan-500;
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  .progress-bar-poor {
+    @apply h-2 rounded-full;
+    transition: width 0.3s ease;
   }
 
-  .progress-bar-poor,
-  .vibe-score-poor.progress-bar {
-    @apply bg-gradient-to-r from-red-400 to-pink-500;
-    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+  .progress-bar-excellent {
+    @apply bg-gradient-to-r from-green-500 to-emerald-600;
   }
 
-  /* Lightweight Status Badges */
+  .progress-bar-good {
+    @apply bg-gradient-to-r from-blue-500 to-indigo-600;
+  }
+
+  .progress-bar-neutral {
+    @apply bg-gradient-to-r from-yellow-500 to-orange-600;
+  }
+
+  .progress-bar-poor {
+    @apply bg-gradient-to-r from-red-500 to-pink-600;
+  }
+
   .status-badge {
-    @apply px-2.5 py-1 rounded-md text-xs font-semibold text-white shadow-sm 
-           whitespace-nowrap flex-shrink-0 inline-flex items-center;
-    contain: layout style;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
 
   .status-badge-weight {
-    @apply bg-indigo-600/60 text-white border border-indigo-400/30;
+    @apply text-white/80 bg-white/10 border border-white/20;
   }
 
   .status-badge-excellent {
-    @apply bg-green-600/70 text-white border border-green-400/40;
+    @apply text-green-300 bg-green-500/20 border border-green-500/30;
   }
 
   .status-badge-good {
-    @apply bg-yellow-600/70 text-white border border-yellow-400/40;
+    @apply text-blue-300 bg-blue-500/20 border border-blue-500/30;
   }
 
   .status-badge-neutral {
-    @apply bg-blue-600/70 text-white border border-blue-400/40;
+    @apply text-yellow-300 bg-yellow-500/20 border border-yellow-500/30;
   }
 
   .status-badge-poor {
-    @apply bg-red-600/70 text-white border border-red-400/40;
+    @apply text-red-300 bg-red-500/20 border border-red-500/30;
   }
 
-  /* Simplified Icon Containers */
   .icon-container {
-    @apply w-12 h-12 rounded-xl flex items-center justify-center shadow-md;
-    contain: layout style;
+    @apply flex items-center justify-center rounded-full;
   }
 
   .icon-container-primary {
-    @apply bg-gradient-to-r from-indigo-500 to-purple-600;
+    @apply bg-gradient-to-br from-indigo-500 to-purple-600;
   }
 
   .icon-container-success {
-    @apply bg-gradient-to-r from-green-500 to-emerald-500;
+    @apply bg-gradient-to-br from-green-500 to-emerald-600;
   }
 
   .icon-container-warning {
-    @apply bg-gradient-to-r from-yellow-500 to-amber-500;
+    @apply bg-gradient-to-br from-yellow-500 to-orange-600;
   }
 
   .icon-container-info {
-    @apply bg-gradient-to-r from-blue-500 to-cyan-500;
+    @apply bg-gradient-to-br from-blue-500 to-indigo-600;
   }
 
   .icon-container-danger {
-    @apply bg-gradient-to-r from-red-500 to-pink-500;
+    @apply bg-gradient-to-br from-red-500 to-pink-600;
   }
 
   .icon-container-ai {
-    @apply bg-gradient-to-r from-purple-600 to-pink-600;
+    @apply bg-gradient-to-br from-purple-500 to-pink-600;
   }
-}
 
-/* Optimized utility styles */
-@layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent;
-  }
-  
-  .glassmorphism {
-    @apply bg-black/10 border border-white/20 shadow-md;
-    backdrop-filter: blur(4px);
-    contain: layout style;
-  }
-  
-  .glassmorphism-hover {
-    @apply hover:bg-black/15 hover:border-white/25;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-  }
-  
-  .text-shadow {
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  }
-  
-  .glow {
-    @apply shadow-md shadow-indigo-500/20;
-  }
-  
-  .glow-hover {
-    @apply hover:shadow-lg hover:shadow-indigo-500/30;
-    transition: box-shadow 0.15s ease;
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-600;
   }
 
-  /* Lightweight metric hover */
+  .glassmorphism {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+
+  .glassmorphism-hover {
+    @apply hover:bg-white/15 hover:border-white/30;
+  }
+
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .glow {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  }
+
+  .glow-hover {
+    @apply hover:shadow-lg;
+    transition: box-shadow 0.3s ease;
+  }
+
+  .glow-hover:hover {
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+  }
+
   .metric-hover {
-    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
-    contain: layout style;
+    @apply transition-all duration-200;
   }
 
   .metric-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2), 0 4px 8px -2px rgba(0, 0, 0, 0.1);
+    @apply transform scale-105;
   }
 
-  /* Line clamp utilities */
   .line-clamp-1 {
     overflow: hidden;
     display: -webkit-box;
@@ -343,36 +546,34 @@
     -webkit-line-clamp: 3;
   }
 
-  /* Custom lightweight scrollbar */
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
   }
 
   .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.1);
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.3);
-    border-radius: 2px;
+    border-radius: 3px;
   }
 
-  /* Optimized animations */
   .animate-fade-in {
-    animation: fadeIn 0.2s ease-out;
+    animation: fadeIn 0.5s ease-in-out;
   }
 
   .animate-scale-in {
-    animation: scaleIn 0.25s ease-out;
+    animation: scaleIn 0.3s ease-out;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.25s ease-out;
+    animation: slideUp 0.4s ease-out;
   }
 
   @keyframes fadeIn {
@@ -383,357 +584,374 @@
   @keyframes scaleIn {
     from { 
       opacity: 0; 
-      transform: scale(0.95) translateZ(0); 
+      transform: scale(0.9); 
     }
     to { 
       opacity: 1; 
-      transform: scale(1) translateZ(0); 
+      transform: scale(1); 
     }
   }
 
   @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translate3d(0, 10px, 0);
+    from { 
+      opacity: 0; 
+      transform: translateY(20px); 
     }
-    to {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
     }
   }
 
-  /* Optimized loading spinner */
   .loading-spinner {
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-top: 2px solid #0ea5e9;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    animation: spin 0.8s linear infinite;
-    contain: layout style;
+    @apply w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin;
   }
 
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
-}
 
-/* Responsive Layout Utilities */
-@layer utilities {
-  /* Improved responsive containers */
+  /* Enhanced Responsive Container */
   .container-responsive {
-    @apply w-full mx-auto px-4 sm:px-6 lg:px-8;
-    max-width: 100%;
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
-  
-  @screen sm {
+
+  @media (min-width: 640px) {
     .container-responsive {
-      max-width: 640px;
+      @apply px-6;
     }
   }
-  
-  @screen md {
+
+  @media (min-width: 768px) {
     .container-responsive {
-      max-width: 768px;
+      @apply px-8;
     }
   }
-  
-  @screen lg {
+
+  @media (min-width: 1024px) {
     .container-responsive {
-      max-width: 1024px;
+      @apply px-12;
     }
   }
-  
-  @screen xl {
+
+  @media (min-width: 1280px) {
     .container-responsive {
-      max-width: 1280px;
+      @apply px-16;
     }
   }
-  
-  /* Better touch targets for mobile */
+
+  /* Standardized Grid Breakpoints */
+  .grid-responsive-sm {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4;
+  }
+
+  .grid-responsive-md {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6;
+  }
+
+  .grid-responsive-lg {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8;
+  }
+
+  .grid-responsive-xl {
+    @apply grid grid-cols-1 xl:grid-cols-2 gap-8 sm:gap-10;
+  }
+
+  /* Standardized Flex Breakpoints */
+  .flex-responsive-sm {
+    @apply flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4;
+  }
+
+  .flex-responsive-md {
+    @apply flex flex-col md:flex-row items-center justify-center gap-4 sm:gap-6;
+  }
+
+  .flex-responsive-lg {
+    @apply flex flex-col lg:flex-row items-center justify-center gap-6 sm:gap-8;
+  }
+
+  /* Enhanced Touch-friendly targets */
   .touch-target {
-    min-height: 44px;
-    min-width: 44px;
-    -webkit-tap-highlight-color: transparent;
+    @apply min-h-[44px] min-w-[44px];
   }
-  
+
   @media (min-width: 640px) {
     .touch-target {
-      min-height: auto;
-      min-width: auto;
+      @apply min-h-[40px] min-w-[40px];
     }
   }
-  
-  /* Mobile touch feedback */
+
   @media (hover: none) and (pointer: coarse) {
     .touch-target:active {
-      transform: scale(0.95);
-      opacity: 0.9;
+      @apply scale-95;
     }
   }
-  
-  /* Responsive text utilities */
-  .text-responsive {
-    @apply text-sm sm:text-base;
-  }
-  
-  .heading-responsive {
-    @apply text-xl sm:text-2xl md:text-3xl;
-  }
-  
-  /* Improved mobile spacing */
-  .spacing-responsive {
-    @apply space-y-4 sm:space-y-6 md:space-y-8;
-  }
-  
-  /* Better grid gaps for mobile */
-  .gap-responsive {
-    @apply gap-3 sm:gap-4 md:gap-6;
-  }
-}
 
-/* Responsive improvements for existing components */
-@media (max-width: 640px) {
-  /* Better mobile padding for cards */
-  .card-glass {
-    @apply p-4;
+  /* Enhanced Responsive text utilities */
+  .text-responsive {
+    @apply text-sm sm:text-base lg:text-lg;
   }
-  
-  /* Improved button sizing on mobile */
+
+  .text-responsive-sm {
+    @apply text-xs sm:text-sm lg:text-base;
+  }
+
+  .text-responsive-lg {
+    @apply text-base sm:text-lg lg:text-xl;
+  }
+
+  .heading-responsive {
+    @apply text-xl sm:text-2xl lg:text-3xl xl:text-4xl;
+  }
+
+  .spacing-responsive {
+    @apply space-y-4 sm:space-y-6 lg:space-y-8;
+  }
+
+  .gap-responsive {
+    @apply gap-3 sm:gap-4 lg:gap-6;
+  }
+
+  /* Enhanced Radar Chart Responsiveness */
+  .radar-chart-container {
+    @apply relative w-full h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px];
+    contain: layout style paint;
+  }
+
+  @media (max-width: 480px) {
+    .radar-chart-container {
+      @apply h-56;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .radar-chart-container {
+      @apply h-64;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .radar-chart-container {
+      @apply h-72;
+    }
+  }
+
+  /* Mobile-first responsive design improvements */
+  @media (max-width: 640px) {
+  .card-glass {
+    @apply rounded-xl p-4;
+  }
+
   .btn-primary,
   .btn-secondary {
-    @apply py-2.5 px-4 text-sm;
+    @apply py-3 px-4 text-sm;
   }
-  
-  /* Better input field sizing */
+
   .input-glass {
-    @apply py-3 text-sm;
+    @apply py-3 px-4 text-sm;
   }
-  
-  /* Radar chart container adjustments */
-  .radar-chart-container {
-    padding: 0.5rem;
-  }
-  
-  /* Metric cards responsive */
+
   .metric-card {
     @apply p-3;
   }
-  
-  /* Header adjustments */
+
   .header-container {
-    @apply py-4;
+    @apply px-4 py-6;
   }
-  
-  /* Prevent horizontal overflow */
+
   body {
-    overflow-x: hidden;
+    @apply text-sm;
   }
-  
-  /* Better touch targets for mobile */
+
   button {
-    min-height: 40px;
+    @apply touch-target;
   }
-  
-  /* Fix text overflow on small screens */
+
   .truncate {
-    max-width: 100%;
-  }
-}
-
-/* Tablet improvements */
-@media (min-width: 641px) and (max-width: 1024px) {
-  /* Better tablet layouts */
-  .grid-responsive {
-    @apply grid-cols-2;
+    @apply max-w-full;
   }
   
-  /* Adjusted container widths */
-  .container-fluid {
-    @apply px-6;
-  }
-}
-
-/* Desktop refinements */
-@media (min-width: 1025px) {
-  /* Optimal reading width */
-  .content-container {
-    max-width: 65ch;
-    margin-left: auto;
-    margin-right: auto;
+  /* Ensure proper spacing on mobile */
+  .spacing-responsive {
+    @apply space-y-3;
   }
   
-  /* Better hover states on desktop */
-  .hover-desktop:hover {
-    @apply transform scale-105;
+  .gap-responsive {
+    @apply gap-2;
   }
 }
 
-/* Performance-optimized radar chart */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .grid-responsive {
+      @apply grid-cols-1 md:grid-cols-2;
+    }
+
+    .container-fluid {
+      @apply px-6;
+    }
+  }
+
+  @media (min-width: 1025px) {
+    .content-container {
+      @apply max-w-6xl mx-auto;
+    }
+
+    .hover-desktop:hover {
+      @apply transform scale-105;
+    }
+  }
+
+  /* Enhanced accessibility for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+
+    .animate-fade-in,
+    .animate-scale-in,
+    .animate-slide-up {
+      animation: none;
+    }
+
+    .radar-chart:hover,
+    .card-glass:hover,
+    .btn-primary:hover,
+    .btn-secondary:hover {
+      transform: none;
+    }
+  }
+
+  /* Enhanced touch device handling */
+  @media (hover: none) {
+    .card-glass:hover,
+    .card-glass-sm:hover,
+    .card-content:hover {
+      @apply transform-none;
+    }
+    
+    .radar-chart:hover,
+    .radar-chart-container:hover {
+      @apply transform-none;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .card-glass, .card-glass-sm {
+      @apply border-2;
+    }
+
+    .btn-primary {
+      @apply border-2 border-white;
+    }
+  }
+}
+
 .radar-chart {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.15s ease;
-  contain: layout style;
+  @apply transition-all duration-300 ease-in-out;
+  contain: layout style paint;
 }
 
 .radar-chart:hover {
-  transform: scale(1.01);
-}
-
-.radar-chart-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-/* Disable hover effects on mobile for better performance */
-@media (max-width: 768px) {
-  .radar-chart:hover,
-  .hover-lift:hover,
-  .metric-hover:hover {
-    transform: none;
-  }
-  
-  .card-glass:hover,
-  .card-glass-sm:hover,
-  .card-content:hover {
-    background-color: inherit;
-    border-color: inherit;
-    box-shadow: inherit;
-  }
-  
-  /* Responsive radar chart sizing */
-  .radar-chart-container {
-    min-height: 320px;
-    max-height: 400px;
-  }
+  @apply transform scale-105;
 }
 
 .radar-axis {
-  stroke: rgba(255, 255, 255, 0.3);
-  stroke-width: 1;
+  @apply stroke-white/30 stroke-1;
 }
 
-.radar-grid-line {
-  stroke: rgba(255, 255, 255, 0.2);
-  stroke-width: 0.5;
-}
+  .radar-grid-line {
+    @apply stroke-white/20 stroke-[0.5px];
+  }
 
 .radar-data-line {
-  stroke: #0ea5e9;
-  stroke-width: 2;
-  fill: rgba(14, 165, 233, 0.1);
-  transition: stroke-width 0.15s ease;
+  @apply stroke-purple-500 stroke-2 fill-purple-500/20;
+  transition: all 0.3s ease;
 }
 
 .radar-point {
-  fill: #0ea5e9;
-  stroke: white;
-  stroke-width: 1;
+  @apply fill-purple-500 stroke-white stroke-2;
   transition: all 0.2s ease;
 }
 
 .radar-point:hover {
-  r: 8;
-  filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.8));
+  @apply fill-purple-400 stroke-purple-300;
+  transform: scale(1.2);
 }
 
-/* Lightweight tooltip */
 .tooltip {
-  position: fixed;
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  @apply absolute bg-black/90 text-white px-3 py-2 rounded-lg text-sm 
+         shadow-lg border border-white/20 backdrop-blur-sm;
+  z-index: 1000;
   pointer-events: none;
-  z-index: 9999;
-  white-space: nowrap;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(8px);
+  transform: translate(-50%, -100%);
+  margin-top: -8px;
+  max-width: 200px;
+  word-wrap: break-word;
 }
 
-/* Responsive optimizations */
+.tooltip::after {
+  content: '';
+  @apply absolute top-full left-1/2 transform -translate-x-1/2;
+  border: 4px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Mobile tooltip improvements */
+@media (max-width: 768px) {
+  .tooltip {
+    @apply px-2 py-1.5 text-xs;
+    max-width: 150px;
+    transform: translate(-50%, -120%);
+    margin-top: -4px;
+  }
+  
+  .tooltip::after {
+    border-width: 3px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tooltip {
+    max-width: 120px;
+    transform: translate(-50%, -130%);
+    margin-top: -2px;
+  }
+}
+
 @media (max-width: 768px) {
   .card-glass, .card-glass-sm {
-    @apply p-3;
+    @apply rounded-lg;
   }
-  
+
   .btn-primary, .btn-secondary {
-    @apply py-2 px-4 text-sm;
+    @apply text-sm py-2.5 px-4;
   }
-  
+
   .input-glass {
-    @apply py-2 px-3;
+    @apply text-sm py-2.5 px-4;
   }
 
   .text-heading-xl {
-    @apply text-3xl;
+    @apply text-2xl sm:text-3xl;
   }
 
   .text-heading-lg {
-    @apply text-2xl;
+    @apply text-xl sm:text-2xl;
   }
-  
-  /* Reduce backdrop-blur on mobile */
+
   .card-glass {
-    backdrop-filter: blur(2px);
+    @apply p-4;
   }
-  
+
   .card-glass-sm {
-    backdrop-filter: blur(1px);
+    @apply p-3;
   }
-  
+
   .input-glass {
-    backdrop-filter: blur(2px);
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .card-glass, .card-glass-sm {
-    @apply border-2 border-white;
-  }
-  
-  .btn-primary {
-    @apply border-2 border-white;
-  }
-}
-
-/* Reduced motion support for accessibility */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-  
-  .animate-fade-in,
-  .animate-scale-in,
-  .animate-slide-up {
-    animation: none !important;
-  }
-  
-  .radar-chart:hover,
-  .hover-lift:hover,
-  .metric-hover:hover {
-    transform: none !important;
-  }
-} 
-
-/* Improved focus states for better accessibility */
-@media (hover: none) {
-  /* Remove hover effects on touch devices */
-  .card-glass:hover,
-  .btn-primary:hover,
-  .btn-secondary:hover {
-    transform: none;
-    box-shadow: none;
+    @apply py-2.5 px-4;
   }
 } 

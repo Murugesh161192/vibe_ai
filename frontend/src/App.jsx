@@ -1,11 +1,14 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import { Github, Sparkles, HelpCircle, BarChart3, ExternalLink, MessageCircle, Bot, Zap } from 'lucide-react';
+import { Github, Sparkles, HelpCircle, BarChart3, ExternalLink, MessageCircle, Bot, Zap, Play } from 'lucide-react';
 import Header from './components/Header';
 import ChatInput from './components/ChatInput';
 import GitHubUserProfile from './components/GitHubUserProfile';
 import VibeScoreResults from './components/VibeScoreResults';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
+import DemoMode from './components/DemoMode';
+import ScoreTransparency from './components/ScoreTransparency';
+import BenchmarkComparison from './components/BenchmarkComparison';
 import { analyzeRepository, getUserProfile, getUserRepositories, generateInsights } from './services/api';
 
 function App() {
@@ -47,6 +50,12 @@ function App() {
     }
   }, [clearState]);
 
+  // Add demo mode handler
+  const handleDemoMode = useCallback(() => {
+    clearState();
+    setCurrentView('demo');
+  }, [clearState]);
+
   const handleRepositoryAnalysis = useCallback(async (repoUrl) => {
     setLoading(true);
     setCurrentView('loading');
@@ -78,6 +87,21 @@ function App() {
       setLoading(false);
     }
   }, [handleError]);
+
+  // Check for repo in URL params on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const repo = urlParams.get('repo');
+    
+    if (repo && repo.includes('/')) {
+      // Auto-analyze the shared repository
+      const repoUrl = `https://github.com/${repo}`;
+      handleRepositoryAnalysis(repoUrl);
+      
+      // Clean up the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [handleRepositoryAnalysis]);
 
   const handleUserSearch = useCallback(async (username) => {
     setLoading(true);
@@ -173,13 +197,13 @@ function App() {
 
   const loadingComponent = useMemo(
     () => (
-      <div data-testid="loading-spinner">
-        <LoadingSpinner message={
-          currentInput.type === 'user' 
-            ? 'Loading user profile...' 
-            : 'Analyzing repository...'
-        } />
-      </div>
+      <LoadingSpinner message={
+        currentInput.type === 'user' 
+          ? 'Loading user profile...' 
+          : currentInput.type === 'repo'
+          ? 'Analyzing repository...'
+          : 'Processing request...'
+      } />
     ),
     [currentInput.type]
   );
@@ -211,11 +235,13 @@ function App() {
         <div className={`${currentView === 'analysis' ? 'mb-4 sm:mb-6' : 'mb-8 sm:mb-12'} ${
           currentView === 'analysis' ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'
         }`}>
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="container-responsive">
             <div data-testid="header">
               <Header 
                 analysisState={analysisState}
                 onNewAnalysis={handleNewAnalysis}
+                onDemoMode={handleDemoMode}
+                onAnalyzeRepo={handleRepositoryAnalysis}
               />
             </div>
           </div>
@@ -224,15 +250,17 @@ function App() {
         {/* Chat Section - Conditionally rendered */}
         {currentView === 'ready' && (
           <section ref={chatSectionRef} className="mb-8 sm:mb-12">
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="container-responsive max-w-3xl mx-auto">
               
               {/* Welcome Section - First time users */}
               <div className="mb-6 sm:mb-8">
+                <div className="text-center mb-4">
+                  <p className="text-white/70 text-responsive">
+                    Enter any GitHub username or repository URL to get started
+                  </p>
+                </div>
                 {memoizedChatInput}
               </div>
-              
-              {/* Loading State - Optimized */}
-              {loading && loadingComponent}
               
               {/* Error State - Memoized */}
               {errorComponent}
@@ -240,10 +268,10 @@ function App() {
           </section>
         )}
 
-        {/* Loading View */}
-        {currentView === 'loading' && (
+        {/* Loading View - Single loading state */}
+        {(currentView === 'loading' || (currentView === 'ready' && loading)) && (
           <section className="mb-8 sm:mb-12">
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="container-responsive max-w-3xl mx-auto">
               {loadingComponent}
             </div>
           </section>
@@ -251,8 +279,8 @@ function App() {
 
         {/* Results Section - Conditionally rendered for performance */}
         {currentView === 'analysis' && analysisResult && (
-          <section className="space-y-6 sm:space-y-8">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <section className="spacing-responsive">
+            <div className="container-responsive max-w-6xl mx-auto">
               <div data-testid="vibe-score-results">
                 <VibeScoreResults 
                   result={analysisResult} 
@@ -264,8 +292,8 @@ function App() {
         )}
 
         {currentView === 'profile' && userProfile && (
-          <section className="space-y-6 sm:space-y-8">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <section className="spacing-responsive">
+            <div className="container-responsive max-w-6xl mx-auto">
               <GitHubUserProfile
                 user={userProfile}
                 repositories={userRepositories}
@@ -275,43 +303,106 @@ function App() {
             </div>
           </section>
         )}
+
+        {/* Demo Mode View */}
+        {currentView === 'demo' && (
+          <section className="spacing-responsive">
+            <div className="container-responsive max-w-6xl mx-auto">
+              <DemoMode
+                onExitDemo={handleNewAnalysis}
+                onAnalyzeRepo={handleRepositoryAnalysis}
+              />
+            </div>
+          </section>
+        )}
       </div>
 
       {/* About Section - Only show when ready */}
       {currentView === 'ready' && (
-        <section id="about-section" className="mb-8 sm:mb-12 px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
-              Why Choose Vibe?
-            </h2>
-            <p className="text-white/80 text-sm sm:text-base lg:text-lg max-w-3xl mx-auto">
-              Get deep insights into any GitHub repository with our comprehensive analysis engine
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto mb-8 sm:mb-12">
-            <div className="card-glass p-4 sm:p-6 text-center hover:bg-white/10 transition-all">
-              <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-blue-400 mb-2">Advanced</div>
-              <div className="text-xs sm:text-sm text-white/80">Analysis Engine</div>
+        <section id="about-section" className="mb-8 sm:mb-12">
+          <div className="container-responsive">
+            <div className="text-center mb-6 sm:mb-8">
+              <h2 className="text-heading-lg text-white mb-4">
+                Why Choose Vibe?
+              </h2>
+              <p className="text-white/80 text-responsive max-w-3xl mx-auto">
+                Get deep insights into any GitHub repository with our comprehensive analysis engine
+              </p>
             </div>
-            <div className="card-glass p-4 sm:p-6 text-center hover:bg-white/10 transition-all">
-              <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-purple-400 mb-2">12+</div>
-              <div className="text-xs sm:text-sm text-white/80">Metrics</div>
+            
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto mb-8 sm:mb-12">
+              <div className="card-glass p-4 sm:p-6 text-center hover:bg-white/10 transition-all">
+                <div className="text-heading-lg font-bold text-blue-400 mb-2">Advanced</div>
+                <div className="text-responsive text-white/80">Analysis Engine</div>
+              </div>
+              <div className="card-glass p-4 sm:p-6 text-center hover:bg-white/10 transition-all">
+                <div className="text-heading-lg font-bold text-purple-400 mb-2">12+</div>
+                <div className="text-responsive text-white/80">Metrics</div>
+              </div>
+              <div className="card-glass p-4 sm:p-6 text-center hover:bg-white/10 transition-all">
+                <div className="text-heading-lg font-bold text-green-400 mb-2">Multi-Lang</div>
+                <div className="text-responsive text-white/80">Tech Detection</div>
+              </div>
+              <div className="card-glass p-4 sm:p-6 text-center hover:bg-white/10 transition-all">
+                <div className="text-heading-lg font-bold text-yellow-400 mb-2">Real-time</div>
+                <div className="text-responsive text-white/80">Processing</div>
+              </div>
             </div>
-            <div className="card-glass p-4 sm:p-6 text-center hover:bg-white/10 transition-all">
-              <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-green-400 mb-2">Multi-Lang</div>
-              <div className="text-xs sm:text-sm text-white/80">Tech Detection</div>
+
+            {/* Score Transparency Section */}
+            <div className="max-w-5xl mx-auto mb-8 sm:mb-12">
+              <ScoreTransparency 
+                vibeScore={52}
+                breakdown={{
+                  codeQuality: 30,
+                  readability: 70,
+                  collaboration: 85,
+                  security: 20
+                }}
+              />
             </div>
-            <div className="card-glass p-4 sm:p-6 text-center hover:bg-white/10 transition-all">
-              <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-yellow-400 mb-2">Real-time</div>
-              <div className="text-xs sm:text-sm text-white/80">Processing</div>
+
+            {/* Try Your Own Repository Section */}
+            <div className="max-w-4xl mx-auto">
+              <div className="card-glass p-8 text-center">
+                <h3 className="text-heading-md text-white mb-4">
+                  Ready to Analyze Your Repository?
+                </h3>
+                <p className="text-white/80 text-responsive mb-6 max-w-2xl mx-auto">
+                  Get comprehensive insights across all 12 metrics, AI-powered recommendations, 
+                  and personalized suggestions for improvement.
+                </p>
+                <div className="flex-responsive-sm">
+                  <button
+                    onClick={() => {
+                      if (chatSectionRef.current) {
+                        chatSectionRef.current.scrollIntoView({ 
+                          behavior: 'smooth',
+                          block: 'start'
+                        });
+                      }
+                    }}
+                    className="btn-primary icon-text-align px-8 py-4 text-responsive touch-target"
+                  >
+                    <Zap className="icon-md" />
+                    <span>Start Your Analysis</span>
+                  </button>
+                  <button
+                    onClick={handleDemoMode}
+                    className="btn-secondary icon-text-align px-6 py-4 text-responsive touch-target"
+                  >
+                    <Play className="icon-sm" />
+                    <span>Try Demo</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
       )}
 
       {/* Footer */}
-      <footer className="mt-12 text-center text-white/60 text-sm">
+      <footer className="mt-12 text-center text-white/60 text-responsive">
         <p>
           Built with ❤️ for <span className="text-purple-400 font-semibold">Cognizant Vibe Coding 2025</span> • 
         </p>

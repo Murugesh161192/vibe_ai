@@ -13,7 +13,8 @@
     "lint": "eslint src/",
     "setup-token": "node setup-token.js",
     "debug": "node debug-test.js",
-    "test-token": "node test-token.js"
+    "test-token": "node test-token.js",
+    "validate-metrics": "node validate-metrics.js"
   },
   "keywords": [
     "github",

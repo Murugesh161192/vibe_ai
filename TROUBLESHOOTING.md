@@ -1,11 +1,11 @@
-# Vibe AI - Enterprise Troubleshooting Guide
+# Vibe GitHub Analyzer - Enterprise Troubleshooting Guide
 
-This comprehensive troubleshooting guide addresses common issues encountered when setting up, developing, and deploying the Vibe AI repository intelligence platform in enterprise environments.
+This comprehensive troubleshooting guide addresses common issues encountered when setting up, developing, and deploying the Vibe GitHub Analyzer repository intelligence platform in enterprise environments.
 
 ## 🚨 Quick Issue Resolution
 
 ### Emergency Checklist
-If Vibe AI is not working, check these items first:
+If Vibe GitHub Analyzer is not working, check these items first:
 
 1. **Services Running**
    ```bash
