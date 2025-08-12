@@ -118,7 +118,7 @@ const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }
             ) : null}
             {/* Fallback avatar with initials - always render but hide when image loads */}
             <div 
-              className="w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-xl bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 flex items-center justify-center border-2 border-white/20 shadow-lg"
+              className="w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center border-2 border-white/20 shadow-lg"
               style={{ display: contributor.avatar_url ? 'none' : 'flex' }}
             >
               <span className="text-white font-bold text-base sm:text-lg lg:text-xl">
@@ -208,7 +208,7 @@ const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }
                   </div>
                   <div className="h-2.5 bg-white/10 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 transition-all duration-700 ease-out"
+                      className="h-full bg-gradient-to-r from-violet-500 to-indigo-600 transition-all duration-700 ease-out"
                       style={{ width: `${Math.min(contributor.percentage, 100)}%` }}
                     />
                   </div>
@@ -232,21 +232,21 @@ const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }
     };
 
     return (
-      <div className={`p-4 sm:p-5 lg:p-6 xl:p-7 rounded-xl bg-gradient-to-br ${colorSchemes[color]} border backdrop-blur-sm hover:scale-[1.02] transition-all duration-300 min-h-[120px] sm:min-h-[130px] lg:min-h-[140px] xl:min-h-[150px] flex flex-col`}>
+      <div className={`p-4 sm:p-5 lg:p-6 rounded-xl bg-gradient-to-br ${colorSchemes[color]} border backdrop-blur-sm hover:scale-[1.02] transition-all duration-300 min-h-[110px] sm:min-h-[120px] lg:min-h-[130px] flex flex-col`}>
         {/* Header section */}
-        <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-          <div className="p-2 sm:p-2.5 lg:p-3 rounded-lg bg-white/10 flex-shrink-0">
-            <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+        <div className="flex items-center gap-3 mb-3">
+          <div className="p-2 sm:p-2.5 rounded-lg bg-white/10 flex-shrink-0">
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h5 className="text-sm sm:text-base lg:text-lg font-semibold text-white leading-tight">{label}</h5>
-            <p className="text-xs sm:text-sm lg:text-base text-white/60 mt-1 leading-relaxed">{description}</p>
+            <h5 className="text-sm sm:text-base font-semibold text-white leading-tight">{label}</h5>
+            <p className="text-xs sm:text-sm text-white/60 mt-1 leading-relaxed">{description}</p>
           </div>
         </div>
 
         {/* Value section - Aligned to bottom */}
         <div className="mt-auto">
-          <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-white leading-none">
+          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-none">
             {typeof value === 'object' ? JSON.stringify(value) : String(value ?? '0')}
           </div>
         </div>
@@ -255,52 +255,44 @@ const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }
   };
 
   return (
-    <div className="space-y-12 lg:space-y-16 xl:space-y-20">
-      {/* Enhanced Active Contributors Section with improved header alignment */}
+    <div className="space-y-8 lg:space-y-10">
+      {/* Active Contributors Section with properly aligned header */}
       <div className="relative">
-        {/* Simplified and properly aligned section header */}
-        <div className="flex items-start gap-4 sm:gap-5 lg:gap-6 mb-8 lg:mb-12">
-          <div className="p-3 sm:p-3.5 lg:p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex-shrink-0 mt-0.5 lg:mt-1">
-            <Users className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-blue-400" />
+        {/* Standardized section header with consistent alignment */}
+        <div className="flex items-start gap-3 sm:gap-4 mb-6">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex-shrink-0 mt-1">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-white leading-tight mb-2 lg:mb-3">
+            <h3 className="text-xl sm:text-2xl font-bold text-white leading-tight">
               Active Contributors
             </h3>
-            <div className="space-y-1 lg:space-y-2">
-              <p className="text-base sm:text-lg lg:text-xl text-white/70 leading-relaxed font-medium">
-                {collaborationPattern}
-              </p>
-              <p className="text-sm sm:text-base lg:text-lg text-white/50 leading-relaxed max-w-3xl">
-                Team collaboration insights and development activity
-              </p>
-            </div>
           </div>
         </div>
 
         {/* Enhanced contributors content */}
         {contributors.length === 0 ? (
-          <div className="text-center py-16 sm:py-20 lg:py-24 rounded-xl bg-gradient-to-br from-white/5 to-white/2 border border-white/10">
-            <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 mb-6 sm:mb-8">
-              <Users className="w-10 h-10 sm:w-12 sm:h-12 text-blue-400" />
+          <div className="text-center py-12 sm:py-16 rounded-xl bg-gradient-to-br from-white/5 to-white/2 border border-white/10">
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 mb-4 sm:mb-6">
+              <Users className="w-8 h-8 sm:w-10 sm:h-10 text-blue-400" />
             </div>
-            <h4 className="text-lg sm:text-xl font-bold text-white mb-3">No contributor data available</h4>
-            <p className="text-base sm:text-lg text-white/60 max-w-lg mx-auto leading-relaxed">
+            <h4 className="text-lg font-bold text-white mb-2">No contributor data available</h4>
+            <p className="text-sm sm:text-base text-white/60 max-w-lg mx-auto leading-relaxed">
               Contributor insights will appear when data becomes available from the repository analysis
             </p>
           </div>
         ) : (
-          <div className="space-y-5 sm:space-y-6 lg:space-y-7">
+          <div className="space-y-4 sm:space-y-5">
             {topContributors.map((contributor, index) => (
               <ContributorCard key={contributor.login || index} contributor={contributor} index={index} />
             ))}
 
             {/* Enhanced more contributors indicator */}
             {contributors.length > 5 && (
-              <div className="text-center pt-6 sm:pt-8">
-                <div className="inline-flex items-center gap-3 sm:gap-4 px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white/40" />
-                  <span className="text-base sm:text-lg text-white/70 font-medium">
+              <div className="text-center pt-4 sm:pt-6">
+                <div className="inline-flex items-center gap-3 px-4 sm:px-6 py-2 sm:py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white/40" />
+                  <span className="text-sm sm:text-base text-white/70 font-medium">
                     +{contributors.length - 5} more contributors
                   </span>
                 </div>
@@ -309,14 +301,14 @@ const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }
 
             {/* Enhanced team dynamics insight */}
             {teamDynamics && (
-              <div className="mt-8 sm:mt-10 p-5 sm:p-6 lg:p-8 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
-                <div className="flex items-start gap-4 sm:gap-5">
-                  <div className="p-2.5 sm:p-3 rounded-lg bg-purple-500/20 border border-purple-500/30 flex-shrink-0">
-                    <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+              <div className="mt-6 sm:mt-8 p-4 sm:p-6 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="p-2 sm:p-2.5 rounded-lg bg-purple-500/20 border border-purple-500/30 flex-shrink-0">
+                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
                   </div>
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <h4 className="text-base sm:text-lg font-bold text-white">Team Dynamics Insight</h4>
-                    <p className="text-base sm:text-lg text-white/80 italic leading-relaxed">{teamDynamics}</p>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <h4 className="text-sm sm:text-base font-bold text-white text-left">Team Dynamics Insight</h4>
+                    <p className="text-sm sm:text-base text-white/80 italic leading-relaxed text-left">{teamDynamics}</p>
                   </div>
                 </div>
               </div>
@@ -325,47 +317,36 @@ const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }
         )}
       </div>
 
-      {/* Enhanced Code Review Insights Section with consistent header alignment */}
+      {/* Code Review Insights Section with properly aligned header */}
       <div className="relative">
-        {/* Improved section header matching Active Contributors design */}
-        <div className="flex items-start gap-4 sm:gap-5 lg:gap-6 mb-8 lg:mb-12">
-          <div className="p-3 sm:p-3.5 lg:p-4 rounded-xl bg-gradient-to-br from-green-500/20 to-teal-500/20 border border-green-500/30 flex-shrink-0 mt-0.5 lg:mt-1">
-            <Code className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-green-400" />
+        {/* Standardized section header matching Active Contributors exactly */}
+        <div className="flex items-start gap-3 sm:gap-4 mb-6">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-green-500/20 to-teal-500/20 border border-green-500/30 flex-shrink-0 mt-1">
+            <Code className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-2 lg:mb-3">
-              <h3 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-white leading-tight">
+            <div className="flex items-center gap-2">
+              <h3 className="text-xl sm:text-2xl font-bold text-white leading-tight">
                 Code Review Insights
               </h3>
-              {/* Data source indicator */}
+              {/* Data source indicator - positioned consistently */}
               {contributorInsights?.codeReviewMetrics ? (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30">
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></div>
-                  <span className="text-xs font-medium text-purple-300">AI Powered</span>
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30">
+                  <div className="w-1 h-1 rounded-full bg-purple-400 animate-pulse"></div>
+                  <span className="text-xs font-medium text-purple-300">AI</span>
                 </div>
               ) : (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
-                  <span className="text-xs font-medium text-blue-300">Repository Data</span>
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
+                  <div className="w-1 h-1 rounded-full bg-blue-400"></div>
+                  <span className="text-xs font-medium text-blue-300">Data</span>
                 </div>
               )}
-            </div>
-            <div className="space-y-1 lg:space-y-2">
-              <p className="text-base sm:text-lg lg:text-xl text-white/70 leading-relaxed font-medium">
-                Development workflow and collaboration metrics
-              </p>
-              <p className="text-sm sm:text-base lg:text-lg text-white/50 leading-relaxed max-w-3xl">
-                {contributorInsights?.codeReviewMetrics 
-                  ? "AI-analyzed patterns from repository activity and contributor behavior"
-                  : "Metrics derived from repository data and commit history analysis"
-                }
-              </p>
             </div>
           </div>
         </div>
 
         {/* Enhanced responsive grid for metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6 lg:gap-7">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
           <MetricCard
             icon={GitPullRequest}
             label="PR Merge Rate"
@@ -405,24 +386,24 @@ const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }
 
         {/* Enhanced Review Recommendations with consistent alignment */}
         {reviewRecommendations.length > 0 && (
-          <div className="mt-10 sm:mt-12 p-5 sm:p-6 lg:p-8 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
-            <div className="flex items-start gap-4 sm:gap-5 mb-6 sm:mb-8">
-              <div className="p-2.5 sm:p-3 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex-shrink-0">
-                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-400" />
+          <div className="mt-6 sm:mt-8 p-4 sm:p-6 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
+            <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="p-2 sm:p-2.5 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex-shrink-0">
+                <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" />
               </div>
-              <h4 className="text-lg sm:text-xl font-bold text-white">Review Recommendations</h4>
+              <h4 className="text-base sm:text-lg font-bold text-white">Review Recommendations</h4>
             </div>
-            <div className="space-y-4 sm:space-y-5">
+            <div className="space-y-3 sm:space-y-4">
               {reviewRecommendations.map((rec, index) => (
-                <div key={index} className="flex items-start gap-4 sm:gap-5 p-4 sm:p-5 rounded-lg bg-white/5 border border-white/10">
+                <div key={index} className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-white/5 border border-white/10">
                   {rec.type === 'success' ? (
-                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   ) : rec.type === 'warning' ? (
-                    <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 mt-0.5 flex-shrink-0" />
+                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
                   ) : (
-                    <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400 mt-0.5 flex-shrink-0" />
+                    <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 mt-0.5 flex-shrink-0" />
                   )}
-                  <span className="text-base sm:text-lg text-white/80 leading-relaxed">{rec.message}</span>
+                  <span className="text-sm sm:text-base text-white/80 leading-relaxed">{rec.message}</span>
                 </div>
               ))}
             </div>

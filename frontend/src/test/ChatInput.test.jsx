@@ -35,6 +35,7 @@ describe('ChatInput Component', () => {
     test('renders submit button', () => {
       render(<ChatInput onSubmit={mockOnSubmit} />)
       
+      // The button text changes based on screen size, could be "Analyze", "Go", or contain the Search icon
       const submitButton = screen.getByRole('button', { name: /analyze repository/i })
       expect(submitButton).toBeInTheDocument()
     })
@@ -189,7 +190,7 @@ describe('ChatInput Component', () => {
     test('shows loading spinner when loading', () => {
       const { container } = render(<ChatInput onSubmit={mockOnSubmit} loading={true} />)
       
-      // Look for the spinner element
+      // The spinner is inside the input field on the left side  
       const spinner = container.querySelector('.animate-spin')
       expect(spinner).toBeInTheDocument()
     })

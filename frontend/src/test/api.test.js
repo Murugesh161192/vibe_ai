@@ -41,31 +41,6 @@ import { analyzeRepository, generateInsights } from '../services/api.js';
 // Get reference to the mocked axios instance
 const mockAxiosInstance = axios.create();
 
-// We need to create a separate instance to test the utility functions
-// Since they are part of the api object but not directly exported
-const createTestApi = () => {
-  return {
-    isValidGitHubUrl: (url) => {
-      if (!url || typeof url !== 'string') return false;
-      const githubRepoPattern = /^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+(?:\.git)?(?:\/.*)?$/;
-      return githubRepoPattern.test(url.trim());
-    },
-    extractRepoInfo: (url) => {
-      const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
-      if (!match) {
-        throw new Error('Invalid GitHub repository URL');
-      }
-      
-      return {
-        owner: match[1],
-        repo: match[2].replace('.git', '')
-      };
-    }
-  };
-};
-
-const testApi = createTestApi();
-
 describe('API Service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -86,12 +61,29 @@ describe('API Service', () => {
         }
       };
 
-      // Axios returns response.data, so we need to wrap it
-      mockAxiosInstance.post.mockResolvedValue({ data: mockResponseData });
+      // The analyzeRepository function uses the axios instance internally
+      // We need to mock the axios.create return value properly
+      const mockPost = vi.fn().mockResolvedValue({ data: mockResponseData });
+      axios.create.mockReturnValue({
+        post: mockPost,
+        get: vi.fn(),
+        defaults: {
+          baseURL: '',
+          timeout: 0,
+          headers: {}
+        },
+        interceptors: {
+          request: { use: vi.fn() },
+          response: { use: vi.fn() }
+        }
+      });
 
-      const result = await analyzeRepository('https://github.com/user/repo');
+      // Re-import to use the new mock
+      const { analyzeRepository: analyze } = await import('../services/api.js');
+      
+      const result = await analyze('https://github.com/user/repo');
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith(
+      expect(mockPost).toHaveBeenCalledWith(
         '/api/analyze',
         { repoUrl: 'https://github.com/user/repo' },
         { timeout: 30000 }
@@ -101,49 +93,24 @@ describe('API Service', () => {
     });
 
     test('handles analysis failure', async () => {
-      mockAxiosInstance.post.mockRejectedValue(new Error('Analysis failed'));
-      await expect(analyzeRepository('https://github.com/user/repo')).rejects.toThrow('Analysis failed');
-    });
-  });
+      const mockPost = vi.fn().mockRejectedValue(new Error('Analysis failed'));
+      axios.create.mockReturnValue({
+        post: mockPost,
+        get: vi.fn(),
+        defaults: {
+          baseURL: '',
+          timeout: 0,
+          headers: {}
+        },
+        interceptors: {
+          request: { use: vi.fn() },
+          response: { use: vi.fn() }
+        }
+      });
 
-  describe('isValidGitHubUrl', () => {
-    test('validates correct GitHub URLs', () => {
-      expect(testApi.isValidGitHubUrl('https://github.com/user/repo')).toBe(true);
-      expect(testApi.isValidGitHubUrl('http://github.com/user/repo')).toBe(true);
-      expect(testApi.isValidGitHubUrl('https://www.github.com/user/repo')).toBe(true);
-      expect(testApi.isValidGitHubUrl('https://github.com/user/repo.git')).toBe(true);
-    });
-
-    test('invalidates incorrect GitHub URLs', () => {
-      expect(testApi.isValidGitHubUrl('https://gitlab.com/user/repo')).toBe(false);
-      expect(testApi.isValidGitHubUrl('github.com/user/repo')).toBe(false); // missing protocol
-      expect(testApi.isValidGitHubUrl('https://github.com/user')).toBe(false); // missing repo
-      expect(testApi.isValidGitHubUrl('not-a-url')).toBe(false);
-      expect(testApi.isValidGitHubUrl('')).toBe(false);
-      expect(testApi.isValidGitHubUrl(null)).toBe(false);
-      expect(testApi.isValidGitHubUrl(undefined)).toBe(false);
-    });
-  });
-
-  describe('extractRepoInfo', () => {
-    test('extracts info from valid URL', () => {
-      const info = testApi.extractRepoInfo('https://github.com/user/repo');
-      expect(info).toEqual({ owner: 'user', repo: 'repo' });
-    });
-
-    test('extracts info from URL with .git extension', () => {
-      const info = testApi.extractRepoInfo('https://github.com/user/repo.git');
-      expect(info).toEqual({ owner: 'user', repo: 'repo' });
-    });
-
-    test('extracts info from URL with www', () => {
-      const info = testApi.extractRepoInfo('https://www.github.com/user/repo');
-      expect(info).toEqual({ owner: 'user', repo: 'repo' });
-    });
-
-    test('throws error for invalid URL', () => {
-      expect(() => testApi.extractRepoInfo('invalid-url')).toThrow('Invalid GitHub repository URL');
-      expect(() => testApi.extractRepoInfo('https://gitlab.com/user/repo')).toThrow('Invalid GitHub repository URL');
+      const { analyzeRepository: analyze } = await import('../services/api.js');
+      
+      await expect(analyze('https://github.com/user/repo')).rejects.toThrow('Analysis failed');
     });
   });
 
@@ -176,8 +143,9 @@ describe('API Service', () => {
         }
       };
 
-      // generateInsights uses axios.post directly
-      axios.post.mockResolvedValue(mockResponse);
+      // Mock axios.post for generateInsights which uses axios directly
+      const originalCreate = axios.create;
+      axios.post = vi.fn().mockResolvedValue(mockResponse);
 
       const result = await generateInsights('https://github.com/user/repo');
 
@@ -189,7 +157,7 @@ describe('API Service', () => {
     });
 
     test('handles insights generation failure', async () => {
-      axios.post.mockRejectedValue(new Error('Insights generation failed'));
+      axios.post = vi.fn().mockRejectedValue(new Error('Insights generation failed'));
       
       await expect(generateInsights('https://github.com/user/repo')).rejects.toThrow('Insights generation failed');
     });
@@ -197,7 +165,7 @@ describe('API Service', () => {
     test('handles network errors gracefully', async () => {
       const networkError = new Error('Network error');
       networkError.code = 'ECONNREFUSED';
-      axios.post.mockRejectedValue(networkError);
+      axios.post = vi.fn().mockRejectedValue(networkError);
       
       await expect(generateInsights('https://github.com/user/repo')).rejects.toThrow('Network error');
     });

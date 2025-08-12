@@ -260,7 +260,9 @@ describe('Header Component', () => {
       })
       renderWithRedux(<Header currentView="analysis" />, { store })
       
-      const homeButton = screen.getByRole('button', { name: /Go to home page/i })
+      // The main logo/home button has this aria-label
+      const homeButtons = screen.getAllByRole('button', { name: /Go to home page|Go home/i })
+      const homeButton = homeButtons[0]  // Use the first matching button
       expect(homeButton).toBeInTheDocument()
       
       // Click home button

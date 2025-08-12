@@ -253,33 +253,34 @@ describe('App Component', () => {
           },
           analysis: { insights: ['Great code'], recommendations: ['Keep it up'], documentationFiles: [], testFiles: [], dependencies: [], folderStructure: [] }
         }
-      }
-      api.analyzeRepository.mockResolvedValue(mockSuccessResponse)
+      };
+      api.analyzeRepository.mockResolvedValue(mockSuccessResponse);
+      api.generateInsights.mockResolvedValue({ success: true, data: {} });
 
-      const { user } = setup()
+      const { user } = setup();
 
       // Wait for initial render
       await waitFor(() => {
-        expect(screen.getByTestId('chat-input')).toBeInTheDocument()
-      })
+        expect(screen.getByTestId('chat-input')).toBeInTheDocument();
+      });
 
       // Type a repository URL
-      const input = screen.getByTestId('chat-input-field')
-      await user.type(input, 'https://github.com/test/repo')
+      const input = screen.getByTestId('chat-input-field');
+      await user.type(input, 'https://github.com/test/repo');
 
       // Trigger analysis
       await act(async () => {
-        fireEvent.click(screen.getByTestId('chat-submit-button'))
-      })
+        fireEvent.click(screen.getByTestId('chat-submit-button'));
+      });
 
       // Wait for results to appear
       await waitFor(() => {
-        expect(screen.getByTestId('vibe-score-results-content')).toBeInTheDocument()
-      }, { timeout: 3000 })
+        expect(screen.getByTestId('vibe-score-results-content')).toBeInTheDocument();
+      }, { timeout: 3000 });
       
-      expect(screen.getByText('test-repo')).toBeInTheDocument()
-      expect(screen.getByText('Score: 85')).toBeInTheDocument()
-    })
+      expect(screen.getByText('test-repo')).toBeInTheDocument();
+      expect(screen.getByText('Score: 85')).toBeInTheDocument();
+    });
 
     test('handles repository analysis errors', async () => {
       api.analyzeRepository.mockRejectedValue(new Error('Repository not found'))
@@ -305,6 +306,7 @@ describe('App Component', () => {
 
     test('handles parallel AI insights correctly', async () => {
       const mockSuccessResponse = {
+        success: true,
         data: {
           repoInfo: { name: 'test-repo' },
           vibeScore: { total: 85 },
@@ -312,6 +314,7 @@ describe('App Component', () => {
         }
       }
       const mockInsightsResponse = {
+        success: true,
         data: { insights: 'AI generated insights' }
       }
       
@@ -336,6 +339,7 @@ describe('App Component', () => {
 
     test('handles AI insights failure gracefully', async () => {
       const mockSuccessResponse = {
+        success: true,
         data: {
           repoInfo: { name: 'test-repo' },
           vibeScore: { total: 85 },
@@ -438,6 +442,7 @@ describe('App Component', () => {
   describe('Input Parsing', () => {
     test('handles owner/repo format', async () => {
       const mockResponse = {
+        success: true,
         data: {
           repoInfo: { name: 'repo' },
           vibeScore: { total: 85 },
@@ -535,6 +540,7 @@ describe('App Component', () => {
 
     test('can analyze repo from demo mode', async () => {
       const mockResponse = {
+        success: true,
         data: {
           repoInfo: { name: 'demo-repo' },
           vibeScore: { total: 90 },
@@ -594,6 +600,7 @@ describe('App Component', () => {
         data: { login: 'testuser' } 
       }
       const mockRepoResponse = {
+        success: true,
         data: {
           repoInfo: { name: 'analyzed-repo' },
           vibeScore: { total: 88 },

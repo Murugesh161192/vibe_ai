@@ -181,7 +181,7 @@ describe('RepositoryList Component', () => {
   test('empty state displays when no repositories', () => {
     renderWithRedux(<RepositoryList {...defaultProps} repositories={[]} totalCount={0} />);
     
-    expect(screen.getByText(/no public repositories found/i)).toBeInTheDocument();
+    expect(screen.getByText('No public repositories found')).toBeInTheDocument();
   });
 
   test('pagination controls are accessible', () => {

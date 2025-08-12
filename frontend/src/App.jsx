@@ -321,7 +321,7 @@ function App() {
       </div>
       
       {/* Main Content Container with proper scrolling */}
-      <main id="main-content" className="relative z-10 w-full flex-1 overflow-y-auto scrollbar-custom" role="main" aria-busy={loading}>
+      <main id="main-content" className="relative z-10 w-full flex-1 overflow-y-auto overflow-x-hidden scrollbar-custom" role="main" aria-busy={loading}>
         {/* Header Section - Now consistent across all views */}
         <div data-testid="header">
           <Header 
@@ -343,7 +343,7 @@ function App() {
               {/* Welcome Section - Mobile Optimized Typography */}
               <div className="mb-6 sm:mb-8">
                 <div className="text-center mb-6 sm:mb-8">
-                  <h1 className="text-responsive-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3 sm:mb-4 leading-tight">
+                  <h1 className="text-responsive-3xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent mb-3 sm:mb-4 leading-tight">
                     Analyze Any GitHub Repository
                   </h1>
                   <p className="text-gray-300 text-responsive-base max-w-2xl mx-auto leading-relaxed" role="status">

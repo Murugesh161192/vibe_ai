@@ -1,10 +1,10 @@
 import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
-import {
+import { 
   Trophy, Shield, Star, Target, BookOpen, Bot, Settings, Bell, 
   FileText, Check, ExternalLink, Info, ChevronDown, 
-  ChevronUp, AlertCircle, Copy, Mail, X, Clock, Users,
+  ChevronUp, AlertCircle, Copy, Mail, X, Users,
   GitBranch, Code, Activity, TrendingUp, BarChart2, Package, Zap, Lightbulb,
-  HelpCircle, ChevronRight, Beaker, CheckCircle, Sparkles, Share2, Download, RefreshCw
+  HelpCircle, ChevronRight, Beaker, CheckCircle, Sparkles
 } from 'lucide-react';
 import RadarChart from './RadarChart';
 import MetricBreakdown from './MetricBreakdown';
@@ -295,7 +295,6 @@ const VibeScoreResults = ({
   // Local share modal state if not provided via props
   const [localShowShareModal, setLocalShowShareModal] = useState(false);
   const [localShowExportModal, setLocalShowExportModal] = useState(false);
-  const [showShareDropdown, setShowShareDropdown] = useState(false);
   const [copiedItem, setCopiedItem] = useState(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
   
@@ -307,17 +306,7 @@ const VibeScoreResults = ({
   
   const announce = useAnnouncement();
   
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (showShareDropdown && !event.target.closest('.share-dropdown')) {
-        setShowShareDropdown(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showShareDropdown]);
+
 
   // Debug: Log what we're receiving
   useEffect(() => {
@@ -531,167 +520,55 @@ const VibeScoreResults = ({
       <div className="w-full max-w-[1920px] mx-auto">
         {/* Header Section with Repository Info */}
         <div className="px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
-          <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 backdrop-blur-sm">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              {/* Repository Info */}
+          <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-7 backdrop-blur-sm">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-6">
+              {/* Repository Info - Main Content */}
               <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <Package className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400 flex-shrink-0" />
-                    <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white truncate">
-                      {repositoryInfo?.name || 'Repository Analysis'}
-                    </h1>
-                  </div>
-                  
-                  {/* Repository badges */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    {repositoryInfo?.language && (
-                      <StatusBadge 
-                        status="info" 
-                        label={repositoryInfo.language}
-                        icon={Code}
-                      />
-                    )}
-                    {repositoryInfo?.stars !== undefined && (
-                      <StatusBadge 
-                        status="neutral" 
-                        label={`${formatNumber(repositoryInfo.stars)} stars`}
-                        icon={Star}
-                      />
-                    )}
-                    {/* View on GitHub Link */}
-                    <a
-                      href={repositoryInfo?.url || repositoryInfo?.repoUrl || `https://github.com/${repositoryInfo?.fullName || repositoryInfo?.owner + '/' + repositoryInfo?.name || 'test/test-repo'}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      View on GitHub
-                    </a>
-                  </div>
+                {/* Title Row with Icon and Name */}
+                <div className="flex items-center gap-3 mb-3">
+                  <Package className="w-6 h-6 text-blue-400 flex-shrink-0" />
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">
+                    {repositoryInfo?.name || 'Repository Analysis'}
+                  </h1>
                 </div>
                 
-                {/* Repository description */}
-                {repositoryInfo?.description && (
-                  <p className="mt-2 text-xs sm:text-sm text-gray-400 line-clamp-2">
-                    {repositoryInfo.description}
-                  </p>
-                )}
+                {/* Badges Row - Properly aligned */}
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  {repositoryInfo?.language && (
+                    <StatusBadge 
+                      status="info" 
+                      label={repositoryInfo.language}
+                      icon={Code}
+                    />
+                  )}
+                  {repositoryInfo?.stars !== undefined && (
+                    <StatusBadge 
+                      status="neutral" 
+                      label={`${formatNumber(repositoryInfo.stars)} stars`}
+                      icon={Star}
+                    />
+                  )}
+                  {/* View on GitHub Link - Better integrated */}
+                  <a
+                    href={repositoryInfo?.url || repositoryInfo?.repoUrl || `https://github.com/${repositoryInfo?.fullName || repositoryInfo?.owner + '/' + repositoryInfo?.name || 'test/test-repo'}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-all duration-200"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    View on GitHub
+                  </a>
+                </div>
               </div>
               
-              {/* Analysis Status - Responsive alignment */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 lg:flex-shrink-0">
-                {/* Last updated timestamp */}
-                <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-400">
-                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span>Analyzed {new Date().toLocaleDateString()}</span>
-                </div>
-                
-                {/* Analysis Completed Indicator */}
+              {/* Analysis Status - Right aligned */}
+              <div className="flex-shrink-0 md:self-start">
                 <div className="animate-fade-in">
-                  <div className="inline-flex items-center gap-1 px-2 sm:px-2.5 lg:px-3 py-0.5 sm:py-1 bg-green-500/10 border border-green-500/20 rounded-full backdrop-blur-sm">
-                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-400 flex-shrink-0" aria-hidden="true" />
-                    <span className="text-[10px] sm:text-xs lg:text-sm text-green-400 font-medium">
+                  <div className="inline-flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-lg backdrop-blur-sm">
+                    <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" aria-hidden="true" />
+                    <span className="text-sm text-green-400 font-medium whitespace-nowrap">
                       Analysis Completed
                     </span>
-                  </div>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <button
-                    onClick={() => handleExportModalToggle(true)}
-                    className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all duration-200 text-xs sm:text-sm font-medium text-white"
-                    aria-label="Export analysis results"
-                  >
-                    <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Export</span>
-                  </button>
-                  
-                  <button
-                    onClick={handleNewAnalysis}
-                    className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded-lg transition-all duration-200 text-xs sm:text-sm font-medium text-green-300"
-                    aria-label="Start new analysis"
-                  >
-                    <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span>New Analysis</span>
-                  </button>
-                  
-                  {/* Share Dropdown */}
-                  <div className="relative share-dropdown">
-                    <button
-                      onClick={() => setShowShareDropdown(!showShareDropdown)}
-                      className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg transition-all duration-200 text-xs sm:text-sm font-medium text-blue-300"
-                      aria-label="Share analysis results"
-                    >
-                      <Share2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span>Share Results</span>
-                    </button>
-                    
-                    {showShareDropdown && (
-                      <div className="absolute right-0 top-full mt-2 w-56 bg-gray-800 border border-white/10 rounded-lg shadow-xl z-50 py-2">
-                        {/* Copy Options */}
-                        <div className="px-3 py-1 text-xs text-gray-400 uppercase tracking-wide">Copy</div>
-                        <button
-                          onClick={() => { handleCopyGitHubURL(); setShowShareDropdown(false); }}
-                          className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors flex items-center gap-2 text-white text-sm"
-                        >
-                          <Copy className="w-4 h-4" />
-                          Copy GitHub URL
-                          {copiedItem === 'Copy GitHub URL' && <Check className="w-4 h-4 text-green-400 ml-auto" />}
-                        </button>
-                        <button
-                          onClick={() => { handleCopyResultsSummary(); setShowShareDropdown(false); }}
-                          className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors flex items-center gap-2 text-white text-sm"
-                        >
-                          <Copy className="w-4 h-4" />
-                          Copy Results Summary
-                          {copiedItem === 'Copy Results Summary' && <Check className="w-4 h-4 text-green-400 ml-auto" />}
-                        </button>
-                        <button
-                          onClick={() => { handleCopyAnalysisLink(); setShowShareDropdown(false); }}
-                          className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors flex items-center gap-2 text-white text-sm"
-                        >
-                          <Copy className="w-4 h-4" />
-                          Copy Analysis Link
-                          {copiedItem === 'Copy Analysis Link' && <Check className="w-4 h-4 text-green-400 ml-auto" />}
-                        </button>
-                        
-                        <div className="border-t border-white/10 my-2"></div>
-                        
-                        {/* Social Share Options */}
-                        <div className="px-3 py-1 text-xs text-gray-400 uppercase tracking-wide">Share</div>
-                        <button
-                          onClick={() => { handleSocialShare('twitter'); setShowShareDropdown(false); }}
-                          className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors flex items-center gap-2 text-white text-sm"
-                        >
-                          <Share2 className="w-4 h-4" />
-                          Share on Twitter
-                        </button>
-                        <button
-                          onClick={() => { handleSocialShare('linkedin'); setShowShareDropdown(false); }}
-                          className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors flex items-center gap-2 text-white text-sm"
-                        >
-                          <Share2 className="w-4 h-4" />
-                          Share on LinkedIn
-                        </button>
-                        <button
-                          onClick={() => { handleSocialShare('whatsapp'); setShowShareDropdown(false); }}
-                          className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors flex items-center gap-2 text-white text-sm"
-                        >
-                          <Share2 className="w-4 h-4" />
-                          Share on WhatsApp
-                        </button>
-                        <button
-                          onClick={() => { handleSocialShare('email'); setShowShareDropdown(false); }}
-                          className="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors flex items-center gap-2 text-white text-sm"
-                        >
-                          <Mail className="w-4 h-4" />
-                          Share by Email
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -733,74 +610,95 @@ const VibeScoreResults = ({
           </div>
         )}
 
-        {/* Main Score Section - Better responsive layout */}
-        <div className="px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
-              {/* Overall Score Card - Full width on mobile, 1/3 on desktop */}
-              <div className="xl:col-span-1">
-                <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 backdrop-blur-sm h-full">
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-300 mb-3 sm:mb-4">
-                      Overall Vibe Score
-                    </h2>
-                    <div className="relative">
-                      <svg className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 transform -rotate-90">
+        {/* Enhanced Main Score Section - Cleaner, more prominent design */}
+        <div className="px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8 mt-8 sm:mt-10 lg:mt-12">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
+              {/* Overall Score Card - Enhanced prominence */}
+              <div className="xl:col-span-1 mb-6 xl:mb-0">
+                <div className="bg-gradient-to-br from-white/10 via-white/5 to-white/5 border border-white/20 rounded-2xl p-6 sm:p-8 backdrop-blur-sm shadow-2xl relative overflow-hidden group hover:border-white/30 transition-all duration-300">
+                  {/* Subtle background decoration */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  <div className="relative flex flex-col items-center justify-center h-full">
+                    <div className="text-center mb-6">
+                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2">
+                        Overall Vibe Score
+                      </h2>
+                      <p className="text-sm text-white/60">Repository health & quality assessment</p>
+                    </div>
+                    
+                    <div className="relative mb-6">
+                      <svg className="w-36 h-36 sm:w-44 sm:h-44 lg:w-52 lg:h-52 transform -rotate-90 drop-shadow-lg">
                         <circle
                           cx="50%"
                           cy="50%"
-                          r="45%"
+                          r="42%"
                           stroke="currentColor"
-                          strokeWidth="8"
+                          strokeWidth="6"
                           fill="none"
                           className="text-white/10"
                         />
                         <circle
                           cx="50%"
                           cy="50%"
-                          r="45%"
-                          stroke="url(#scoreGradient)"
-                          strokeWidth="8"
+                          r="42%"
+                          stroke="url(#enhancedScoreGradient)"
+                          strokeWidth="6"
                           fill="none"
-                          strokeDasharray={`${overallScore * 2.83} 283`}
+                          strokeDasharray={`${overallScore * 2.65} 265`}
                           strokeLinecap="round"
-                          className="transition-all duration-1000 ease-out"
+                          className="transition-all duration-1500 ease-out animate-[drawScore_1.5s_ease-out]"
                         />
                         <defs>
-                          <linearGradient id="scoreGradient">
-                            <stop offset="0%" stopColor="#3B82F6" />
-                            <stop offset="50%" stopColor="#8B5CF6" />
-                            <stop offset="100%" stopColor="#EC4899" />
+                          <linearGradient id="enhancedScoreGradient">
+                            <stop offset="0%" stopColor="#8B5CF6" />
+                            <stop offset="50%" stopColor="#6366F1" />
+                            <stop offset="100%" stopColor="#4F46E5" />
                           </linearGradient>
                         </defs>
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        <span className="text-5xl sm:text-6xl lg:text-7xl font-black bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-sm">
                           {overallScore}
                         </span>
-                        <span className="text-xs sm:text-sm text-gray-400 mt-1">out of 100</span>
+                        <span className="text-sm sm:text-base text-white/60 mt-1 font-medium">out of 100</span>
                       </div>
                     </div>
-                    <div className="mt-4 sm:mt-6 text-center">
+                    
+                    <div className="text-center space-y-3">
                       <StatusBadge 
                         status={vibeMessage.color.replace('text-', '')} 
                         label={vibeMessage.text}
                         icon={Trophy}
                       />
+                      <div className="flex items-center justify-center gap-2 text-xs text-white/50">
+                        <Sparkles className="w-3 h-3" />
+                        <span>Analyzed {new Date().toLocaleDateString()}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Radar Chart Section - Full width on mobile, 2/3 on desktop */}
+              {/* Enhanced Radar Chart Section */}
               <div className="xl:col-span-2">
-                <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 backdrop-blur-sm h-full">
-                  <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-300 mb-3 sm:mb-4">
-                    Score Breakdown
-                  </h2>
-                  <div className="w-full relative" style={{ minHeight: '250px', height: 'calc(100% - 3rem)' }}>
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="w-full" style={{ aspectRatio: '1/1', maxWidth: '100%', maxHeight: '400px' }}>
-                        <RadarChart data={breakdown} />
+                <div className="bg-gradient-to-br from-white/8 via-white/4 to-white/4 border border-white/20 rounded-2xl p-6 sm:p-8 backdrop-blur-sm shadow-2xl relative overflow-hidden group hover:border-white/30 transition-all duration-300">
+                  {/* Subtle background decoration */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/3 via-purple-500/3 to-cyan-500/3 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  <div className="relative">
+                    <div className="text-center mb-6">
+                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2">
+                        Score Breakdown
+                      </h2>
+                      <p className="text-sm text-white/60">Detailed analysis across key metrics</p>
+                    </div>
+                    {/* Responsive radar chart container */}
+                    <div className="w-full relative">
+                      <div className="chart-container-responsive">
+                        <div className="radar-chart-wrapper">
+                          <RadarChart data={breakdown} />
+                        </div>
                       </div>
                     </div>
                   </div>

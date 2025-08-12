@@ -411,7 +411,7 @@ const Header = ({
       </div>
       
       {/* Spacer to account for fixed header height */}
-      <div className="h-14 xs:h-16 sm:h-20" aria-hidden="true" />
+      <div className="h-14 xs:h-16 sm:h-20 w-full" aria-hidden="true" />
 
       {/* Metrics Modal */}
       <MetricsModal 
