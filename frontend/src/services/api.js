@@ -342,6 +342,10 @@ const createApi = (axiosInstance) => {
             try {
               const response = await axiosInstance.get(`/api/repos/${owner}/${repo}/contributors`);
               if (!response || !response.data) return [];
+              // Backend returns { success: true, data: [...] }
+              if (response.data.success && response.data.data) {
+                return response.data.data;
+              }
               return response.data;
             } catch (error) {
               console.error('Failed to get repository contributors:', error);
@@ -415,6 +419,10 @@ const {
   summarizeReadme,
   batchSummarizeReadme,
   getRepositoryInfo,
+  getRepositoryStats,
+  getRepositoryContent,
+  getRepositoryLanguages,
+  getRepositoryContributors,
   getApiStatus,
   checkApiHealth,
   validateRepoUrl,
@@ -429,7 +437,7 @@ const {
  * @param {string} repoUrl - GitHub repository URL
  * @returns {Promise<Object>} - Insights data
  */
-export const generateInsights = async (repoUrl) => {
+const generateInsights = async (repoUrl) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/api/analyze/insights`, { repoUrl });
     return response.data;
@@ -440,19 +448,11 @@ export const generateInsights = async (repoUrl) => {
 };
 
 export { 
-  api,
   analyzeRepository,
   getUserProfile,
   getUserRepositories,
-  processUserInput,
   summarizeReadme,
   batchSummarizeReadme,
-  getRepositoryInfo,
-  getApiStatus,
-  checkApiHealth,
-  validateRepoUrl,
-  isValidGitHubUrl,
-  isValidGitHubUsername,
-  isValidGitHubRepoFormat,
-  extractRepoInfo
+  getRepositoryContributors,
+  generateInsights
 }; 

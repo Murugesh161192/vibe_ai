@@ -6,6 +6,25 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        '2xs': '320px', // Very small mobile devices (iPhone SE, etc)
+        'xs': '375px',  // Small mobile devices (iPhone 6/7/8)
+        '3xl': '1920px',
+        '4xl': '2560px',
+      },
+      spacing: {
+        '4.5': '1.125rem',  // 18px - for icons
+        '13': '3.25rem',    // 52px
+        '15': '3.75rem',    // 60px  
+        '17': '4.25rem',    // 68px
+        '18': '4.5rem',     // 72px - FIXED: Added missing w-18
+        '19': '4.75rem',    // 76px
+        '21': '5.25rem',    // 84px
+        '22': '5.5rem',     // 88px
+        '23': '5.75rem',    // 92px
+        '26': '6.5rem',     // 104px
+        '30': '7.5rem',     // 120px
+      },
       colors: {
         primary: {
           50: '#eff6ff',
@@ -42,6 +61,8 @@ export default {
         'fade-in': 'fadeIn 0.3s ease-out',
         'slide-up': 'slideUp 0.5s ease-out',
         'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite', 
+        'pulse-slower': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'bounce-slow': 'bounce 3s infinite',
         'radar-spin': 'radarSpin 20s linear infinite'
       },

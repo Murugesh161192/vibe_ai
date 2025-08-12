@@ -11,7 +11,26 @@ const RadarChart = memo(({ data }) => {
 
   // Debug logging
   useEffect(() => {
-    console.log('RadarChart received data:', data);
+    console.log('🎯 RadarChart - Using Genuine API Data:');
+    console.log('  Data received from parent:', data);
+    console.log('  Data type:', typeof data);
+    console.log('  Data keys:', data ? Object.keys(data) : 'null');
+    console.log('  Data values:', data ? Object.values(data) : 'null');
+    
+    // Check for specific expected keys
+    if (data) {
+      const expectedKeys = ['codeQuality', 'readability', 'collaboration', 'innovation', 
+                           'maintainability', 'inclusivity', 'security', 'performance',
+                           'testingQuality', 'communityHealth', 'codeHealth', 'releaseManagement'];
+      const presentKeys = expectedKeys.filter(key => key in data && data[key] !== undefined);
+      const missingKeys = expectedKeys.filter(key => !(key in data) || data[key] === undefined);
+      
+      console.log('  ✅ Present metrics:', presentKeys.length, presentKeys);
+      if (missingKeys.length > 0) {
+        console.log('  ❌ Missing metrics:', missingKeys.length, missingKeys);
+      }
+      console.log('  All values are valid numbers?', Object.values(data).every(v => typeof v === 'number' && !isNaN(v)));
+    }
   }, [data]);
 
   // Memoize chart configuration to prevent recalculation on every render
@@ -19,13 +38,40 @@ const RadarChart = memo(({ data }) => {
     const containerWidth = dimensions.width;
     const containerHeight = dimensions.height;
     const isMobile = containerWidth < 480;
-    const isTablet = containerWidth < 768;
-    const isLarge = containerWidth >= 1024;
+    const isMediumMobile = containerWidth >= 480 && containerWidth < 540;
+    const isSmallTablet = containerWidth >= 540 && containerWidth < 768;
+    const isTablet = containerWidth >= 768 && containerWidth < 1024;
+    const isDesktop = containerWidth >= 1024;
     
-    // Use the smaller dimension to ensure the chart fits in the container
-    const size = Math.min(containerWidth, containerHeight, isLarge ? 600 : 500);
-    // Increase margins for better label visibility
-    const margin = isMobile ? 70 : isTablet ? 90 : 110;
+    // Enhanced responsive sizing with better breakpoints for 540px and 768px
+    let basePadding, maxSize, size, margin;
+    
+    if (isMobile) {
+      basePadding = 20;
+      maxSize = Math.min(containerWidth - basePadding, containerHeight - basePadding);
+      size = Math.min(maxSize, 260);
+      margin = 40;
+    } else if (isMediumMobile) {
+      basePadding = 25;
+      maxSize = Math.min(containerWidth - basePadding, containerHeight - basePadding);
+      size = Math.min(maxSize, 320);
+      margin = 50;
+    } else if (isSmallTablet) {
+      basePadding = 30;
+      maxSize = Math.min(containerWidth - basePadding, containerHeight - basePadding);
+      size = Math.min(maxSize, 360);
+      margin = 60;
+    } else if (isTablet) {
+      basePadding = 35;
+      maxSize = Math.min(containerWidth - basePadding, containerHeight - basePadding);
+      size = Math.min(maxSize, 400);
+      margin = 70;
+    } else {
+      basePadding = 40;
+      maxSize = Math.min(containerWidth - basePadding, containerHeight - basePadding);
+      size = Math.min(maxSize, isDesktop ? 500 : 450);
+      margin = 90;
+    }
     
     return {
       width: size,
@@ -35,17 +81,21 @@ const RadarChart = memo(({ data }) => {
       maxValue: 100,
       roundStrokes: true,
       color: '#0ea5e9',
-      labelFontSize: isMobile ? '10px' : isTablet ? '11px' : '13px',
-      gridLabelFontSize: isMobile ? '8px' : '9px',
-      pointRadius: isMobile ? 2.5 : isTablet ? 3 : 4,
-      pointHoverRadius: isMobile ? 4 : isTablet ? 5 : 6,
-      labelOffset: isMobile ? 12 : isTablet ? 15 : 18
+      labelFontSize: isMobile ? '8px' : isMediumMobile ? '9px' : isSmallTablet ? '10px' : isTablet ? '11px' : '12px',
+      gridLabelFontSize: isMobile ? '6px' : isMediumMobile ? '7px' : '8px',
+      pointRadius: isMobile ? 1.5 : isMediumMobile ? 2 : isSmallTablet ? 2.5 : isTablet ? 3 : 3.5,
+      pointHoverRadius: isMobile ? 3 : isMediumMobile ? 3.5 : isSmallTablet ? 4 : isTablet ? 4.5 : 5,
+      labelOffset: isMobile ? 8 : isMediumMobile ? 10 : isSmallTablet ? 12 : isTablet ? 14 : 15,
+      strokeWidth: isMobile ? '1.5px' : isMediumMobile ? '2px' : '2.5px'
     };
   }, [dimensions.width, dimensions.height]);
 
   // Memoize radar data processing
   const radarData = useMemo(() => {
-    if (!data || Object.keys(data).length === 0) return [];
+    if (!data || Object.keys(data).length === 0) {
+      console.log('📊 RadarChart: No API data available');
+      return [];
+    }
 
     const metrics = [
       { key: 'codeQuality', label: 'Code Quality', angle: 0 },
@@ -62,11 +112,34 @@ const RadarChart = memo(({ data }) => {
       { key: 'releaseManagement', label: 'Releases', angle: 330 }
     ];
 
-    return metrics.map(metric => ({
-      axis: metric.label,
-      value: Math.max(0, Math.min(100, data[metric.key] || 0)),
-      angle: metric.angle
-    }));
+    console.log('📊 Processing genuine API metrics:');
+    console.log('  Input data keys:', Object.keys(data));
+    console.log('  Input data:', data);
+    
+    const processedData = metrics.map(metric => {
+      const value = data[metric.key];
+      // Handle both undefined and null values, and ensure it's a number
+      const numericValue = typeof value === 'number' ? value : 0;
+      const processedValue = Math.max(0, Math.min(100, numericValue));
+      
+      if (value !== undefined && value !== null) {
+        console.log(`  ✅ ${metric.key}: ${value} (API) → ${processedValue}`);
+      } else {
+        console.log(`  ⚠️ ${metric.key}: undefined/null (API) → ${processedValue} (defaulted to 0)`);
+      }
+      
+      return {
+        axis: metric.label,
+        value: processedValue,
+        angle: metric.angle,
+        originalValue: value // Keep original value for debugging
+      };
+    });
+    
+    console.log('📊 RadarChart data ready with', processedData.filter(d => d.value > 0).length, 'non-zero metrics out of 12');
+    console.log('  All 12 metrics processed:', processedData.length === 12);
+    
+    return processedData;
   }, [data]);
 
   // Optimized resize handler with debouncing
@@ -77,7 +150,11 @@ const RadarChart = memo(({ data }) => {
       const containerHeight = rect.height || 400;
       console.log('Container dimensions:', containerWidth, containerHeight);
       
-      setDimensions({ width: containerWidth, height: containerHeight });
+      // Ensure minimum dimensions
+      const width = Math.max(containerWidth, 200);
+      const height = Math.max(containerHeight, 200);
+      
+      setDimensions({ width, height });
       setIsReady(true);
     }
   }, []);
@@ -145,8 +222,13 @@ const RadarChart = memo(({ data }) => {
 
   // Optimized D3 rendering with memoization and performance optimizations
   useEffect(() => {
+    console.log('🎨 D3 Rendering Check:');
+    console.log('  Has radarData:', radarData.length > 0);
+    console.log('  Has svgRef:', !!svgRef.current);
+    console.log('  Is ready:', isReady);
+    
     if (!radarData.length || !svgRef.current || !isReady) {
-      console.log('Chart not ready to render:', { 
+      console.log('❌ Chart not ready to render:', { 
         hasData: radarData.length > 0, 
         hasSvg: !!svgRef.current,
         isReady 
@@ -155,7 +237,9 @@ const RadarChart = memo(({ data }) => {
     }
 
     try {
-      console.log('Rendering radar chart with data:', radarData);
+      console.log('✅ Rendering radar chart with data:', radarData);
+      console.log('  Data points:', radarData.length);
+      console.log('  First data point:', radarData[0]);
       
       const svg = d3.select(svgRef.current);
       svg.selectAll("*").remove(); // Clear previous render
@@ -344,9 +428,36 @@ const RadarChart = memo(({ data }) => {
   }
 
   return (
-    <div className="w-full flex items-center justify-center p-2 sm:p-4" ref={containerRef}>
-      <div className="w-full max-w-md mx-auto" style={{ minHeight: '300px' }}>
-        <svg ref={svgRef} className="w-full h-full" style={{ display: 'block' }} />
+    <div 
+      className="w-full h-full flex items-center justify-center p-2 md:p-4" 
+      ref={containerRef}
+      style={{
+        minHeight: '200px',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
+    >
+      <div 
+        className="relative w-full h-full flex items-center justify-center"
+        style={{ 
+          maxWidth: '500px',
+          maxHeight: '500px',
+          aspectRatio: '1 / 1',
+          margin: '0 auto'
+        }}
+      >
+        <svg 
+          ref={svgRef} 
+          className="w-full h-full" 
+          style={{ 
+            display: 'block', 
+            maxWidth: '100%', 
+            maxHeight: '100%',
+            margin: '0 auto'
+          }} 
+        />
       </div>
       
       <div
@@ -359,7 +470,14 @@ const RadarChart = memo(({ data }) => {
           pointerEvents: 'none',
           zIndex: 1000,
           opacity: tooltip.show ? 1 : 0,
-          visibility: tooltip.show ? 'visible' : 'hidden'
+          visibility: tooltip.show ? 'visible' : 'hidden',
+          padding: '4px 8px',
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          color: 'white',
+          borderRadius: '4px',
+          fontSize: '12px',
+          whiteSpace: 'nowrap',
+          transition: 'opacity 0.2s'
         }}
       >
         {tooltip.content}

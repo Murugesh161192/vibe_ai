@@ -1,143 +1,177 @@
-import { render, screen } from '@testing-library/react'
-import { vi } from 'vitest'
-import AnalysisInsights from '../components/AnalysisInsights'
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import AnalysisInsights from '../components/AnalysisInsights';
 
 describe('AnalysisInsights Component', () => {
   const mockAnalysis = {
     insights: [
-      'Good code quality with comprehensive testing',
-      'Needs improvement in documentation',
-      'Strong community engagement'
+      'High code quality with consistent patterns',
+      'Active community engagement',
+      'Regular updates and maintenance'
+    ]
+  };
+
+  const mockAiInsights = {
+    keyInsights: [
+      'Excellent test coverage',
+      'Well-documented codebase',
+      'Strong security practices'
     ],
-    testFiles: ['test/app.test.js', 'test/components.test.js', 'test/utils.test.js'],
-    dependencies: ['react', 'axios', 'lodash', 'jest'],
-    folderStructure: ['src/', 'test/', 'docs/'],
-    languages: ['JavaScript', 'TypeScript']
-  }
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  describe('Initial Render', () => {
-    test('renders component with analysis data', () => {
-      render(<AnalysisInsights analysis={mockAnalysis} />)
-      
-      expect(screen.getByText(/Basic Analysis Results/i)).toBeInTheDocument()
-      expect(screen.getAllByText(/Test Coverage/i).length).toBeGreaterThan(0)
-      expect(screen.getAllByText(/Dependencies/i).length).toBeGreaterThan(0)
-    })
-
-    test('renders insights information', () => {
-      render(<AnalysisInsights analysis={mockAnalysis} />)
-      
-      mockAnalysis.insights.forEach(insight => {
-        expect(screen.getByText(insight)).toBeInTheDocument()
-      })
-    })
-
-    test('renders test files information', () => {
-      render(<AnalysisInsights analysis={mockAnalysis} />)
-      
-      // Find the Test Coverage heading in the cards section (not recommendations)
-      const headings = screen.getAllByText('Test Coverage')
-      expect(headings.length).toBeGreaterThan(0)
-      
-      // Check that test files are rendered with emoji prefix (🧪 not 📄)
-      expect(screen.getAllByText(/🧪/).length).toBeGreaterThan(0)
-    })
-
-    test('renders dependencies information', () => {
-      render(<AnalysisInsights analysis={mockAnalysis} />)
-      
-      // Check for Dependencies section using role
-      expect(screen.getByRole('heading', { level: 4, name: /Dependencies/i })).toBeInTheDocument()
-      expect(screen.getByText(/External packages and libraries/i)).toBeInTheDocument()
-      
-      // Check for Dependencies content
-      expect(screen.getByText('4')).toBeInTheDocument() // Dependency count
-      expect(screen.getByText('📦 react')).toBeInTheDocument()
-      expect(screen.getByText('📦 axios')).toBeInTheDocument()
-    })
-
-    test('renders recommendations section', () => {
-      render(<AnalysisInsights analysis={mockAnalysis} />)
-      
-      expect(screen.getByText(/Smart Recommendations/i)).toBeInTheDocument()
-      expect(screen.getByText(/Improve Your Vibe Score/i)).toBeInTheDocument()
-    })
-  })
-
-  describe('Edge Cases', () => {
-    test('handles empty analysis gracefully', () => {
-      const emptyAnalysis = {
-        insights: [],
-        testFiles: [],
-        dependencies: [],
-        languages: []
+    smartRecommendations: [
+      {
+        title: 'Add Comprehensive Test Coverage',
+        description: 'Implement unit and integration tests',
+        priority: 'critical',
+        category: 'testing'
+      },
+      {
+        title: 'Enhance README Documentation',
+        description: 'Clear documentation helps new users',
+        priority: 'moderate',
+        category: 'documentation'
       }
-      
-      render(<AnalysisInsights analysis={emptyAnalysis} />)
-      
-      // Should still render other sections even with empty/missing data
-      expect(screen.getAllByText(/Test Coverage/i).length).toBeGreaterThan(0)
-      expect(screen.getAllByText(/Dependencies/i).length).toBeGreaterThan(0)
-    })
+    ]
+  };
 
-    test('handles null analysis', () => {
-      render(<AnalysisInsights analysis={null} />)
-      
-      // Component should not render anything
-      expect(screen.queryByText(/Analysis Insights/i)).not.toBeInTheDocument()
-    })
+  test('renders key insights section', () => {
+    render(<AnalysisInsights analysis={mockAnalysis} />);
+    expect(screen.getByText('Key Insights')).toBeInTheDocument();
+  });
 
-    test('handles missing dependencies data', () => {
-      const analysisWithoutDependencies = {
-        insights: ['Some insight'],
-        testFiles: ['test.js'],
-        dependencies: [],
-        languages: []
-      }
-      
-      render(<AnalysisInsights analysis={analysisWithoutDependencies} />)
-      
-      // Should show "No dependencies detected" message
-      expect(screen.getByText(/No dependencies detected/i)).toBeInTheDocument()
-      expect(screen.getByText(/This could be a standalone project or dependency detection failed/i)).toBeInTheDocument()
-    })
+  test('renders smart recommendations section', () => {
+    render(<AnalysisInsights aiInsights={mockAiInsights} />);
+    expect(screen.getByText('Smart Recommendations')).toBeInTheDocument();
+  });
 
-    test('handles dependencies with large count', () => {
-      const analysisWithManyDependencies = {
-        insights: ['Some insight'],
-        testFiles: ['test.js'],
-        dependencies: ['react', 'vue', 'angular', 'svelte', 'ember', 'backbone', 'jquery', 'lodash'],
-        languages: []
-      }
-      
-      render(<AnalysisInsights analysis={analysisWithManyDependencies} />)
-      
-      // Should show dependencies with overflow count
-      expect(screen.getByRole('heading', { level: 4, name: /Dependencies/i })).toBeInTheDocument()
-      expect(screen.getByText('8')).toBeInTheDocument() // Total dependency count
-      expect(screen.getByText('📦 react')).toBeInTheDocument()
-      expect(screen.getByText('+2')).toBeInTheDocument() // Shows +2 for 8 deps (6 shown + 2 more)
-    })
+  test('displays correct number of insights', () => {
+    render(<AnalysisInsights analysis={mockAnalysis} />);
+    expect(screen.getByText('3 analysis points found')).toBeInTheDocument();
+  });
 
-    test('handles small number of dependencies', () => {
-      const analysisWithFewDependencies = {
-        insights: ['Some insight'],
-        testFiles: ['test.js'],
-        dependencies: ['react', 'vue'],
-        languages: []
-      }
-      
-      render(<AnalysisInsights analysis={analysisWithFewDependencies} />)
-      
-      // Should show all dependencies without overflow
-      expect(screen.getByRole('heading', { level: 4, name: /Dependencies/i })).toBeInTheDocument()
-      expect(screen.getByText('📦 react')).toBeInTheDocument()
-      expect(screen.getByText('📦 vue')).toBeInTheDocument()
-      expect(screen.queryByText(/\+/)).not.toBeInTheDocument() // No overflow indicator
-    })
-  })
-}) 
+  test('collapses and expands sections on click', async () => {
+    render(<AnalysisInsights analysis={mockAnalysis} />);
+    
+    const button = screen.getByRole('button', { name: /key insights/i });
+    
+    // Initially expanded
+    expect(screen.getByText('High code quality with consistent patterns')).toBeVisible();
+    
+    // Click to collapse
+    fireEvent.click(button);
+    await waitFor(() => {
+      expect(screen.queryByText('High code quality with consistent patterns')).not.toBeInTheDocument();
+    });
+    
+    // Click to expand
+    fireEvent.click(button);
+    await waitFor(() => {
+      expect(screen.getByText('High code quality with consistent patterns')).toBeVisible();
+    });
+  });
+
+  test('recommendation card opens modal on click', async () => {
+    render(<AnalysisInsights aiInsights={mockAiInsights} />);
+    
+    // Find and click the first recommendation card
+    const recommendationCard = screen.getByText('Add Comprehensive Test Coverage').closest('article');
+    fireEvent.click(recommendationCard);
+    
+    // Check if modal appears
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('Implementation Steps')).toBeInTheDocument();
+      expect(screen.getByText('Expected Benefits')).toBeInTheDocument();
+    });
+  });
+
+  test('recommendation modal closes on button click', async () => {
+    render(<AnalysisInsights aiInsights={mockAiInsights} />);
+    
+    // Open modal
+    const recommendationCard = screen.getByText('Add Comprehensive Test Coverage').closest('article');
+    fireEvent.click(recommendationCard);
+    
+    // Wait for modal to appear
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+    
+    // Click close button
+    const closeButton = screen.getByText('Got it, thanks!');
+    fireEvent.click(closeButton);
+    
+    // Check if modal disappears
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  test('recommendation modal closes on backdrop click', async () => {
+    render(<AnalysisInsights aiInsights={mockAiInsights} />);
+    
+    // Open modal
+    const recommendationCard = screen.getByText('Add Comprehensive Test Coverage').closest('article');
+    fireEvent.click(recommendationCard);
+    
+    // Wait for modal to appear
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+    
+    // Click backdrop
+    const backdrop = screen.getByRole('dialog');
+    fireEvent.click(backdrop);
+    
+    // Check if modal disappears
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  test('recommendation card responds to keyboard navigation', async () => {
+    render(<AnalysisInsights aiInsights={mockAiInsights} />);
+    
+    // Find the first recommendation card
+    const recommendationCard = screen.getByText('Add Comprehensive Test Coverage').closest('article');
+    
+    // Focus the card and press Enter
+    recommendationCard.focus();
+    fireEvent.keyDown(recommendationCard, { key: 'Enter', code: 'Enter' });
+    
+    // Check if modal appears
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+    
+    // Close modal
+    const closeButton = screen.getByText('Got it, thanks!');
+    fireEvent.click(closeButton);
+    
+    // Press Space to open again
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    
+    fireEvent.keyDown(recommendationCard, { key: ' ', code: 'Space' });
+    
+    // Check if modal appears again
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+  });
+
+  test('displays correct priority badges', () => {
+    render(<AnalysisInsights aiInsights={mockAiInsights} />);
+    
+    expect(screen.getByText('critical')).toBeInTheDocument();
+    expect(screen.getByText('moderate')).toBeInTheDocument();
+  });
+
+  test('displays category badges', () => {
+    render(<AnalysisInsights aiInsights={mockAiInsights} />);
+    
+    expect(screen.getByText('testing')).toBeInTheDocument();
+    expect(screen.getByText('documentation')).toBeInTheDocument();
+  });
+}); 

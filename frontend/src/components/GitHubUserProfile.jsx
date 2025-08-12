@@ -1,12 +1,29 @@
-import React, { useState } from 'react';
-import { MapPin, Calendar, ExternalLink, Star, GitFork, Building, Mail, Link as LinkIcon, Bot, BarChart3 } from 'lucide-react';
-import { summarizeReadme } from '../services/api';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { MapPin, Calendar, ExternalLink, Star, GitFork, Building, Bot, BarChart3, Activity, ChevronDown, Eye } from 'lucide-react';
+import RepositoryList from './RepositoryList';
+import { SummaryModal } from './Modal';
+import { startAnalysisAndNavigate } from '../store/slices/analysisSlice';
+import { 
+  summarizeRepositoryReadme, 
+  selectRepoLoadingState, 
+  selectRepoError,
+  selectCachedSummary 
+} from '../store/slices/aiSlice';
 
-const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo }) => {
+const GitHubUserProfile = ({ user, repositories = [], onNewSearch }) => {
+  const dispatch = useDispatch();
   const [loadingSummary, setLoadingSummary] = useState({});
   const [loadingAnalyze, setLoadingAnalyze] = useState({});
   const [summaryData, setSummaryData] = useState({});
   const [summaryErrors, setSummaryErrors] = useState({});
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    repo: null,
+    summary: null,
+    isLoading: false,
+    error: null
+  });
 
 
   // Provide default values if user data is missing or incomplete
@@ -22,8 +39,6 @@ const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo }) => {
     blog: user.blog || null,
     public_repos: user.public_repos || 0,
     followers: user.followers || 0,
-    following: user.following || 0,
-    public_gists: user.public_gists || 0,
     created_at: user.created_at || null
   } : {
     login: 'unknown',
@@ -37,8 +52,6 @@ const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo }) => {
     blog: null,
     public_repos: 0,
     followers: 0,
-    following: 0,
-    public_gists: 0,
     created_at: null
   };
 
@@ -53,6 +66,27 @@ const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo }) => {
     }
     return num.toString();
   };
+
+  // Calculate repository statistics
+  const repoStats = React.useMemo(() => {
+    if (!repositories || !Array.isArray(repositories)) {
+      return { totalStars: 0, totalForks: 0, languages: 0 };
+    }
+    
+    const totalStars = repositories.reduce((sum, repo) => sum + (repo.stargazers_count || 0), 0);
+    const totalForks = repositories.reduce((sum, repo) => sum + (repo.forks_count || 0), 0);
+    
+    const uniqueLanguages = new Set();
+    repositories.forEach(repo => {
+      if (repo.language) uniqueLanguages.add(repo.language);
+    });
+    
+    return {
+      totalStars,
+      totalForks,
+      languages: uniqueLanguages.size
+    };
+  }, [repositories]);
 
   // Helper function to format dates
   const formatDate = (dateString) => {
@@ -76,45 +110,76 @@ const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo }) => {
   const handleSummarizeRepo = async (repo) => {
     console.log('Summary clicked for repo:', repo.name);
     
-    setLoadingSummary(prev => ({ ...prev, [repo.id]: true }));
-    setSummaryErrors(prev => ({ ...prev, [repo.id]: null }));
+    // Open modal in loading state
+    setModalState({
+      isOpen: true,
+      repo: repo,
+      summary: null,
+      isLoading: true,
+      error: null
+    });
     
     try {
-      const response = await summarizeReadme(repo.owner.login, repo.name);
-      console.log('API response received for', repo.name);
+      // Dispatch Redux action to summarize the repository
+      const resultAction = await dispatch(summarizeRepositoryReadme({
+        owner: repo.owner.login,
+        repo: repo.name,
+        repoId: repo.id
+      }));
       
-      // Enhanced summary with better branding
-      const summaryText = response?.summary || 'No summary available';
-      const aiInfo = response?.isMock ? 
-        '\n\n⚠️ Demo Mode: Configure API key for full capabilities' : 
-        `\n\n📝 Generated: ${new Date().toLocaleTimeString()}`;
-      
-      const summaryMessage = `📄 Repository Summary: ${repo.name}\n\n${summaryText}${aiInfo}`;
-      
-      // Store summary in state instead of alert
-      setSummaryData(prev => ({ ...prev, [repo.id]: summaryMessage }));
-      
-      // For production, still use alert but check if it exists
-      if (typeof window !== 'undefined' && window.alert) {
-        window.alert(summaryMessage);
+      if (summarizeRepositoryReadme.fulfilled.match(resultAction)) {
+        const response = resultAction.payload.data;
+        console.log('API response received for', repo.name);
+        
+        // Enhanced summary with better branding
+        const summaryText = response?.summary || 'No summary available';
+        const aiInfo = response?.isMock ? 
+          '\n\n⚠️ Demo Mode: Configure API key for full capabilities' : 
+          '';
+        
+        const summaryMessage = `${summaryText}${aiInfo}`;
+        
+        // Update modal with summary
+        setModalState({
+          isOpen: true,
+          repo: repo,
+          summary: summaryMessage,
+          isLoading: false,
+          error: null
+        });
+        
+        // Store summary in state for future reference
+        setSummaryData(prev => ({ ...prev, [repo.id]: summaryMessage }));
+        
+      } else if (summarizeRepositoryReadme.rejected.match(resultAction)) {
+        // Handle rejection
+        const errorMessage = resultAction.payload?.error || 'Failed to generate summary';
+        console.error('Error summarizing repository:', errorMessage);
+        
+        // Update modal with error
+        setModalState({
+          isOpen: true,
+          repo: repo,
+          summary: null,
+          isLoading: false,
+          error: errorMessage
+        });
+        
+        setSummaryErrors(prev => ({ ...prev, [repo.id]: errorMessage }));
       }
-      
     } catch (error) {
-      console.error('Summarization failed for', repo.name, ':', error);
+      console.error('Unexpected error summarizing repository:', error);
       
-      // Enhanced error message
-      const errorMessage = `❌ Summary Failed for ${repo.name}\n\nUnable to generate summary for this repository.\n\nReason: ${error.message}\n\n💡 Tip: Try again or ensure the repository is public and has documentation.`;
+      // Update modal with error
+      setModalState({
+        isOpen: true,
+        repo: repo,
+        summary: null,
+        isLoading: false,
+        error: error.message || 'Failed to generate summary'
+      });
       
-      // Store error in state
-      setSummaryErrors(prev => ({ ...prev, [repo.id]: errorMessage }));
-      
-      // For production, still use alert but check if it exists
-      if (typeof window !== 'undefined' && window.alert) {
-        window.alert(errorMessage);
-      }
-      
-    } finally {
-      setLoadingSummary(prev => ({ ...prev, [repo.id]: false }));
+      setSummaryErrors(prev => ({ ...prev, [repo.id]: error.message }));
     }
   };
 
@@ -136,7 +201,8 @@ const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo }) => {
       const repoUrl = `https://github.com/${ownerLogin}/${repoName}`;
       console.log('Constructed repo URL:', repoUrl);
       
-      await onAnalyzeRepo(repoUrl);
+      // Use Redux action for consistent caching and navigation
+      dispatch(startAnalysisAndNavigate(repoUrl));
     } catch (error) {
       console.error('Analysis failed for', repo.name, ':', error);
       alert(`Analysis failed for ${repo.name || 'repository'}\n\nError: ${error.message}`);
@@ -148,199 +214,180 @@ const GitHubUserProfile = ({ user, repositories, onAnalyzeRepo }) => {
     }
   };
 
+  const closeModal = () => {
+    setModalState({
+      isOpen: false,
+      repo: null,
+      summary: null,
+      isLoading: false,
+      error: null
+    });
+  };
+
   return (
     <div className="space-y-8">
       
-      {/* Enhanced User Profile Card */}
-      <div className="card-glass p-6 sm:p-8">
-        <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-          
-          {/* Avatar and Basic Info */}
-          <div className="flex flex-col items-center md:items-start flex-shrink-0">
-            <img
-              src={safeUser.avatar_url}
-              alt={`${safeUser.login}'s avatar`}
-              className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 shadow-lg mb-4"
-              onError={(e) => {
-                e.target.src = 'https://github.com/identicons/default.png';
-              }}
-            />
-            <div className="text-center md:text-left">
-              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{safeUser.name || safeUser.login}</h1>
-              <p className="text-lg sm:text-xl text-purple-300 mb-2">@{safeUser.login}</p>
-              {safeUser.bio && (
-                <p className="text-white/80 mb-4 max-w-md leading-relaxed">{safeUser.bio}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Stats and Details */}
-          <div className="flex-1 w-full">
+      {/* Enhanced User Profile Card with Premium Design */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 shadow-2xl">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-transparent pointer-events-none"></div>
+        
+        <div className="relative p-4 sm:p-6 lg:p-8">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-center lg:items-start">
             
-            {/* Location, Company, etc. */}
-            <div className="flex flex-wrap justify-center md:justify-start gap-3 sm:gap-4 mb-6">
-              {safeUser.location && (
-                <div className="flex items-center gap-2 text-white/70">
-                  <MapPin className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-sm sm:text-base">{safeUser.location}</span>
-                </div>
-              )}
-              {safeUser.company && (
-                <div className="flex items-center gap-2 text-white/70">
-                  <Building className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-sm sm:text-base">{safeUser.company}</span>
-                </div>
-              )}
-              {safeUser.email && (
-                <div className="flex items-center gap-2 text-white/70">
-                  <Mail className="w-4 h-4 flex-shrink-0" />
-                  <a href={`mailto:${safeUser.email}`} className="hover:text-white transition-colors text-sm sm:text-base">
-                    {safeUser.email}
-                  </a>
-                </div>
-              )}
-              {safeUser.blog && (
-                <div className="flex items-center gap-2 text-white/70">
-                  <LinkIcon className="w-4 h-4 flex-shrink-0" />
-                  <a 
-                    href={safeUser.blog.startsWith('http') ? safeUser.blog : `https://${safeUser.blog}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="hover:text-white transition-colors text-sm sm:text-base truncate max-w-[200px]"
-                  >
-                    {safeUser.blog}
-                  </a>
-                </div>
-              )}
-              <div className="flex items-center gap-2 text-white/70">
-                <Calendar className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm sm:text-base">Joined {formatDate(safeUser.created_at)}</span>
+            {/* Avatar and Basic Info - Improved Mobile Layout */}
+            <div className="flex flex-col items-center lg:items-start flex-shrink-0 w-full lg:w-auto">
+              <div className="relative mb-4">
+                <img
+                  src={safeUser.avatar_url}
+                  alt={`${safeUser.login}'s avatar`}
+                  className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl border-3 border-white/20 shadow-xl"
+                  onError={(e) => {
+                    e.target.src = 'https://github.com/identicons/default.png';
+                  }}
+                  data-testid="user-avatar"
+                />
+                {/* Online indicator */}
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-gray-900 shadow-lg"></div>
+              </div>
+              
+              <div className="text-center lg:text-left w-full">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 break-words">
+                  {safeUser.name || safeUser.login}
+                </h1>
+                <p className="text-lg sm:text-xl text-purple-300 mb-3 font-medium">
+                  @{safeUser.login}
+                </p>
+                {safeUser.bio && (
+                  <p className="text-sm sm:text-base text-white/80 mb-4 max-w-md mx-auto lg:mx-0">
+                    {safeUser.bio}
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* GitHub Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-              <div className="bg-white/10 rounded-lg p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-white">{formatNumber(safeUser.public_repos)}</div>
-                <div className="text-xs sm:text-sm text-white/60">Repositories</div>
+            {/* Stats and Details - Responsive Grid */}
+            <div className="flex-1 w-full min-w-0 space-y-6">
+              
+              {/* User Details Pills - Responsive Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {safeUser.location && (
+                  <div className="flex items-center gap-2.5 min-h-[40px] text-white/80 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg border border-white/10 transition-all">
+                    <MapPin className="w-4 h-4 flex-shrink-0 text-blue-400" />
+                    <span className="text-sm truncate flex-1 leading-normal">{safeUser.location}</span>
+                  </div>
+                )}
+                {safeUser.company && (
+                  <div className="flex items-center gap-2.5 min-h-[40px] text-white/80 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg border border-white/10 transition-all">
+                    <Building className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                    <span className="text-sm truncate flex-1 leading-normal">{safeUser.company}</span>
+                  </div>
+                )}
+                {safeUser.created_at && (
+                  <div className="flex items-center gap-2.5 min-h-[40px] text-white/80 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg border border-white/10 transition-all">
+                    <Calendar className="w-4 h-4 flex-shrink-0 text-orange-400" />
+                    <span className="text-sm truncate flex-1 leading-normal">Joined {formatDate(safeUser.created_at)}</span>
+                  </div>
+                )}
               </div>
-              <div className="bg-white/10 rounded-lg p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-white">{formatNumber(safeUser.followers)}</div>
-                <div className="text-xs sm:text-sm text-white/60">Followers</div>
-              </div>
-              <div className="bg-white/10 rounded-lg p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-white">{formatNumber(safeUser.following)}</div>
-                <div className="text-xs sm:text-sm text-white/60">Following</div>
-              </div>
-              <div className="bg-white/10 rounded-lg p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-white">{formatNumber(safeUser.public_gists)}</div>
-                <div className="text-xs sm:text-sm text-white/60">Gists</div>
-              </div>
-            </div>
 
-            {/* GitHub Profile Link */}
-            <div className="flex items-center justify-center md:justify-start">
-              <a
-                href={safeUser.html_url || `https://github.com/${safeUser.login}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl text-sm sm:text-base font-medium"
-              >
-                <ExternalLink className="w-4 h-4" />
-                View on GitHub
-              </a>
+              {/* GitHub Stats - Responsive Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div className="group relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 rounded-lg p-4 text-center border border-white/10 hover:border-white/20 transition-all">
+                  <div className="relative">
+                    <div className="text-2xl font-bold text-white mb-1">{formatNumber(safeUser.public_repos)}</div>
+                    <div className="text-xs text-white/70 font-medium">Public Repos</div>
+                  </div>
+                </div>
+                <div className="group relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 rounded-lg p-4 text-center border border-white/10 hover:border-white/20 transition-all">
+                  <div className="relative">
+                    <div className="text-2xl font-bold text-white mb-1">{formatNumber(safeUser.followers)}</div>
+                    <div className="text-xs text-white/70 font-medium">Followers</div>
+                  </div>
+                </div>
+                <div className="group relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 rounded-lg p-4 text-center border border-white/10 hover:border-white/20 transition-all">
+                  <div className="relative">
+                    <div className="text-2xl font-bold text-white mb-1">{formatNumber(repoStats.totalStars)}</div>
+                    <div className="text-xs text-white/70 font-medium">Total Stars</div>
+                  </div>
+                </div>
+                <div className="group relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 rounded-lg p-4 text-center border border-white/10 hover:border-white/20 transition-all">
+                  <div className="relative">
+                    <div className="text-2xl font-bold text-white mb-1">{formatNumber(repoStats.totalForks)}</div>
+                    <div className="text-xs text-white/70 font-medium">Total Forks</div>
+                  </div>
+                </div>
+                <div className="group relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 rounded-lg p-4 text-center border border-white/10 hover:border-white/20 transition-all col-span-2 sm:col-span-1">
+                  <div className="relative">
+                    <div className="text-2xl font-bold text-white mb-1">{repoStats.languages}</div>
+                    <div className="text-xs text-white/70 font-medium">Languages</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* View Profile Button - Centered on Mobile */}
+              <div className="flex justify-center lg:justify-start">
+                <a
+                  href={safeUser.html_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-white rounded-lg border border-purple-400/20 hover:from-purple-500/30 hover:to-blue-500/30 transition-all"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span className="text-sm font-medium">View on GitHub</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
-
-              {/* Enhanced Repositories Section */}
-      {repositories && Array.isArray(repositories) && repositories.length > 0 && (
-          <div className="card-glass-sm p-4 sm:p-6 mt-6">
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-                <GitFork className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
-                Public Repositories ({repositories.length})
-              </h2>
-            </div>
-
-            <div className="grid-responsive-lg">
-              {repositories.map((repo) => (
-                <div key={repo.id || repo.name} className="card-content p-4 group hover:scale-[1.02] transition-transform">
-                  <div className="mb-3">
-                    <h3 className="text-base sm:text-lg font-semibold text-white mb-2 truncate">
-                      <a 
-                        href={repo.html_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="hover:text-purple-300 transition-colors"
-                      >
-                        {repo.name || 'Unnamed Repository'}
-                      </a>
-                    </h3>
-                    {repo.description && (
-                      <p className="text-sm text-white/70 line-clamp-2">{repo.description}</p>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center justify-between mb-3">
-                    {repo.language && (
-                      <span className="px-2 py-1 bg-blue-600/50 text-blue-200 rounded text-xs font-medium">
-                        {repo.language}
-                      </span>
-                    )}
-                    <div className="flex items-center gap-3 text-xs sm:text-sm text-white/60">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3 h-3" />
-                        {formatNumber(repo.stargazers_count || 0)}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <GitFork className="w-3 h-3" />
-                        {formatNumber(repo.forks_count || 0)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <button
-                      onClick={() => handleAnalyzeRepo(repo)}
-                      disabled={loadingAnalyze[repo.id]}
-                      className="flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm sm:text-base font-medium shadow-lg hover:shadow-xl flex-1"
-                      style={{
-                        transform: loadingAnalyze[repo.id] ? 'scale(0.95)' : 'scale(1)'
-                      }}
-                    >
-                      <BarChart3 className={`w-4 h-4 ${loadingAnalyze[repo.id] ? 'animate-spin' : ''}`} />
-                      <span className="whitespace-nowrap">{loadingAnalyze[repo.id] ? 'Analyzing...' : 'Analyze Vibe'}</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleSummarizeRepo(repo)}
-                      disabled={loadingSummary[repo.id]}
-                      className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm sm:text-base font-medium shadow-lg hover:shadow-xl flex-1"
-                      style={{
-                        transform: loadingSummary[repo.id] ? 'scale(0.95)' : 'scale(1)'
-                      }}
-                    >
-                      <Bot className={`w-4 h-4 ${loadingSummary[repo.id] ? 'animate-spin' : ''}`} />
-                      <span className="whitespace-nowrap">{loadingSummary[repo.id] ? 'Summarizing...' : 'Smart Summary'}</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* No Repositories Message */}
-        {repositories && Array.isArray(repositories) && repositories.length === 0 && (
-          <div className="card-glass-sm p-6 text-center">
-            <GitFork className="w-12 h-12 text-white/40 mx-auto mb-4" />
-            <h3 className="text-heading-sm mb-2">No Public Repositories</h3>
-            <p className="text-body-sm">This user hasn't published any public repositories yet.</p>
-          </div>
-        )}
       </div>
+
+      {/* Enhanced Repositories Section - Better Responsive Padding */}
+      {repositories && Array.isArray(repositories) && repositories.length > 0 && (
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 shadow-2xl">
+          {/* Subtle background pattern */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-transparent pointer-events-none"></div>
+          
+          <div className="relative p-4 sm:p-6 lg:p-8">
+            <RepositoryList
+              repositories={repositories}
+              totalCount={safeUser.public_repos}
+              username={safeUser.login}
+              onAnalyzeRepo={handleAnalyzeRepo}
+              onSummarizeRepo={handleSummarizeRepo}
+              loadingAnalyze={loadingAnalyze}
+              loadingSummary={loadingSummary}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* No Repositories Message - Enhanced */}
+      {repositories && Array.isArray(repositories) && repositories.length === 0 && (
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-500/5 via-gray-600/5 to-transparent pointer-events-none"></div>
+          <div className="relative p-10 text-center">
+            <div className="max-w-md mx-auto">
+              <div className="relative p-6 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 w-fit mx-auto mb-6 shadow-lg">
+                <GitFork className="w-12 h-12 text-white/40" />
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-500/10 to-transparent rounded-2xl"></div>
+              </div>
+              <h3 className="text-2xl lg:text-3xl font-bold text-white mb-4">No Public Repositories</h3>
+              <p className="text-white/70 text-lg leading-relaxed">This user hasn't published any public repositories yet.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Summary Modal */}
+      <SummaryModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        repo={modalState.repo}
+        summary={modalState.summary}
+        isLoading={modalState.isLoading}
+        error={modalState.error}
+      />
     </div>
   );
 };

@@ -1,396 +1,711 @@
 import React, { useState, useMemo, useCallback, memo } from 'react';
-import { CheckCircle, AlertCircle, Info, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, BarChart3 } from 'lucide-react';
+import { CheckCircle, AlertCircle, Info, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, BarChart3, Activity, Sparkles, Target, Award, Zap, Users, Shield, Trophy, List } from 'lucide-react';
+
+// Enhanced Sparkline component for visual trends
+const Sparkline = ({ points = [], color = 'text-purple-300' }) => {
+  if (!points.length) return null;
+  const width = 80;
+  const height = 24;
+  const max = Math.max(...points);
+  const min = Math.min(...points);
+  const range = max - min || 1;
+  
+  const pathData = points
+    .map((value, i) => {
+      const x = (i / (points.length - 1)) * width;
+      const y = height - ((value - min) / range) * height;
+      return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+    })
+    .join(' ');
+  
+  return (
+    <div className="flex items-center justify-center">
+      <svg width={width} height={height} className={`${color} opacity-80`}>
+        <defs>
+          <linearGradient id={`gradient-${color}`} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style={{ stopColor: 'currentColor', stopOpacity: 0.1 }} />
+            <stop offset="100%" style={{ stopColor: 'currentColor', stopOpacity: 0.8 }} />
+          </linearGradient>
+        </defs>
+        <path
+          d={pathData}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d={`${pathData} L ${width} ${height} L 0 ${height} Z`}
+          fill={`url(#gradient-${color})`}
+          opacity="0.2"
+        />
+      </svg>
+    </div>
+  );
+};
+
+// Enhanced Progress Bar Component
+const ProgressBar = ({ value, max = 100, color = 'blue', showValue = true, size = 'md' }) => {
+  const colorSchemes = {
+    blue: 'from-blue-400 to-cyan-400',
+    green: 'from-green-400 to-emerald-400',
+    purple: 'from-purple-400 to-violet-400',
+    yellow: 'from-yellow-400 to-amber-400',
+    red: 'from-red-400 to-rose-400',
+    orange: 'from-orange-400 to-red-400',
+    indigo: 'from-indigo-400 to-purple-400',
+    pink: 'from-pink-400 to-rose-400',
+    teal: 'from-teal-400 to-cyan-400',
+    emerald: 'from-emerald-400 to-green-400'
+  };
+  
+  const sizeClasses = {
+    sm: 'h-1.5',
+    md: 'h-2.5',
+    lg: 'h-3'
+  };
+  
+  const percentage = Math.min((value / max) * 100, 100);
+  const gradient = colorSchemes[color] || colorSchemes.blue;
+  
+  return (
+    <div className="space-y-1">
+      <div className={`w-full bg-white/10 rounded-full overflow-hidden ${sizeClasses[size]}`}>
+        <div 
+          className={`${sizeClasses[size]} rounded-full bg-gradient-to-r ${gradient} transition-all duration-1000 ease-out`}
+          style={{ 
+            width: `${percentage}%`,
+            boxShadow: percentage > 0 ? `0 0 10px rgba(59, 130, 246, 0.3)` : 'none'
+          }}
+        />
+      </div>
+      {showValue && (
+        <div className="flex justify-between text-xs text-white/60">
+          <span>{value.toFixed(1)}</span>
+          <span>{max}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Enhanced Metric Card Component
+const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const score = Math.round(metric.value);
+  const weight = metric.weight;
+  const contribution = metric.value * weight;
+  
+  const getScoreColor = (score) => {
+    if (score >= 80) return 'green';
+    if (score >= 60) return 'blue'; 
+    if (score >= 40) return 'yellow';
+    if (score >= 20) return 'orange';
+    return 'red';
+  };
+  
+  const scoreColor = getScoreColor(score);
+  
+  const colorSchemes = {
+    blue: {
+      gradient: 'from-blue-500/10 via-blue-600/5 to-cyan-500/10',
+      border: 'border-blue-500/20',
+      text: 'text-blue-400',
+      bg: 'bg-blue-500/20'
+    },
+    green: {
+      gradient: 'from-green-500/10 via-emerald-600/5 to-teal-500/10',
+      border: 'border-green-500/20',
+      text: 'text-green-400',
+      bg: 'bg-green-500/20'
+    },
+    yellow: {
+      gradient: 'from-yellow-500/10 via-amber-600/5 to-orange-500/10',
+      border: 'border-yellow-500/20',
+      text: 'text-yellow-400',
+      bg: 'bg-yellow-500/20'
+    },
+    orange: {
+      gradient: 'from-orange-500/10 via-amber-600/5 to-red-500/10',
+      border: 'border-orange-500/20',
+      text: 'text-orange-400',
+      bg: 'bg-orange-500/20'
+    },
+    red: {
+      gradient: 'from-red-500/10 via-rose-600/5 to-pink-500/10',
+      border: 'border-red-500/20',
+      text: 'text-red-400',
+      bg: 'bg-red-500/20'
+    }
+  };
+  
+  const scheme = colorSchemes[scoreColor] || colorSchemes.blue;
+  
+  return (
+    <div
+      className={`
+        group relative rounded-2xl bg-gradient-to-br ${scheme.gradient}
+        border ${scheme.border} hover:border-white/30
+        backdrop-blur-xl transition-all duration-500 cursor-pointer
+        hover:scale-[1.02] hover:shadow-xl
+        ${isExpanded ? 'lg:col-span-2 xl:col-span-2 2xl:col-span-2' : ''}
+        ${viewMode === 'list' ? 'w-full' : ''}
+      `}
+      onClick={onToggle}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      role="button"
+      aria-expanded={isExpanded}
+      tabIndex={0}
+      data-testid={`metric-${metric.key.toLowerCase().replace(/[_\s]+/g, '-')}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onToggle();
+        }
+      }}
+    >
+      {/* Background decoration */}
+      <div className="absolute inset-0 rounded-2xl opacity-5">
+        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+      </div>
+      
+      <div className="relative z-10 p-4 sm:p-5">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4 gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+            <div className={`
+              p-2 sm:p-2.5 rounded-xl bg-gradient-to-br ${scheme.gradient} border ${scheme.border}
+              transition-transform duration-300 flex-shrink-0 ${isHovered ? 'scale-110 rotate-3' : 'scale-100'}
+            `}>
+              <span className="text-base sm:text-lg">{metric.icon}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h5 className="font-semibold text-white text-sm sm:text-base lg:text-base xl:text-sm 2xl:text-base truncate" data-testid="metric-name">
+                {metric.label}
+              </h5>
+              {/* Enhanced responsive badge layout */}
+              <div className="flex flex-col gap-1 mt-1.5 sm:mt-2">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <span className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${scheme.bg} ${scheme.text} whitespace-nowrap flex-shrink-0`}>
+                    {(weight * 100).toFixed(1)}% weight
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-white/50 whitespace-nowrap flex-shrink-0">
+                    {contribution.toFixed(1)} pts
+                  </span>
+                </div>
+                {/* Trend indicator on separate line for better spacing */}
+                {metric.trend !== 0 && (
+                  <div className={`flex items-center gap-1 text-[10px] sm:text-xs font-medium ${
+                    metric.trend > 0 ? 'text-green-400' : 'text-red-400'
+                  } w-fit`}>
+                    <span className="flex items-center gap-0.5">
+                      {metric.trend > 0 ? '↗' : '↘'} {Math.abs(metric.trend).toFixed(1)}%
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Enhanced score section with better responsive design */}
+          <div className="flex flex-col items-end justify-start flex-shrink-0 min-w-0">
+            <div className={`text-xl sm:text-2xl lg:text-3xl xl:text-2xl 2xl:text-3xl font-bold ${scheme.text} leading-none`} data-testid="metric-score">
+              {score}
+            </div>
+            <div className="text-[10px] sm:text-xs text-white/60 mt-0.5 whitespace-nowrap">
+              Score
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-3 sm:mb-4">
+          <ProgressBar 
+            value={score} 
+            max={100} 
+            color={scoreColor} 
+            showValue={false}
+            size="md"
+          />
+        </div>
+
+        {/* Sparkline - Desktop only */}
+        <div className="hidden md:block mb-3 sm:mb-4">
+          {metric.sparklineData && metric.sparklineData.length > 0 && (
+            <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-white/60">Trend History</span>
+                <div className={`flex items-center gap-1 text-xs ${
+                  metric.trend > 0 ? 'text-green-400' : metric.trend < 0 ? 'text-red-400' : 'text-gray-400'
+                }`}>
+                  {metric.trend > 0 ? <TrendingUp className="w-3 h-3" /> : 
+                   metric.trend < 0 ? <TrendingDown className="w-3 h-3" /> : 
+                   <Minus className="w-3 h-3" />}
+                  <span>{metric.trend > 0 ? 'Improving' : metric.trend < 0 ? 'Declining' : 'Stable'}</span>
+                </div>
+              </div>
+              <Sparkline points={metric.sparklineData} color={`text-${scoreColor}-400`} />
+            </div>
+          )}
+        </div>
+
+        {/* Expand indicator */}
+        <div className="flex items-center justify-between text-[10px] sm:text-xs text-white/60">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${
+              score >= 70 ? 'bg-green-400' : 
+              score >= 40 ? 'bg-yellow-400' : 
+              'bg-red-400'
+            }`}></span>
+            <span className="truncate">
+              {score >= 70 ? 'Excellent' : score >= 40 ? 'Good' : 'Needs Work'}
+            </span>
+          </div>
+          <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+            <span className="hidden xs:inline">{isExpanded ? 'Hide' : 'Show'} details</span>
+            <span className="xs:hidden">Details</span>
+            {isExpanded ? 
+              <ChevronUp className="w-3 h-3" /> : 
+              <ChevronDown className="w-3 h-3" />
+            }
+          </div>
+        </div>
+      </div>
+
+      {/* Expanded Details */}
+      {isExpanded && (
+        <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-white/10 pt-4 animate-fade-in">
+          <div className="space-y-4">
+            {/* Description */}
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <p className="text-sm text-white/80 leading-relaxed mb-3">{metric.description}</p>
+              
+              {/* Key Factors */}
+              <div className="mb-4">
+                <h6 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-3">
+                  Key Contributing Factors
+                </h6>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {metric.factors.map((factor, idx) => (
+                    <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                      <div className={`w-2 h-2 rounded-full ${scheme.bg}`}></div>
+                      <span className="text-xs text-white/80">{factor}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Improvement Tips */}
+            <div className={`p-4 rounded-xl ${scheme.bg} border ${scheme.border}`}>
+              <div className="flex items-start gap-3">
+                <div className={`p-1.5 rounded-lg bg-white/10`}>
+                  <Target className={`w-4 h-4 ${scheme.text}`} />
+                </div>
+                <div>
+                  <h6 className={`text-sm font-semibold ${scheme.text} mb-2`}>
+                    Improvement Strategy
+                  </h6>
+                  <p className="text-sm text-white/80 leading-relaxed">{metric.tips}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Score Impact Analysis */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
+                <div className="text-sm font-semibold text-white mb-1">Current Score</div>
+                <div className={`text-lg font-bold ${scheme.text}`}>{score}</div>
+              </div>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
+                <div className="text-sm font-semibold text-white mb-1">Weight Impact</div>
+                <div className="text-lg font-bold text-yellow-400">{(weight * 100).toFixed(0)}%</div>
+              </div>
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
+                <div className="text-sm font-semibold text-white mb-1">Contribution</div>
+                <div className="text-lg font-bold text-blue-400">{contribution.toFixed(1)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const MetricBreakdown = memo(({ breakdown, weights }) => {
-  const [expandedMetrics, setExpandedMetrics] = useState({});
-  const [showQuickSummary, setShowQuickSummary] = useState(true);
+  const [expandedMetrics, setExpandedMetrics] = useState(new Set());
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [sortBy, setSortBy] = useState('score'); // 'score', 'weight', 'contribution'
 
-  // Memoize fallback weights to prevent recreation on every render
-  const fallbackWeights = useMemo(() => ({
-    codeQuality: 16,
-    readability: 12,
-    collaboration: 15,
-    innovation: 8,
-    maintainability: 8,
-    inclusivity: 5,
-    security: 12,
-    performance: 8,
-    testingQuality: 6,
-    communityHealth: 4,
-    codeHealth: 4,
-    releaseManagement: 2
-  }), []);
-
-  // Memoize actual weights
-  const actualWeights = useMemo(() => weights || fallbackWeights, [weights, fallbackWeights]);
-
-  // Memoize metrics array to prevent recreation on every render
-  const metrics = useMemo(() => [
-    {
-      key: 'codeQuality',
-      label: 'Code Quality',
-      description: 'Test coverage, code complexity, and best practices',
-      detailedDescription: 'Evaluates testing frameworks, code structure, linting rules, and adherence to coding standards. Higher scores indicate comprehensive testing and clean code practices.',
-      icon: '🧪',
-      weight: actualWeights.codeQuality,
-      category: 'Core'
-    },
-    {
-      key: 'readability',
-      label: 'Readability',
-      description: 'Documentation quality and comment density',
-      detailedDescription: 'Assesses README completeness, inline comments, API documentation, and overall project documentation. Critical for maintainability and team collaboration.',
-      icon: '📚',
-      weight: actualWeights.readability,
-      category: 'Core'
-    },
-    {
-      key: 'collaboration',
-      label: 'Collaboration',
-      description: 'Commit frequency and contributor diversity',
-      detailedDescription: 'Measures team engagement, commit patterns, contributor diversity, and collaborative development practices. Indicates healthy team dynamics.',
-      icon: '👥',
-      weight: actualWeights.collaboration,
-      category: 'Core'
-    },
-    {
-      key: 'security',
-      label: 'Security & Safety',
-      description: 'Security practices, vulnerability scanning, and compliance',
-      detailedDescription: 'Evaluates security configurations, dependency vulnerabilities, access controls, and security best practices implementation.',
-      icon: '🔒',
-      weight: actualWeights.security,
-      category: 'Core'
-    },
-    {
-      key: 'innovation',
-      label: 'Innovation',
-      description: 'Modern frameworks and technology choices',
-      detailedDescription: 'Assesses use of modern technologies, frameworks, and innovative approaches. Indicates forward-thinking development practices.',
-      icon: '🚀',
-      weight: actualWeights.innovation,
-      category: 'Enhancement'
-    },
-    {
-      key: 'maintainability',
-      label: 'Maintainability',
-      description: 'Folder structure and dependency management',
-      detailedDescription: 'Evaluates code organization, dependency management, and long-term maintainability practices.',
-      icon: '🔧',
-      weight: actualWeights.maintainability,
-      category: 'Enhancement'
-    },
-    {
-      key: 'inclusivity',
-      label: 'Inclusivity',
-      description: 'Accessibility and inclusive design practices',
-      detailedDescription: 'Assesses accessibility features, inclusive design patterns, and consideration for diverse user needs.',
-      icon: '♿',
-      weight: actualWeights.inclusivity,
-      category: 'Enhancement'
-    },
-    {
-      key: 'performance',
-      label: 'Performance',
-      description: 'Runtime efficiency and optimization',
-      detailedDescription: 'Evaluates code efficiency, performance optimizations, and runtime characteristics.',
-      icon: '⚡',
-      weight: actualWeights.performance,
-      category: 'Quality'
-    },
-    {
-      key: 'testingQuality',
-      label: 'Testing Quality',
-      description: 'Test comprehensiveness and quality',
-      detailedDescription: 'Measures test coverage, test quality, and testing strategy effectiveness.',
-      icon: '✅',
-      weight: actualWeights.testingQuality,
-      category: 'Quality'
-    },
-    {
-      key: 'communityHealth',
-      label: 'Community Health',
-      description: 'Community engagement and project activity',
-      detailedDescription: 'Assesses community engagement, issue response times, and overall project health.',
-      icon: '🌟',
-      weight: actualWeights.communityHealth,
-      category: 'Quality'
-    },
-    {
-      key: 'codeHealth',
-      label: 'Code Health',
-      description: 'Overall code quality and technical debt',
-      detailedDescription: 'Evaluates technical debt, code complexity, and overall codebase health.',
-      icon: '❤️',
-      weight: actualWeights.codeHealth,
-      category: 'Quality'
-    },
-    {
-      key: 'releaseManagement',
-      label: 'Release Management',
-      description: 'Version control and release practices',
-      detailedDescription: 'Assesses release frequency, version management, and deployment practices.',
-      icon: '📦',
-      weight: actualWeights.releaseManagement,
-      category: 'Quality'
-    }
-  ], [actualWeights]);
-
-  // Memoize functions to prevent unnecessary re-renders
-  const toggleMetric = useCallback((metricKey) => {
-    setExpandedMetrics(prev => ({
-      ...prev,
-      [metricKey]: !prev[metricKey]
-    }));
+  // Toggle metric expansion
+  const toggleMetric = useCallback((metric) => {
+    setExpandedMetrics(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(metric)) {
+        newSet.delete(metric);
+      } else {
+        newSet.add(metric);
+      }
+      return newSet;
+    });
   }, []);
 
-  const toggleQuickSummary = useCallback(() => {
-    setShowQuickSummary(prev => !prev);
-  }, []);
+  // Calculate metric details with enhanced information
+  const metricsWithDetails = useMemo(() => {
+    if (!breakdown || !weights) return [];
 
-  // Memoize computed values
-  const { getScoreClass, getTrendIcon, getMetricsSummary } = useMemo(() => ({
-    getScoreClass: (score) => {
-      if (score >= 80) return 'vibe-score-excellent';
-      if (score >= 60) return 'vibe-score-good';
-      if (score >= 40) return 'vibe-score-neutral';
-      return 'vibe-score-poor';
-    },
+    const metricDetails = {
+      codeQuality: {
+        label: 'Code Quality',
+        icon: '✨',
+        description: 'Measures code structure, patterns, and maintainability through static analysis and best practices adherence',
+        factors: ['Clean code patterns', 'Error handling', 'Code organization', 'Best practices adherence'],
+        tips: 'Focus on refactoring complex functions, implementing proper error handling, and following established coding standards',
+        sparklineData: [65, 70, 68, 72, 75, 78, 80],
+        gradient: 'from-purple-400 to-pink-400'
+      },
+      readability: {
+        label: 'Readability',
+        icon: '📖',
+        description: 'Evaluates code clarity, documentation quality, and how easily other developers can understand the codebase',
+        factors: ['Comments coverage', 'Variable naming', 'Function clarity', 'Documentation completeness'],
+        tips: 'Add comprehensive inline comments, use descriptive variable names, and maintain up-to-date documentation',
+        sparklineData: [70, 72, 71, 74, 76, 75, 78],
+        gradient: 'from-blue-400 to-cyan-400'
+      },
+      collaboration: {
+        label: 'Collaboration',
+        icon: '👥',
+        description: 'Tracks team contribution patterns, code review practices, and community engagement metrics',
+        factors: ['Contributor diversity', 'PR review quality', 'Issue response time', 'Community engagement'],
+        tips: 'Encourage more contributors, implement thorough code review practices, and maintain responsive community support',
+        sparklineData: [60, 65, 70, 68, 72, 75, 73],
+        gradient: 'from-green-400 to-teal-400'
+      },
+      security: {
+        label: 'Security',
+        icon: '🔒',
+        description: 'Analyzes security practices, vulnerability management, and adherence to security standards',
+        factors: ['Security policies', 'Dependency scanning', 'Vulnerability patching', 'Access controls'],
+        tips: 'Implement automated security scanning, keep dependencies updated, and establish clear security policies',
+        sparklineData: [55, 58, 60, 62, 65, 68, 70],
+        gradient: 'from-red-400 to-orange-400'
+      },
+      innovation: {
+        label: 'Innovation',
+        icon: '🚀',
+        description: 'Measures adoption of modern practices, technologies, and creative problem-solving approaches',
+        factors: ['Modern frameworks', 'New technologies', 'Creative solutions', 'Performance optimizations'],
+        tips: 'Explore modern development practices, adopt new technologies where appropriate, and focus on innovative solutions',
+        sparklineData: [50, 52, 55, 58, 60, 62, 65],
+        gradient: 'from-yellow-400 to-amber-400'
+      },
+      maintainability: {
+        label: 'Maintainability',
+        icon: '🔧',
+        description: 'Assesses how easy the code is to maintain, extend, and modify over time',
+        factors: ['Module structure', 'Dependency management', 'Test coverage', 'Documentation quality'],
+        tips: 'Improve test coverage, modularize your codebase, and maintain clear architectural documentation',
+        sparklineData: [45, 48, 50, 52, 55, 58, 60],
+        gradient: 'from-indigo-400 to-purple-400'
+      },
+      inclusivity: {
+        label: 'Inclusivity',
+        icon: '🤝',
+        description: 'Evaluates community openness, accessibility, and contribution guidelines for diverse contributors',
+        factors: ['Code of conduct', 'Contributing guidelines', 'Issue templates', 'Accessibility features'],
+        tips: 'Establish a code of conduct, create clear contribution guidelines, and ensure accessibility compliance',
+        sparklineData: [40, 42, 45, 48, 50, 52, 55],
+        gradient: 'from-pink-400 to-rose-400'
+      },
+      performance: {
+        label: 'Performance',
+        icon: '⚡',
+        description: 'Measures optimization practices, efficiency metrics, and runtime performance characteristics',
+        factors: ['Load time optimization', 'Bundle size management', 'Runtime efficiency', 'Resource utilization'],
+        tips: 'Optimize bundle sizes, implement performance monitoring, and focus on critical rendering path improvements',
+        sparklineData: [55, 58, 60, 62, 65, 63, 68],
+        gradient: 'from-cyan-400 to-blue-400'
+      },
+      testingQuality: {
+        label: 'Testing Quality',
+        icon: '🧪',
+        description: 'Evaluates comprehensive testing practices, coverage metrics, and test automation implementation',
+        factors: ['Unit test coverage', 'Integration tests', 'E2E testing', 'Test automation pipeline'],
+        tips: 'Increase test coverage across all levels, implement continuous testing, and focus on critical path coverage',
+        sparklineData: [30, 35, 40, 45, 50, 52, 55],
+        gradient: 'from-teal-400 to-green-400'
+      },
+      communityHealth: {
+        label: 'Community Health',
+        icon: '❤️',
+        description: 'Tracks community engagement metrics, project vitality, and long-term sustainability indicators',
+        factors: ['Issue activity', 'PR velocity', 'Community growth', 'Response times'],
+        tips: 'Engage with community issues promptly, maintain regular releases, and foster inclusive discussions',
+        sparklineData: [45, 48, 50, 52, 50, 53, 55],
+        gradient: 'from-rose-400 to-pink-400'
+      },
+      codeHealth: {
+        label: 'Code Health',
+        icon: '💚',
+        description: 'Overall codebase health assessment including technical debt and code quality metrics',
+        factors: ['Technical debt ratio', 'Code complexity', 'Duplication levels', 'Architecture quality'],
+        tips: 'Address technical debt systematically, reduce code duplication, and maintain clean architecture',
+        sparklineData: [50, 52, 54, 56, 58, 60, 62],
+        gradient: 'from-emerald-400 to-green-400'
+      },
+      releaseManagement: {
+        label: 'Release Management',
+        icon: '📦',
+        description: 'Evaluates release processes, version control practices, and deployment automation',
+        factors: ['Release frequency', 'Changelog maintenance', 'Semantic versioning', 'Deployment automation'],
+        tips: 'Implement semantic versioning, maintain detailed changelogs, and automate deployment processes',
+        sparklineData: [40, 42, 44, 46, 48, 50, 52],
+        gradient: 'from-violet-400 to-purple-400'
+      }
+    };
 
-    getTrendIcon: (score) => {
-      if (score >= 75) return <TrendingUp className="w-4 h-4 text-green-400" />;
-      if (score >= 50) return <Minus className="w-4 h-4 text-yellow-400" />;
-      return <TrendingDown className="w-4 h-4 text-red-400" />;
-    },
+    return Object.entries(breakdown).map(([key, value]) => {
+      const details = metricDetails[key] || {
+        label: key.replace(/([A-Z])/g, ' $1').trim(),
+        icon: '📊',
+        description: 'Metric information',
+        factors: ['Factor 1', 'Factor 2', 'Factor 3'],
+        tips: 'Focus on improving this metric through targeted efforts',
+        sparklineData: [],
+        gradient: 'from-gray-400 to-gray-500'
+      };
 
-    getMetricsSummary: () => {
-      const totalMetrics = metrics.length;
-      const excellentCount = metrics.filter(m => (breakdown[m.key] || 0) >= 80).length;
-      const goodCount = metrics.filter(m => {
-        const score = breakdown[m.key] || 0;
-        return score >= 60 && score < 80;
-      }).length;
-      const needsAttentionCount = totalMetrics - excellentCount - goodCount;
+      const weight = weights[key] || 0;
+      const weightedScore = value * weight;
+      const trend = details.sparklineData.length > 1 
+        ? details.sparklineData[details.sparklineData.length - 1] - details.sparklineData[details.sparklineData.length - 2]
+        : 0;
 
       return {
-        total: totalMetrics,
-        excellent: excellentCount,
-        good: goodCount,
-        needsAttention: needsAttentionCount
+        key,
+        value,
+        weight,
+        weightedScore,
+        trend,
+        ...details
       };
-    }
-  }), [breakdown, metrics]);
+    });
+  }, [breakdown, weights]);
 
-  // Memoize grouped metrics
-  const groupedMetrics = useMemo(() => {
-    return metrics.reduce((groups, metric) => {
-      const category = metric.category;
-      if (!groups[category]) {
-        groups[category] = [];
+  // Sort metrics
+  const sortedMetrics = useMemo(() => {
+    const sorted = [...metricsWithDetails].sort((a, b) => {
+      switch (sortBy) {
+        case 'weight':
+          return b.weight - a.weight;
+        case 'contribution':
+          return b.weightedScore - a.weightedScore;
+        case 'score':
+        default:
+          return b.value - a.value;
       }
-      groups[category].push(metric);
-      return groups;
-    }, {});
-  }, [metrics]);
-
-  const summary = useMemo(() => getMetricsSummary(), [getMetricsSummary]);
-
-  if (!breakdown || Object.keys(breakdown).length === 0) {
-    return (
-      <div className="card-glass-sm p-6 text-center">
-        <Info className="w-8 h-8 text-blue-400 mx-auto mb-3" />
-        <h3 className="text-heading-sm mb-2">No Metrics Available</h3>
-        <p className="text-body-sm">Metric breakdown data is not available for this repository.</p>
-      </div>
-    );
-  }
+    });
+    return sorted;
+  }, [metricsWithDetails, sortBy]);
 
   return (
-    <div className="space-y-6">
-      {/* Enhanced Quick Summary */}
-      {showQuickSummary && (
-        <div className="card-content p-4 lg:p-5 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 border border-indigo-400/30">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
-              <div className="icon-container icon-container-primary p-1.5 icon-align-center">
-                <BarChart3 className="icon-sm text-white" />
-              </div>
-              <span>Metrics Overview</span>
-            </h4>
-            <button
-              onClick={toggleQuickSummary}
-              className="text-white/60 hover:text-white text-sm px-2 py-1 rounded hover:bg-white/5 transition-colors"
-            >
-              Hide
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-            <div className="text-center p-2 rounded-lg bg-green-500/10">
-              <div className="text-xl sm:text-2xl font-bold text-green-400">{summary.excellent}</div>
-              <div className="text-xs text-green-300/80">Excellent</div>
+    <div className="space-y-6" data-testid="metrics-breakdown">
+      {/* Enhanced Header with Controls */}
+      <div className="flex flex-col gap-4 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-white/10 backdrop-blur-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {/* Header Content */}
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/20 flex-shrink-0">
+              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
             </div>
-            <div className="text-center p-2 rounded-lg bg-yellow-500/10">
-              <div className="text-xl sm:text-2xl font-bold text-yellow-400">{summary.good}</div>
-              <div className="text-xs text-yellow-300/80">Good</div>
-            </div>
-            <div className="text-center p-2 rounded-lg bg-blue-500/10">
-              <div className="text-xl sm:text-2xl font-bold text-blue-400">{summary.total - summary.excellent - summary.good - summary.needsAttention}</div>
-              <div className="text-xs text-blue-300/80">Average</div>
-            </div>
-            <div className="text-center p-2 rounded-lg bg-red-500/10">
-              <div className="text-xl sm:text-2xl font-bold text-red-400">{summary.needsAttention}</div>
-              <div className="text-xs text-red-300/80">Needs Work</div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-base sm:text-lg font-semibold text-white break-words">
+                Detailed Metrics Analysis
+              </h4>
+              <p className="text-xs sm:text-sm text-white/60 mt-0.5">
+                Comprehensive breakdown of {sortedMetrics.length} key performance indicators
+              </p>
             </div>
           </div>
           
-          <p className="text-sm text-white/70 leading-relaxed">
-            {summary.excellent >= summary.total * 0.6 && "🎉 Most metrics are performing excellently! "}
-            {summary.needsAttention > 0 && `💡 ${summary.needsAttention} metric${summary.needsAttention > 1 ? 's' : ''} need${summary.needsAttention === 1 ? 's' : ''} attention. `}
-            Focus on the lowest-scoring areas for maximum improvement impact.
-          </p>
-        </div>
-      )}
-
-      {!showQuickSummary && (
-        <button
-          onClick={toggleQuickSummary}
-          className="btn-secondary text-sm px-4 py-2"
-        >
-          Show Overview
-        </button>
-      )}
-
-      {/* Grouped Metrics Display */}
-      {Object.entries(groupedMetrics).map(([category, categoryMetrics], categoryIndex) => (
-        <div key={category} className={categoryIndex > 0 ? 'mt-6' : ''}>
-          <h4 className="text-base sm:text-lg font-semibold text-white mb-3 flex items-center gap-2 px-1">
-            <span className="text-lg">
-              {category === 'Core' && '⚡'}
-              {category === 'Enhancement' && '🚀'}
-              {category === 'Quality' && '✨'}
-            </span>
-            {category} Metrics
-            <span className="text-sm font-normal text-white/60">({categoryMetrics.length})</span>
-          </h4>
-          
-          <div className="grid-responsive-md">
-            {categoryMetrics.map((metric) => {
-              const score = breakdown[metric.key];
-              const status = {
-                icon: metric.icon,
-                text: score >= 80 ? 'Outstanding' : score >= 60 ? 'Good' : score >= 40 ? 'Average' : 'Needs Work',
-                color: score >= 80 ? 'text-green-300' : score >= 60 ? 'text-yellow-300' : score >= 40 ? 'text-blue-300' : 'text-red-300'
-              };
-              const TrendIcon = getTrendIcon(score);
-              const isExpanded = expandedMetrics[metric.key];
-
-              return (
-                <div
-                  key={metric.key}
-                  className="card-content p-4 lg:p-5 metric-hover"
-                  aria-label={`${metric.label}: ${score} out of 100`}
+          {/* Controls Container */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Sort Options */}
+            <div className="flex items-center justify-center gap-0.5 p-0.5 bg-white/5 rounded-lg">
+              {[
+                { key: 'score', label: 'Score', icon: Award },
+                { key: 'weight', label: 'Weight', icon: Target },
+                { key: 'contribution', label: 'Impact', icon: TrendingUp }
+              ].map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => setSortBy(key)}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all min-h-[36px] sm:min-h-[38px] ${
+                    sortBy === key 
+                      ? 'bg-white/15 text-white shadow-sm' 
+                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
+                  title={`Sort by ${label}`}
+                  aria-label={`Sort by ${label}`}
                 >
-                  {/* Main metric header */}
-                  <div className="flex items-start justify-between gap-2 sm:gap-4 mb-4">
-                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                      <span className="text-xl sm:text-2xl flex-shrink-0 mt-0.5" role="img" aria-label={metric.label}>
-                        {metric.icon}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <h4 className="text-base sm:text-lg font-semibold text-white">{metric.label}</h4>
-                          {TrendIcon}
-                        </div>
-                        <p className="text-sm text-white/70 line-clamp-2">{metric.description}</p>
-                      </div>
-                    </div>
-                    
-                    {/* Score and weight badges */}
-                    <div className="flex flex-col sm:flex-row items-end sm:items-start gap-1 sm:gap-2 flex-shrink-0">
-                      <div className="status-badge status-badge-weight text-xs order-2 sm:order-1">
-                        {metric.weight}%
-                      </div>
-                      <div className={`text-2xl sm:text-3xl font-bold ${getScoreClass(score)} text-right order-1 sm:order-2`}>
-                        {Math.round(score)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="mb-3">
-                    <div className="progress-bar-container">
-                      <div
-                        className={`progress-bar ${getScoreClass(score)}`}
-                        style={{ width: `${Math.round(score)}%` }}
-                        role="progressbar"
-                        aria-valuenow={Math.round(score)}
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                        aria-label={`${metric.label} score: ${Math.round(score)}%`}
-                      />
-                    </div>
-                    <div className="flex justify-between text-xs text-white/40 mt-1">
-                      <span>0</span>
-                      <span>{Math.round(score)}%</span>
-                      <span>100</span>
-                    </div>
-                  </div>
-
-                  {/* Status indicator and expand button */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className={`w-4 h-4 ${status.color}`} aria-hidden="true" />
-                      <span className={`text-sm font-medium ${status.color}`}>
-                        {status.text}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => toggleMetric(metric.key)}
-                      className="flex items-center gap-1 text-white/60 hover:text-white transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
-                      aria-label={`${isExpanded ? 'Hide' : 'Show'} details for ${metric.label}`}
-                    >
-                      <span className="text-xs">Details</span>
-                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </button>
-                  </div>
-
-                  {/* Expandable detailed information */}
-                  {isExpanded && (
-                    <div className="mt-4 pt-4 border-t border-white/10 animate-fade-in">
-                      <p className="text-sm text-white/80 leading-relaxed mb-3">
-                        {metric.detailedDescription}
-                      </p>
-                      <div className="bg-black/20 rounded-lg p-3">
-                        <div className="text-xs text-white/60 mb-2">Improvement Suggestions:</div>
-                        <div className="text-sm text-white/70">
-                          {score >= 80 && "🎉 Excellent work! Consider sharing your practices with the team."}
-                          {score >= 60 && score < 80 && "👍 Good foundation. Focus on consistency and advanced practices."}
-                          {score >= 40 && score < 60 && "🔄 Moderate performance. Implement best practices and monitoring."}
-                          {score < 40 && "💪 Needs attention. Prioritize this area for significant impact."}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Quick interpretation without expansion */}
-                  {!isExpanded && (
-                    <div className="mt-3 text-xs sm:text-sm text-white/60 leading-relaxed">
-                      {score >= 80 && 'Outstanding performance in this area! 🎉'}
-                      {score >= 60 && score < 80 && 'Good performance with room for improvement. 👍'}
-                      {score >= 40 && score < 60 && 'Average performance, consider improvements. 🔄'}
-                      {score < 40 && 'This area needs attention and improvement. 💪'}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden xs:inline">{label}</span>
+                </button>
+              ))}
+            </div>
+            
+            {/* View Mode Toggle - Hidden on mobile (< 768px) */}
+            <div className="hidden md:flex items-center justify-center gap-0.5 p-0.5 bg-white/5 rounded-lg">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center justify-center px-3 py-2 sm:px-3.5 sm:py-2 rounded-md text-xs sm:text-sm transition-all min-h-[36px] sm:min-h-[38px] ${
+                  viewMode === 'grid' 
+                    ? 'bg-white/15 text-white shadow-sm' 
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+                aria-label="Grid view"
+                title="Grid view"
+              >
+                <BarChart3 className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center justify-center px-3 py-2 sm:px-3.5 sm:py-2 rounded-md text-xs sm:text-sm transition-all min-h-[36px] sm:min-h-[38px] ${
+                  viewMode === 'list' 
+                    ? 'bg-white/15 text-white shadow-sm' 
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+                aria-label="List view"
+                title="List view"
+              >
+                <List className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              </button>
+            </div>
           </div>
         </div>
-      ))}
+      </div>
 
+      {/* Information Panel */}
+      <div className="p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-2xl backdrop-blur-xl">
+        <div className="flex items-start gap-3">
+          <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <h5 className="text-sm font-semibold text-blue-300 mb-2">Understanding Your Scores</h5>
+            <p className="text-sm text-blue-200/90 leading-relaxed">
+              Your <span className="font-medium text-blue-100">Comprehensive Score</span> is a weighted average out of 100, calculated from all metrics based on their importance. 
+              Each metric contributes proportionally: <span className="font-medium text-blue-100">Contribution = Metric Score × Weight%</span>. 
+              Higher weighted metrics have greater impact on your comprehensive score. Click on any metric for detailed insights and improvement strategies.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Stats - Mobile-friendly layout */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 text-center">
+          <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 mb-2 mx-auto" />
+          <div className="text-xs sm:text-sm font-semibold text-white/60 mb-1">Metrics</div>
+          <div className="text-lg sm:text-xl font-bold text-blue-400">{sortedMetrics.length}</div>
+        </div>
+        
+        <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 text-center">
+          <Target className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 mb-2 mx-auto" />
+          <div className="text-xs sm:text-sm font-semibold text-white/60 mb-1">Avg Score</div>
+          <div className="text-lg sm:text-xl font-bold text-green-400">
+            {Math.round(sortedMetrics.reduce((sum, m) => sum + m.value, 0) / sortedMetrics.length)}
+          </div>
+        </div>
+        
+        <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 text-center">
+          <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 mb-2 mx-auto" />
+          <div className="text-xs sm:text-sm font-semibold text-white/60 mb-1">Weighted Score</div>
+          <div className="text-lg sm:text-xl font-bold text-purple-400">
+            {(() => {
+              const totalWeightedScore = sortedMetrics.reduce((sum, m) => sum + m.weightedScore, 0);
+              const totalWeight = sortedMetrics.reduce((sum, m) => sum + m.weight, 0);
+              const comprehensiveScore = totalWeight > 0 ? Math.round(totalWeightedScore / totalWeight) : 0;
+              return Math.min(100, Math.max(0, comprehensiveScore));
+            })()}
+          </div>
+        </div>
+        
+        <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 text-center">
+          <Award className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 mb-2 mx-auto" />
+          <div className="text-xs sm:text-sm font-semibold text-white/60 mb-1">Top Score</div>
+          <div className="text-lg sm:text-xl font-bold text-yellow-400">
+            {Math.max(...sortedMetrics.map(m => m.value))}
+          </div>
+        </div>
+      </div>
+
+      {/* Metrics Grid/List */}
+      <div className={
+        viewMode === 'grid' 
+          ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5' 
+          : 'space-y-4'
+      }>
+        {sortedMetrics.map((metric) => (
+          <MetricCard
+            key={metric.key}
+            metric={metric}
+            isExpanded={expandedMetrics.has(metric.key)}
+            onToggle={() => toggleMetric(metric.key)}
+            viewMode={viewMode}
+          />
+        ))}
+      </div>
+
+      {/* Enhanced Summary Statistics */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-gray-900/60 to-gray-800/40 border border-white/10 backdrop-blur-xl">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 mb-2 sm:mb-3">
+            <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+          </div>
+          <div className="text-lg sm:text-xl font-bold text-white mb-0.5 sm:mb-1">
+            {Math.round(sortedMetrics.reduce((sum, m) => sum + m.value, 0) / sortedMetrics.length)}
+          </div>
+          <div className="text-[10px] sm:text-xs text-white/60">Average Score</div>
+        </div>
+        
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 mb-2 sm:mb-3">
+            <Award className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
+          </div>
+          <div className="text-lg sm:text-xl font-bold text-green-400 mb-0.5 sm:mb-1">
+            {sortedMetrics.filter(m => m.value >= 70).length}
+          </div>
+          <div className="text-[10px] sm:text-xs text-white/60">Excellent</div>
+        </div>
+        
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 mb-2 sm:mb-3">
+            <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" />
+          </div>
+          <div className="text-lg sm:text-xl font-bold text-yellow-400 mb-0.5 sm:mb-1">
+            {sortedMetrics.filter(m => m.value >= 40 && m.value < 70).length}
+          </div>
+          <div className="text-[10px] sm:text-xs text-white/60">Good</div>
+        </div>
+        
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-red-500/20 to-rose-500/20 border border-red-500/30 mb-2 sm:mb-3">
+            <Info className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
+          </div>
+          <div className="text-lg sm:text-xl font-bold text-red-400 mb-0.5 sm:mb-1">
+            {sortedMetrics.filter(m => m.value < 40).length}
+          </div>
+          <div className="text-[10px] sm:text-xs text-white/60">Needs Work</div>
+        </div>
+      </div>
     </div>
   );
 });
+
+MetricBreakdown.displayName = 'MetricBreakdown';
 
 export default MetricBreakdown; 

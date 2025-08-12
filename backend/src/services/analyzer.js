@@ -14,6 +14,61 @@ export class RepositoryAnalyzer {
   }
 
   /**
+   * Calculate score from pre-fetched data (simplified version)
+   * Used by the analyze route when data is already fetched
+   * @param {Object} data - Pre-fetched repository data
+   * @returns {Object} Vibe score object
+   */
+  calculateScore(data) {
+    const { repoInfo, commits = [], contributors = [] } = data;
+    
+    // Create a simplified score based on available data
+    // This is a simplified scoring for when we don't have full analysis
+    
+    // Basic metrics
+    const hasReadme = !!repoInfo.size; // Simplified check
+    const hasLicense = !!repoInfo.license;
+    const starCount = repoInfo.stargazers_count || 0;
+    const forkCount = repoInfo.forks_count || 0;
+    const openIssues = repoInfo.open_issues_count || 0;
+    const contributorCount = contributors.length || 0;
+    const commitCount = commits.length || 0;
+    
+    // Calculate basic scores (0-100 scale)
+    const popularityScore = Math.min(100, (starCount / 10) + (forkCount / 5));
+    const activityScore = Math.min(100, (commitCount / 10) + (contributorCount * 5));
+    const healthScore = Math.max(0, 100 - (openIssues / 10));
+    const docsScore = (hasReadme ? 50 : 0) + (hasLicense ? 50 : 0);
+    
+    // Overall score (weighted average)
+    const overallScore = Math.round(
+      (popularityScore * 0.25) +
+      (activityScore * 0.35) +
+      (healthScore * 0.20) +
+      (docsScore * 0.20)
+    );
+    
+    return {
+      overallScore,
+      breakdown: {
+        popularity: Math.round(popularityScore),
+        activity: Math.round(activityScore),
+        health: Math.round(healthScore),
+        documentation: Math.round(docsScore)
+      },
+      metrics: {
+        stars: starCount,
+        forks: forkCount,
+        contributors: contributorCount,
+        commits: commitCount,
+        openIssues: openIssues,
+        hasReadme,
+        hasLicense
+      }
+    };
+  }
+
+  /**
    * Analyze a GitHub repository and calculate its vibe score
    * @param {string} repoUrl - GitHub repository URL
    * @returns {Object} Analysis result with vibe score and breakdown
@@ -58,6 +113,12 @@ export class RepositoryAnalyzer {
         communityAnalysis
       });
       
+      // Log the vibeScore to verify all metrics are present
+      console.log('📊 Calculated VibeScore with all metrics:');
+      console.log('  Total score:', vibeScore.total);
+      console.log('  Breakdown keys:', Object.keys(vibeScore.breakdown || {}));
+      console.log('  Metrics count:', Object.keys(vibeScore.breakdown || {}).length);
+      
       // Generate insights and recommendations
       const insights = this.generateInsights(vibeScore, languageAnalysis, repoInfo);
       
@@ -83,7 +144,9 @@ export class RepositoryAnalyzer {
           dependencies: languageAnalysis.dependencies,
           folderStructure: languageAnalysis.folderStructure,
           insights
-        }
+        },
+        contributors, // Add the full contributors array
+        commits // Also include commits for better insights
       };
       
     } catch (error) {

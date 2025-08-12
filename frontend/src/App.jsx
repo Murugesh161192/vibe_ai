@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import { Github, Sparkles, HelpCircle, BarChart3, ExternalLink, MessageCircle, Bot, Zap, Play } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Zap } from 'lucide-react';
 import Header from './components/Header';
 import ChatInput from './components/ChatInput';
 import GitHubUserProfile from './components/GitHubUserProfile';
@@ -7,86 +8,132 @@ import VibeScoreResults from './components/VibeScoreResults';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 import DemoMode from './components/DemoMode';
-import ScoreTransparency from './components/ScoreTransparency';
-import BenchmarkComparison from './components/BenchmarkComparison';
-import { analyzeRepository, getUserProfile, getUserRepositories, generateInsights } from './services/api';
+import ExportModal from './components/ExportModal';
+import ShareModal from './components/ShareModal';
+import { getUserProfile, getUserRepositories } from './services/api';
+import { useKeyboardShortcuts } from './utils/accessibility';
+import { 
+  selectCurrentView, 
+  selectIsLoading, 
+  selectError,
+  setCurrentView,
+  setError,
+  setLoading 
+} from './store/slices/appSlice';
+import { 
+  selectCurrentAnalysis,
+  selectAiInsights,
+  startAnalysisAndNavigate,
+  clearAnalysis
+} from './store/slices/analysisSlice';
 
 function App() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [currentView, setCurrentView] = useState('ready'); // 'ready', 'profile', 'analysis'
+  const dispatch = useDispatch();
+  
+  // Redux state
+  const currentView = useSelector(selectCurrentView);
+  const loading = useSelector(selectIsLoading);
+  const error = useSelector(selectError);
+  const analysisResult = useSelector(selectCurrentAnalysis);
+  const aiInsights = useSelector(selectAiInsights);
+  
+  // Local state (for non-Redux managed state)
   const [userProfile, setUserProfile] = useState(null);
   const [userRepositories, setUserRepositories] = useState([]);
-  const [analysisResult, setAnalysisResult] = useState(null);
   const [currentInput, setCurrentInput] = useState({ type: '', input: '' });
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   
   const chatSectionRef = useRef(null);
 
   // Memoized handlers to prevent unnecessary re-renders
   const handleError = useCallback((errorMessage) => {
-    setError(errorMessage);
-    setLoading(false);
-    setCurrentView('ready'); // Ensure we go back to 'ready' view to display the error
-  }, []);
+    dispatch(setError(errorMessage));
+    dispatch(setLoading(false));
+    dispatch(setCurrentView('ready')); // Ensure we go back to 'ready' view to display the error
+  }, [dispatch]);
 
   const clearState = useCallback(() => {
-    setError(null);
-    setAnalysisResult(null);
+    dispatch(setError(null));
+    dispatch(clearAnalysis()); // Clear Redux analysis state to prevent cache issues
     setUserProfile(null);
     setUserRepositories([]);
     setCurrentInput({ type: '', input: '' });
-  }, []);
+  }, [dispatch]);
 
   const handleNewAnalysis = useCallback(() => {
     clearState();
-    setCurrentView('ready');
+    dispatch(setCurrentView('ready'));
     
-    // Smooth scroll to chat section
-    if (chatSectionRef.current) {
-      chatSectionRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-  }, [clearState]);
+    // Smooth scroll to chat section after view change
+    setTimeout(() => {
+      if (chatSectionRef.current && currentView === 'ready') {
+        chatSectionRef.current.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }, 100);
+  }, [clearState, dispatch, currentView]);
 
   // Add demo mode handler
   const handleDemoMode = useCallback(() => {
     clearState();
-    setCurrentView('demo');
-  }, [clearState]);
+    dispatch(setCurrentView('demo'));
+  }, [clearState, dispatch]);
+  
+  // Add export and share handlers
+  const handleExport = useCallback(() => {
+    setShowExportModal(true);
+  }, []);
+  
+  const handleShare = useCallback(() => {
+    setShowShareModal(true);
+  }, []);
+
+  // Add keyboard shortcuts for analysis actions
+  useKeyboardShortcuts({
+    'ctrl+e': () => {
+      if (currentView === 'analysis') {
+        setShowExportModal(true);
+      }
+    },
+    'ctrl+s': () => {
+      if (currentView === 'analysis') {
+        setShowShareModal(true);
+      }
+    },
+    'ctrl+n': () => {
+      if (currentView === 'analysis') {
+        handleNewAnalysis();
+      }
+    }
+  });
+  
+  // Add useEffect to mark app as ready
+  useEffect(() => {
+    // Mark app as ready for e2e tests
+    const appContainer = document.querySelector('[data-testid="app-container"]');
+    if (appContainer) {
+      appContainer.setAttribute('data-testid', 'app-ready');
+    }
+  }, []);
 
   const handleRepositoryAnalysis = useCallback(async (repoUrl) => {
-    setLoading(true);
-    setCurrentView('loading');
     setCurrentInput({ type: 'repo', value: repoUrl });
-
+    
     try {
-      // Fetch both basic analysis and AI insights in parallel
-      const [analysisResult, insightsResult] = await Promise.allSettled([
-        analyzeRepository(repoUrl),
-        generateInsights(repoUrl)
-      ]);
+      // Use Redux action for analysis and navigation
+      const result = await dispatch(startAnalysisAndNavigate(repoUrl));
       
-      // Handle basic analysis result
-      if (analysisResult.status === 'fulfilled') {
-        const result = {
-          ...analysisResult.value.data,
-          aiInsights: insightsResult.status === 'fulfilled' ? insightsResult.value.data : null,
-          aiInsightsError: insightsResult.status === 'rejected' ? insightsResult.reason?.message : null
-        };
-        
-        setAnalysisResult(result);
-        setCurrentView('analysis');
-      } else {
-        throw new Error(analysisResult.reason?.message || 'Analysis failed');
+      // Check for errors
+      if (result.payload?.analysisError) {
+        throw new Error(result.payload.analysisError);
       }
     } catch (error) {
       handleError(error.message || 'Failed to analyze repository');
-    } finally {
-      setLoading(false);
     }
-  }, [handleError]);
+  }, [handleError, dispatch]);
 
   // Check for repo in URL params on mount
   useEffect(() => {
@@ -104,8 +151,8 @@ function App() {
   }, [handleRepositoryAnalysis]);
 
   const handleUserSearch = useCallback(async (username) => {
-    setLoading(true);
-    setError(null);
+    dispatch(setLoading(true));
+    dispatch(setError(null));
     setCurrentInput({ type: 'user', input: username });
 
     // Scroll to the loader
@@ -132,8 +179,8 @@ function App() {
 
       setUserProfile(profileResult.data);
       setUserRepositories(reposResult || []);
-      setCurrentView('profile');
-      setAnalysisResult(null);
+      dispatch(setCurrentView('profile'));
+      // setAnalysisResult(null); // This line is removed as analysisResult is now Redux state
     } catch (err) {
       // Provide more helpful error messages
       let errorMessage = err.message || 'An error occurred while fetching user data.';
@@ -142,16 +189,16 @@ function App() {
       }
       handleError(errorMessage);
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
-  }, [handleError]);
+  }, [handleError, dispatch]);
 
   const handleInputSubmit = useCallback(async (input) => {
     const trimmedInput = input.trim();
     if (!trimmedInput) return;
 
     // Clear previous state
-    setError(null);
+    dispatch(setError(null));
 
     // Check if it's a GitHub URL
     const githubUrlPattern = /^https?:\/\/(www\.)?github\.com\/([a-zA-Z0-9._-]+)\/([a-zA-Z0-9._-]+)(\/.*)?$/;
@@ -174,7 +221,29 @@ function App() {
       // Treat it as a username
       await handleUserSearch(trimmedInput);
     }
-  }, [handleRepositoryAnalysis, handleUserSearch, handleError]);
+  }, [handleRepositoryAnalysis, handleUserSearch, handleError, dispatch]);
+
+  // Combine analysis result with AI insights for the component
+  const combinedAnalysisResult = useMemo(() => {
+    if (!analysisResult) return null;
+    
+    // Debug: Log what we're combining
+    console.log('📊 Combining analysis result:', {
+      hasAnalysisResult: !!analysisResult,
+      hasAiInsights: !!aiInsights,
+      aiInsightsData: aiInsights,
+      analysisAiInsights: analysisResult?.aiInsights,
+      mergedResult: {
+        ...analysisResult,
+        aiInsights: aiInsights || analysisResult?.aiInsights
+      }
+    });
+    
+    return {
+      ...analysisResult,
+      aiInsights: aiInsights || analysisResult?.aiInsights // Use separate aiInsights or fallback to what's in analysisResult
+    };
+  }, [analysisResult, aiInsights]);
 
   // Memoized current view analysis state
   const analysisState = useMemo(() => {
@@ -197,13 +266,16 @@ function App() {
 
   const loadingComponent = useMemo(
     () => (
-      <LoadingSpinner message={
-        currentInput.type === 'user' 
-          ? 'Loading user profile...' 
-          : currentInput.type === 'repo'
-          ? 'Analyzing repository...'
-          : 'Processing request...'
-      } />
+      <LoadingSpinner 
+        variant={
+          currentInput.type === 'user' 
+            ? 'user' 
+            : currentInput.type === 'repo'
+            ? 'repository'
+            : 'default'
+        }
+        showSkeleton={false}
+      />
     ),
     [currentInput.type]
   );
@@ -220,71 +292,95 @@ function App() {
   // Scroll to top when view changes (optimized)
   useEffect(() => {
     if (currentView === 'analysis' || currentView === 'profile') {
+      // Ensure we scroll both the main container and window
+      const mainContent = document.getElementById('main-content');
+      if (mainContent) {
+        mainContent.scrollTop = 0;
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [currentView]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800">
-      {/* Background Pattern - Performance optimized */}
-      <div className="fixed inset-0 opacity-10 bg-pattern"></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white font-['Inter',sans-serif] flex flex-col" data-testid="app-ready">
+      {/* Fixed position background with proper viewport constraints */}
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_20%_80%,#8B5CF6_0%,transparent_50%),radial-gradient(circle_at_80%_20%,#3B82F6_0%,transparent_50%),radial-gradient(circle_at_40%_40%,#10B981_0%,transparent_50%)] opacity-10 pointer-events-none" />
+      {/* Skip Navigation Link for Accessibility */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg"
+      >
+        Skip to main content
+      </a>
+
+      {/* ARIA Live Region for Screen Reader Announcements */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {loading && 'Loading, please wait...'}
+        {error && `Error: ${error}`}
+        {analysisResult && `Analysis complete. Vibe score: ${analysisResult.vibeScore?.total || 0}`}
+      </div>
       
-      {/* Main Content Container */}
-      <div className="relative z-10">
-        {/* Header - Adjusted for compact results view */}
-        <div className={`${currentView === 'analysis' ? 'mb-4 sm:mb-6' : 'mb-8 sm:mb-12'} ${
-          currentView === 'analysis' ? 'pt-4 sm:pt-6' : 'pt-8 sm:pt-12'
-        }`}>
-          <div className="container-responsive">
-            <div data-testid="header">
-              <Header 
-                analysisState={analysisState}
-                onNewAnalysis={handleNewAnalysis}
-                onDemoMode={handleDemoMode}
-                onAnalyzeRepo={handleRepositoryAnalysis}
-              />
-            </div>
-          </div>
+      {/* Main Content Container with proper scrolling */}
+      <main id="main-content" className="relative z-10 w-full flex-1 overflow-y-auto scrollbar-custom" role="main" aria-busy={loading}>
+        {/* Header Section - Now consistent across all views */}
+        <div data-testid="header">
+          <Header 
+            onDemoMode={handleDemoMode}
+            loading={loading}
+            currentView={currentView}
+            onNewSearch={handleNewAnalysis}
+            onExport={handleExport}
+            onShare={handleShare}
+            onNewAnalysis={handleNewAnalysis}
+            showAnalysisActions={currentView === 'analysis'}
+          />
         </div>
         
-        {/* Chat Section - Conditionally rendered */}
+        {/* Chat Input Section - Mobile Optimized */}
         {currentView === 'ready' && (
-          <section ref={chatSectionRef} className="mb-8 sm:mb-12">
-            <div className="container-responsive max-w-3xl mx-auto">
-              
-              {/* Welcome Section - First time users */}
+          <section ref={chatSectionRef} className="w-full px-responsive py-responsive" aria-label="Repository search">
+            <div className="container-narrow">
+              {/* Welcome Section - Mobile Optimized Typography */}
               <div className="mb-6 sm:mb-8">
-                <div className="text-center mb-4">
-                  <p className="text-white/70 text-responsive">
-                    Enter any GitHub username or repository URL to get started
+                <div className="text-center mb-6 sm:mb-8">
+                  <h1 className="text-responsive-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3 sm:mb-4 leading-tight">
+                    Analyze Any GitHub Repository
+                  </h1>
+                  <p className="text-gray-300 text-responsive-base max-w-2xl mx-auto leading-relaxed" role="status">
+                    Enter a GitHub username or repository URL to get comprehensive insights
                   </p>
                 </div>
                 {memoizedChatInput}
               </div>
               
-              {/* Error State - Memoized */}
+              {/* Error State */}
               {errorComponent}
             </div>
           </section>
         )}
 
-        {/* Loading View - Single loading state */}
+        {/* Loading View - Centered and responsive */}
         {(currentView === 'loading' || (currentView === 'ready' && loading)) && (
-          <section className="mb-8 sm:mb-12">
-            <div className="container-responsive max-w-3xl mx-auto">
+          <section className="section-spacing px-responsive" aria-label="Loading">
+            <div className="container-narrow">
               {loadingComponent}
             </div>
           </section>
         )}
 
-        {/* Results Section - Conditionally rendered for performance */}
-        {currentView === 'analysis' && analysisResult && (
-          <section className="spacing-responsive">
-            <div className="container-responsive max-w-6xl mx-auto">
+        {/* Results Section - Full width on large screens with max constraint */}
+        {currentView === 'analysis' && combinedAnalysisResult && (
+          <section className="py-responsive" aria-label="Analysis results">
+            <div className="container-full">
               <div data-testid="vibe-score-results">
                 <VibeScoreResults 
-                  result={analysisResult} 
+                  result={combinedAnalysisResult}
+                  repoInfo={combinedAnalysisResult?.repoInfo || combinedAnalysisResult?.repositoryInfo}
                   onNewAnalysis={handleNewAnalysis}
+                  showExportModal={showExportModal}
+                  setShowExportModal={setShowExportModal}
+                  showShareModal={showShareModal}
+                  setShowShareModal={setShowShareModal}
                 />
               </div>
             </div>
@@ -292,12 +388,11 @@ function App() {
         )}
 
         {currentView === 'profile' && userProfile && (
-          <section className="spacing-responsive">
-            <div className="container-responsive max-w-6xl mx-auto">
+          <section className="py-responsive" aria-label="User profile">
+            <div className="container-full">
               <GitHubUserProfile
                 user={userProfile}
                 repositories={userRepositories}
-                onAnalyzeRepo={handleRepositoryAnalysis}
                 onNewSearch={handleNewAnalysis}
               />
             </div>
@@ -306,105 +401,20 @@ function App() {
 
         {/* Demo Mode View */}
         {currentView === 'demo' && (
-          <section className="spacing-responsive">
-            <div className="container-responsive max-w-6xl mx-auto">
+          <section className="py-responsive" aria-label="Demo mode">
+            <div className="container-full">
               <DemoMode
                 onExitDemo={handleNewAnalysis}
-                onAnalyzeRepo={handleRepositoryAnalysis}
               />
             </div>
           </section>
         )}
-      </div>
+      </main>
 
-      {/* About Section - Only show when ready */}
-      {currentView === 'ready' && (
-        <section id="about-section" className="mb-8 sm:mb-12">
-          <div className="container-responsive">
-            <div className="text-center mb-6 sm:mb-8">
-              <h2 className="text-heading-lg text-white mb-4">
-                Why Choose Vibe?
-              </h2>
-              <p className="text-white/80 text-responsive max-w-3xl mx-auto">
-                Get deep insights into any GitHub repository with our comprehensive analysis engine
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto mb-8 sm:mb-12">
-              <div className="card-glass p-4 sm:p-6 text-center hover:bg-white/10 transition-all">
-                <div className="text-heading-lg font-bold text-blue-400 mb-2">Advanced</div>
-                <div className="text-responsive text-white/80">Analysis Engine</div>
-              </div>
-              <div className="card-glass p-4 sm:p-6 text-center hover:bg-white/10 transition-all">
-                <div className="text-heading-lg font-bold text-purple-400 mb-2">12+</div>
-                <div className="text-responsive text-white/80">Metrics</div>
-              </div>
-              <div className="card-glass p-4 sm:p-6 text-center hover:bg-white/10 transition-all">
-                <div className="text-heading-lg font-bold text-green-400 mb-2">Multi-Lang</div>
-                <div className="text-responsive text-white/80">Tech Detection</div>
-              </div>
-              <div className="card-glass p-4 sm:p-6 text-center hover:bg-white/10 transition-all">
-                <div className="text-heading-lg font-bold text-yellow-400 mb-2">Real-time</div>
-                <div className="text-responsive text-white/80">Processing</div>
-              </div>
-            </div>
-
-            {/* Score Transparency Section */}
-            <div className="max-w-5xl mx-auto mb-8 sm:mb-12">
-              <ScoreTransparency 
-                vibeScore={52}
-                breakdown={{
-                  codeQuality: 30,
-                  readability: 70,
-                  collaboration: 85,
-                  security: 20
-                }}
-              />
-            </div>
-
-            {/* Try Your Own Repository Section */}
-            <div className="max-w-4xl mx-auto">
-              <div className="card-glass p-8 text-center">
-                <h3 className="text-heading-md text-white mb-4">
-                  Ready to Analyze Your Repository?
-                </h3>
-                <p className="text-white/80 text-responsive mb-6 max-w-2xl mx-auto">
-                  Get comprehensive insights across all 12 metrics, AI-powered recommendations, 
-                  and personalized suggestions for improvement.
-                </p>
-                <div className="flex-responsive-sm">
-                  <button
-                    onClick={() => {
-                      if (chatSectionRef.current) {
-                        chatSectionRef.current.scrollIntoView({ 
-                          behavior: 'smooth',
-                          block: 'start'
-                        });
-                      }
-                    }}
-                    className="btn-primary icon-text-align px-8 py-4 text-responsive touch-target"
-                  >
-                    <Zap className="icon-md" />
-                    <span>Start Your Analysis</span>
-                  </button>
-                  <button
-                    onClick={handleDemoMode}
-                    className="btn-secondary icon-text-align px-6 py-4 text-responsive touch-target"
-                  >
-                    <Play className="icon-sm" />
-                    <span>Try Demo</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Footer */}
-      <footer className="mt-12 text-center text-white/60 text-responsive">
-        <p>
-          Built with ❤️ for <span className="text-purple-400 font-semibold">Cognizant Vibe Coding 2025</span> • 
+      {/* Footer - Compact and fixed at bottom */}
+      <footer className="relative z-10 py-3 sm:py-4 text-center px-responsive border-t border-white/10" role="contentinfo">
+        <p className="text-gray-500 text-xs sm:text-sm">
+          Built with <span aria-label="love">❤️</span> for <span className="text-blue-400 font-semibold">Cognizant Vibe Coding 2025</span>
         </p>
       </footer>
     </div>

@@ -1,8 +1,18 @@
+import React from 'react'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { Provider } from 'react-redux'
+import { configureStore } from '@reduxjs/toolkit'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import App from '../App'
 import * as api from '../services/api'
+
+// Import reducers for store setup
+import appReducer from '../store/slices/appSlice'
+import userReducer from '../store/slices/userSlice'
+import analysisReducer from '../store/slices/analysisSlice'
+import aiReducer from '../store/slices/aiSlice'
+import repositoryReducer from '../store/slices/repositorySlice'
 
 // Mock the API module
 vi.mock('../services/api', () => ({
@@ -10,6 +20,12 @@ vi.mock('../services/api', () => ({
   getUserProfile: vi.fn(),
   getUserRepositories: vi.fn(),
   generateInsights: vi.fn(),
+}))
+
+// Mock accessibility utils
+vi.mock('../utils/accessibility', () => ({
+  useKeyboardShortcuts: vi.fn(),
+  useFocusTrap: vi.fn(),
 }))
 
 // Mock the child components with simpler implementations
@@ -69,10 +85,10 @@ vi.mock('../components/GitHubUserProfile', () => ({
     <div data-testid="github-user-profile">
       <h2>{user?.login}</h2>
       <div>Repos: {repositories?.length || 0}</div>
-      <button onClick={() => onAnalyzeRepo('https://github.com/test/repo')}>
+      <button onClick={() => onAnalyzeRepo && onAnalyzeRepo('https://github.com/test/repo')}>
         Analyze Repo
       </button>
-      <button onClick={onNewSearch}>New Search</button>
+      <button onClick={() => onNewSearch && onNewSearch()}>New Search</button>
     </div>
   )
 }))
@@ -81,8 +97,8 @@ vi.mock('../components/DemoMode', () => ({
   default: ({ onExitDemo, onAnalyzeRepo }) => (
     <div data-testid="demo-mode">
       <h2>Demo Mode</h2>
-      <button onClick={onExitDemo}>Exit Demo</button>
-      <button onClick={() => onAnalyzeRepo('https://github.com/demo/repo')}>
+      <button onClick={() => onExitDemo && onExitDemo()}>Exit Demo</button>
+      <button onClick={() => onAnalyzeRepo && onAnalyzeRepo('https://github.com/demo/repo')}>
         Analyze Demo Repo
       </button>
     </div>
@@ -102,14 +118,77 @@ vi.mock('../components/ErrorMessage', () => ({
   )
 }))
 
-// Add React import for the mocked component
-import React from 'react'
+// Helper function to create a test store
+const createTestStore = (initialState = {}) => {
+  return configureStore({
+    reducer: {
+      app: appReducer,
+      user: userReducer,
+      analysis: analysisReducer,
+      ai: aiReducer,
+      repository: repositoryReducer
+    },
+    preloadedState: {
+      app: {
+        loading: false,
+        error: null,
+        currentView: 'ready',
+        ...initialState.app
+      },
+      user: {
+        profile: null,
+        repositories: [],
+        recentSearches: [],
+        ...initialState.user
+      },
+      analysis: {
+        currentAnalysis: null,
+        aiInsights: null,
+        history: [],
+        isLoading: false,
+        error: null,
+        ...initialState.analysis
+      },
+      ai: {
+        summaries: {},
+        isLoadingSummary: {},
+        batchProgress: { total: 0, completed: 0, failed: 0 },
+        isLoadingBatch: false,
+        error: null,
+        ...initialState.ai
+      },
+      repository: {
+        repositories: {},
+        paginationState: {},
+        lastFetchInfo: null,
+        isLoadingRepos: false,
+        loadingPage: null,
+        error: null,
+        stats: {
+          apiCallCount: 0,
+          cacheHits: 0,
+          totalReposFetched: 0
+        },
+        ...initialState.repository
+      }
+    }
+  })
+}
+
+// Helper function to render with Redux
+const renderWithRedux = (component, { store = createTestStore() } = {}) => {
+  return {
+    ...render(<Provider store={store}>{component}</Provider>),
+    store
+  }
+}
 
 describe('App Component', () => {
-  const setup = () => {
+  const setup = (initialState = {}) => {
     const user = userEvent.setup()
-    render(<App />)
-    return { user }
+    const store = createTestStore(initialState)
+    renderWithRedux(<App />, { store })
+    return { user, store }
   }
 
   beforeEach(() => {
