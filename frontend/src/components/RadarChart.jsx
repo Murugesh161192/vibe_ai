@@ -1,13 +1,20 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo, memo } from 'react';
 import * as d3 from 'd3';
+import { useViewport, useDeviceType, useChartDimensions } from '../utils/responsive';
+import { usePrefersReducedMotion } from '../utils/accessibility';
 
 const RadarChart = memo(({ data }) => {
   const svgRef = useRef();
   const containerRef = useRef();
   const [tooltip, setTooltip] = useState({ show: false, content: '', x: 0, y: 0 });
   const [error, setError] = useState(null);
-  const [dimensions, setDimensions] = useState({ width: 400, height: 400 });
   const [isReady, setIsReady] = useState(false);
+  
+  // Use responsive hooks
+  const viewport = useViewport();
+  const deviceType = useDeviceType();
+  const dimensions = useChartDimensions(containerRef, 1);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   // Debug logging
   useEffect(() => {
@@ -33,62 +40,50 @@ const RadarChart = memo(({ data }) => {
     }
   }, [data]);
 
-  // Memoize chart configuration to prevent recalculation on every render
+  // Memoize chart configuration based on device type
   const chartConfig = useMemo(() => {
-    const containerWidth = dimensions.width;
-    const containerHeight = dimensions.height;
-    const isMobile = containerWidth < 480;
-    const isMediumMobile = containerWidth >= 480 && containerWidth < 540;
-    const isSmallTablet = containerWidth >= 540 && containerWidth < 768;
-    const isTablet = containerWidth >= 768 && containerWidth < 1024;
-    const isDesktop = containerWidth >= 1024;
+    const { width, height } = dimensions;
+    const isMobile = deviceType === 'mobile';
+    const isTablet = deviceType === 'tablet';
+    const isDesktop = deviceType === 'desktop';
     
-    // Enhanced responsive sizing with better breakpoints for 540px and 768px
-    let basePadding, maxSize, size, margin;
+    // Enhanced responsive sizing based on device type and viewport size
+    const basePadding = isMobile ? 15 : isTablet ? 25 : 40;
     
+    // Improved maximum size calculation for larger screens
+    let maxSize;
     if (isMobile) {
-      basePadding = 20;
-      maxSize = Math.min(containerWidth - basePadding, containerHeight - basePadding);
-      size = Math.min(maxSize, 260);
-      margin = 40;
-    } else if (isMediumMobile) {
-      basePadding = 25;
-      maxSize = Math.min(containerWidth - basePadding, containerHeight - basePadding);
-      size = Math.min(maxSize, 320);
-      margin = 50;
-    } else if (isSmallTablet) {
-      basePadding = 30;
-      maxSize = Math.min(containerWidth - basePadding, containerHeight - basePadding);
-      size = Math.min(maxSize, 360);
-      margin = 60;
+      maxSize = Math.min(width - basePadding, height - basePadding, 280);
     } else if (isTablet) {
-      basePadding = 35;
-      maxSize = Math.min(containerWidth - basePadding, containerHeight - basePadding);
-      size = Math.min(maxSize, 400);
-      margin = 70;
+      maxSize = Math.min(width - basePadding, height - basePadding, 380);
     } else {
-      basePadding = 40;
-      maxSize = Math.min(containerWidth - basePadding, containerHeight - basePadding);
-      size = Math.min(maxSize, isDesktop ? 500 : 450);
-      margin = 90;
+      // Desktop: scale with viewport size, with intelligent limits
+      const viewportScale = Math.min(viewport.width / 1280, viewport.height / 720);
+      const scaledMaxSize = 420 + (viewportScale - 1) * 120; // Base 420px, scale up for larger screens
+      maxSize = Math.min(width - basePadding, height - basePadding, Math.max(420, Math.min(scaledMaxSize, 600)));
     }
     
-    return {
-      width: size,
-      height: size,
-      margin: margin,
-      levels: 5,
-      maxValue: 100,
-      roundStrokes: true,
-      color: '#0ea5e9',
-      labelFontSize: isMobile ? '8px' : isMediumMobile ? '9px' : isSmallTablet ? '10px' : isTablet ? '11px' : '12px',
-      gridLabelFontSize: isMobile ? '6px' : isMediumMobile ? '7px' : '8px',
-      pointRadius: isMobile ? 1.5 : isMediumMobile ? 2 : isSmallTablet ? 2.5 : isTablet ? 3 : 3.5,
-      pointHoverRadius: isMobile ? 3 : isMediumMobile ? 3.5 : isSmallTablet ? 4 : isTablet ? 4.5 : 5,
-      labelOffset: isMobile ? 8 : isMediumMobile ? 10 : isSmallTablet ? 12 : isTablet ? 14 : 15,
-      strokeWidth: isMobile ? '1.5px' : isMediumMobile ? '2px' : '2.5px'
-    };
-  }, [dimensions.width, dimensions.height]);
+    const size = maxSize;
+    const margin = isMobile ? 35 : isTablet ? 55 : Math.min(85, Math.max(75, size * 0.15));
+    
+          return {
+        width: size,
+        height: size,
+        margin: margin,
+        levels: 5,
+        maxValue: 100,
+        roundStrokes: true,
+        color: '#0ea5e9',
+        labelFontSize: isMobile ? '9px' : isTablet ? '11px' : size > 500 ? '15px' : '13px',
+        gridLabelFontSize: isMobile ? '7px' : isTablet ? '8px' : size > 500 ? '10px' : '9px',
+        pointRadius: isMobile ? 2 : isTablet ? 2.5 : size > 500 ? 4.5 : 3.5,
+        pointHoverRadius: isMobile ? 3.5 : isTablet ? 4.5 : size > 500 ? 6.5 : 5.5,
+        labelOffset: isMobile ? 10 : isTablet ? 14 : size > 500 ? 22 : 18,
+        strokeWidth: isMobile ? '1.5px' : isTablet ? '2px' : size > 500 ? '3px' : '2.5px',
+        animationDuration: prefersReducedMotion ? 0 : isMobile ? 400 : 600,
+        animationDelay: prefersReducedMotion ? 0 : isMobile ? 20 : 30
+      };
+  }, [dimensions, deviceType, prefersReducedMotion]);
 
   // Memoize radar data processing
   const radarData = useMemo(() => {
@@ -142,19 +137,9 @@ const RadarChart = memo(({ data }) => {
     return processedData;
   }, [data]);
 
-  // Optimized resize handler with debouncing
-  const handleResize = useCallback(() => {
+  // Initialize dimensions
+  useEffect(() => {
     if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const containerWidth = rect.width || 400;
-      const containerHeight = rect.height || 400;
-      console.log('Container dimensions:', containerWidth, containerHeight);
-      
-      // Ensure minimum dimensions
-      const width = Math.max(containerWidth, 200);
-      const height = Math.max(containerHeight, 200);
-      
-      setDimensions({ width, height });
       setIsReady(true);
     }
   }, []);
@@ -162,7 +147,7 @@ const RadarChart = memo(({ data }) => {
   // Memoize event handlers to prevent recreation
   const handleMouseOver = useCallback((event, d) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = deviceType === 'mobile';
     
     setTooltip({
       show: true,
@@ -170,55 +155,11 @@ const RadarChart = memo(({ data }) => {
       x: isMobile ? rect.left + rect.width / 2 : event.pageX,
       y: isMobile ? rect.top - 10 : event.pageY - 10
     });
-  }, []);
+  }, [deviceType]);
 
   const handleMouseOut = useCallback(() => {
     setTooltip({ show: false, content: '', x: 0, y: 0 });
   }, []);
-
-  // Resize observer with debouncing
-  useEffect(() => {
-    // Add a small delay to ensure container is properly rendered
-    const initTimeout = setTimeout(() => {
-      handleResize(); // Set initial dimensions
-      if (typeof window !== 'undefined') {
-        setIsReady(true);
-      }
-    }, 100);
-    
-    // Use ResizeObserver for better performance
-    let resizeObserver;
-    if (containerRef.current && typeof window !== 'undefined' && window.ResizeObserver) {
-      resizeObserver = new ResizeObserver((entries) => {
-        for (let entry of entries) {
-          const { width, height } = entry.contentRect;
-          setDimensions({ width, height });
-        }
-      });
-      resizeObserver.observe(containerRef.current);
-    }
-    
-    let resizeTimeout;
-    const debouncedResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(handleResize, 150); // Debounce resize events
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', debouncedResize);
-    }
-    
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('resize', debouncedResize);
-      }
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-      clearTimeout(resizeTimeout);
-      clearTimeout(initTimeout);
-    };
-  }, [handleResize]);
 
   // Optimized D3 rendering with memoization and performance optimizations
   useEffect(() => {
@@ -362,10 +303,10 @@ const RadarChart = memo(({ data }) => {
         .attr('d', lineGenerator)
         .style('fill', 'rgba(14, 165, 233, 0.15)')
         .style('stroke', config.color)
-        .style('stroke-width', '2.5px')
+        .style('stroke-width', config.strokeWidth)
         .style('opacity', 0)
         .transition()
-        .duration(600)
+        .duration(config.animationDuration)
         .style('opacity', 1);
 
       // Create data points - optimized event handling
@@ -388,13 +329,15 @@ const RadarChart = memo(({ data }) => {
         .on('blur', handleMouseOut)
         .on('touchstart', handleMouseOver)
         .on('touchend', handleMouseOut)
-        .attr('tabindex', 0);
+        .attr('tabindex', 0)
+        .attr('role', 'button')
+        .attr('aria-label', d => `${d.axis}: ${Math.round(d.value)} out of 100`);
 
       // Animate points
       points
         .transition()
-        .duration(800)
-        .delay((d, i) => i * 30)
+        .duration(config.animationDuration)
+        .delay((d, i) => i * config.animationDelay)
         .attr('r', config.pointRadius);
 
       // Add center point
@@ -429,10 +372,10 @@ const RadarChart = memo(({ data }) => {
 
   return (
     <div 
-      className="w-full h-full flex items-center justify-center p-2 md:p-4" 
+      className="w-full h-full flex items-center justify-center p-2 sm:p-3 md:p-4" 
       ref={containerRef}
       style={{
-        minHeight: '200px',
+        minHeight: deviceType === 'mobile' ? '280px' : deviceType === 'tablet' ? '380px' : viewport.width >= 1920 ? '500px' : '420px',
         height: '100%',
         display: 'flex',
         alignItems: 'center',
@@ -442,8 +385,8 @@ const RadarChart = memo(({ data }) => {
       <div 
         className="relative w-full h-full flex items-center justify-center"
         style={{ 
-          maxWidth: '500px',
-          maxHeight: '500px',
+          maxWidth: deviceType === 'mobile' ? '280px' : deviceType === 'tablet' ? '380px' : '600px',
+          maxHeight: deviceType === 'mobile' ? '280px' : deviceType === 'tablet' ? '380px' : '600px',
           aspectRatio: '1 / 1',
           margin: '0 auto'
         }}
@@ -456,29 +399,29 @@ const RadarChart = memo(({ data }) => {
             maxWidth: '100%', 
             maxHeight: '100%',
             margin: '0 auto'
-          }} 
+          }}
+          aria-label="Repository metrics radar chart"
+          role="img"
         />
       </div>
       
       <div
         data-testid="radar-chart-tooltip"
-        className="tooltip"
+        className={`tooltip fixed z-50 ${tooltip.show ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
         style={{
-          position: 'fixed',
           left: tooltip.x + 'px',
           top: tooltip.y + 'px',
           pointerEvents: 'none',
-          zIndex: 1000,
-          opacity: tooltip.show ? 1 : 0,
-          visibility: tooltip.show ? 'visible' : 'hidden',
-          padding: '4px 8px',
+          padding: '6px 10px',
           backgroundColor: 'rgba(0, 0, 0, 0.9)',
           color: 'white',
-          borderRadius: '4px',
-          fontSize: '12px',
+          borderRadius: '6px',
+          fontSize: deviceType === 'mobile' ? '11px' : '12px',
           whiteSpace: 'nowrap',
-          transition: 'opacity 0.2s'
+          transition: 'opacity 0.2s, visibility 0.2s',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
         }}
+        role="tooltip"
       >
         {tooltip.content}
       </div>

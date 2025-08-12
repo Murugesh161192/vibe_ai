@@ -1,10 +1,10 @@
-import React, { useState, useMemo, lazy, Suspense, useEffect } from 'react';
+import React, { useState, useMemo, lazy, Suspense, useEffect, useRef } from 'react';
 import { 
   Trophy, Shield, Star, Target, BookOpen, Bot, Settings, Bell, 
   FileText, Check, ExternalLink, Info, ChevronDown, 
   ChevronUp, AlertCircle, Copy, Mail, X, Users,
   GitBranch, Code, Activity, TrendingUp, BarChart2, Package, Zap, Lightbulb,
-  HelpCircle, ChevronRight, Beaker, CheckCircle, Sparkles
+  ChevronRight, Beaker, CheckCircle, Sparkles, MoreVertical
 } from 'lucide-react';
 import RadarChart from './RadarChart';
 import MetricBreakdown from './MetricBreakdown';
@@ -15,6 +15,7 @@ import ShareModal from './ShareModal';
 import ActiveContributors from './ActiveContributors';
 import { useAnnouncement } from '../utils/accessibility';
 import { useSelector } from 'react-redux';
+import { useViewport, useDeviceType, useIntersectionObserver } from '../utils/responsive';
 
 // Lazy load heavy components
 const RepositoryInsights = lazy(() => import('./RepositoryInsights'));
@@ -64,7 +65,6 @@ const MetricCard = ({
   label, 
   value, 
   trend, 
-  tooltip, 
   className = '',
   color = 'blue',
   loading = false,
@@ -72,9 +72,27 @@ const MetricCard = ({
   onClick,
   isClickable = false
 }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const tooltipId = `tooltip-${label.replace(/\s/g, '-').toLowerCase()}`;
+  const [showFullLabel, setShowFullLabel] = useState(false);
+  const labelRef = useRef(null);
+  
+  // Check if label text is truncated
+  useEffect(() => {
+    const checkTruncation = () => {
+      if (labelRef.current) {
+        const element = labelRef.current;
+        const isTruncated = element.scrollWidth > element.clientWidth;
+        setShowFullLabel(isTruncated);
+      }
+    };
+
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    
+    return () => {
+      window.removeEventListener('resize', checkTruncation);
+    };
+  }, [label]);
   
   // Format large numbers to be more compact
   const formatValue = (val) => {
@@ -160,34 +178,22 @@ const MetricCard = ({
     >
       {/* Header with icon and label */}
       <div className="flex items-start justify-between mb-2 sm:mb-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {Icon && (
-            <div className={`${scheme.icon} transition-transform duration-300 ${isHovered ? 'scale-110' : ''}`}>
+            <div className={`${scheme.icon} transition-transform duration-300 ${isHovered ? 'scale-110' : ''} flex-shrink-0`}>
               <Icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
             </div>
           )}
-          <span className="text-xs sm:text-sm text-gray-400 font-medium truncate">
-            {label}
-          </span>
+          <div className="relative flex-1 min-w-0">
+            <span 
+              ref={labelRef}
+              className="block text-xs sm:text-sm text-gray-400 font-medium truncate"
+              title={showFullLabel ? label : undefined}
+            >
+              {label}
+            </span>
+          </div>
         </div>
-        
-        {/* Tooltip indicator */}
-        {tooltip && (
-          <button
-            type="button"
-            className="p-1 hover:bg-white/10 rounded-full transition-colors touch-target-min"
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowTooltip(!showTooltip);
-            }}
-            aria-label="More information"
-            aria-describedby={tooltipId}
-          >
-            <HelpCircle className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
-          </button>
-        )}
       </div>
       
       {/* Value display */}
@@ -211,18 +217,7 @@ const MetricCard = ({
           </div>
         )}
       </div>
-      
-      {/* Tooltip */}
-      {showTooltip && tooltip && (
-        <div 
-          id={tooltipId}
-          className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 sm:px-3 py-1 sm:py-2 bg-gray-900 text-white text-xs sm:text-sm rounded-lg shadow-xl border border-white/10 whitespace-nowrap"
-          role="tooltip"
-        >
-          {tooltip}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
-        </div>
-      )}
+
     </div>
   );
 };
@@ -279,6 +274,71 @@ const SectionCard = ({
   );
 };
 
+// Section Component with responsive design
+const Section = ({ 
+  title, 
+  icon: Icon, 
+  children, 
+  badge, 
+  defaultOpen = true, 
+  description,
+  className = ''
+}) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const deviceType = useDeviceType();
+  
+  return (
+    <div className={`rounded-xl sm:rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 overflow-hidden ${className}`}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex items-center justify-between hover:bg-white/5 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 ${
+          deviceType === 'mobile' ? 'p-3' : 'sm:p-4 lg:p-6'
+        }`}
+        aria-expanded={isOpen}
+        aria-controls={`section-${title.replace(/\s/g, '-').toLowerCase()}`}
+      >
+        <div className="flex items-center gap-2 sm:gap-3">
+          {Icon && (
+            <div className={`rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 ${
+              deviceType === 'mobile' ? 'p-1.5' : 'sm:p-2'
+            }`}>
+              <Icon className={`text-purple-400 ${
+                deviceType === 'mobile' ? 'w-4 h-4' : 'sm:w-5 sm:h-5'
+              }`} />
+            </div>
+          )}
+          <div className="text-left">
+            <h3 className={`font-semibold text-white ${
+              deviceType === 'mobile' ? 'text-sm' : 'sm:text-base lg:text-lg'
+            }`}>{title}</h3>
+            {description && deviceType !== 'mobile' && (
+              <p className="text-xs text-white/60 mt-0.5">{description}</p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3">
+          {badge && <div className="flex-shrink-0">{badge}</div>}
+          <div className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+            <ChevronDown className={`text-white/60 ${
+              deviceType === 'mobile' ? 'w-4 h-4' : 'sm:w-5 sm:h-5'
+            }`} />
+          </div>
+        </div>
+      </button>
+      {isOpen && (
+        <div 
+          id={`section-${title.replace(/\s/g, '-').toLowerCase()}`}
+          className={`space-y-3 sm:space-y-4 animate-fadeIn ${
+            deviceType === 'mobile' ? 'p-3' : 'sm:p-4 lg:p-6'
+          }`}
+        >
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const VibeScoreResults = ({ 
   result = {}, 
   repoInfo = {}, 
@@ -288,6 +348,12 @@ const VibeScoreResults = ({
   showShareModal,
   setShowShareModal
 }) => {
+  const deviceType = useDeviceType();
+  const viewport = useViewport();
+  const announceScore = useAnnouncement();
+  const headerRef = useRef(null);
+  const { hasIntersected } = useIntersectionObserver(headerRef);
+  
   const [showEnhancedInsights, setShowEnhancedInsights] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
@@ -500,6 +566,12 @@ const VibeScoreResults = ({
     }
   };
 
+  // Announce score for screen readers
+  useEffect(() => {
+    if (vibeScore && hasIntersected) {
+      announceScore(`Repository analysis complete. Vibe score: ${vibeScore} out of 100, rated as ${getVibeMessage(vibeScore).text}`);
+    }
+  }, [vibeScore, hasIntersected, announceScore]);
 
   // Check if we have the minimum required data
   if (!result || (!vibeScore && !result?.score) || !repositoryInfo) {
@@ -519,15 +591,23 @@ const VibeScoreResults = ({
       {/* Main container with better responsive padding */}
       <div className="w-full max-w-[1920px] mx-auto">
         {/* Header Section with Repository Info */}
-        <div className="px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
-          <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-7 backdrop-blur-sm">
+        <div className={`${
+          deviceType === 'mobile' ? 'px-3 mb-3 pt-6' : 'px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6 pt-8 sm:pt-12 lg:pt-16'
+        }`} ref={headerRef}>
+          <div className={`bg-white/5 border border-white/10 backdrop-blur-sm ${
+            deviceType === 'mobile' ? 'rounded-xl p-4' : 'rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-7'
+          }`}>
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-6">
               {/* Repository Info - Main Content */}
               <div className="flex-1 min-w-0">
                 {/* Title Row with Icon and Name */}
                 <div className="flex items-center gap-3 mb-3">
-                  <Package className="w-6 h-6 text-blue-400 flex-shrink-0" />
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">
+                  <Package className={`text-blue-400 flex-shrink-0 ${
+                    deviceType === 'mobile' ? 'w-5 h-5' : 'w-6 h-6'
+                  }`} />
+                  <h1 className={`font-bold text-white truncate ${
+                    deviceType === 'mobile' ? 'text-lg' : 'text-xl sm:text-2xl lg:text-3xl'
+                  }`}>
                     {repositoryInfo?.name || 'Repository Analysis'}
                   </h1>
                 </div>
@@ -535,42 +615,68 @@ const VibeScoreResults = ({
                 {/* Badges Row - Properly aligned */}
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   {repositoryInfo?.language && (
-                    <StatusBadge 
-                      status="info" 
-                      label={repositoryInfo.language}
-                      icon={Code}
-                    />
+                    <span className={`inline-flex items-center gap-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg font-medium ${
+                      deviceType === 'mobile' ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm'
+                    }`}>
+                      <Code className={`${deviceType === 'mobile' ? 'w-3 h-3' : 'w-4 h-4'}`} />
+                      {repositoryInfo.language}
+                    </span>
                   )}
-                  {repositoryInfo?.stars !== undefined && (
-                    <StatusBadge 
-                      status="neutral" 
-                      label={`${formatNumber(repositoryInfo.stars)} stars`}
-                      icon={Star}
-                    />
+                  
+                  {repositoryInfo?.visibility && (
+                    <span className={`inline-flex items-center gap-1.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg font-medium ${
+                      deviceType === 'mobile' ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm'
+                    }`}>
+                      {repositoryInfo.visibility === 'public' ? '🌍' : '🔒'}
+                      {repositoryInfo.visibility}
+                    </span>
                   )}
-                  {/* View on GitHub Link - Better integrated */}
-                  <a
-                    href={repositoryInfo?.url || repositoryInfo?.repoUrl || `https://github.com/${repositoryInfo?.fullName || repositoryInfo?.owner + '/' + repositoryInfo?.name || 'test/test-repo'}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-all duration-200"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    View on GitHub
-                  </a>
+                  
+                  {repositoryInfo?.license && (
+                    <span className={`inline-flex items-center gap-1.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-lg font-medium ${
+                      deviceType === 'mobile' ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm'
+                    }`}>
+                      <Shield className={`${deviceType === 'mobile' ? 'w-3 h-3' : 'w-4 h-4'}`} />
+                      {repositoryInfo.license}
+                    </span>
+                  )}
                 </div>
+                
+                {/* Description - Only show on larger screens */}
+                {repositoryInfo?.description && deviceType !== 'mobile' && (
+                  <p className="text-white/60 text-sm sm:text-base line-clamp-2 mb-3">
+                    {repositoryInfo.description}
+                  </p>
+                )}
               </div>
               
-              {/* Analysis Status - Right aligned */}
-              <div className="flex-shrink-0 md:self-start">
-                <div className="animate-fade-in">
-                  <div className="inline-flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-lg backdrop-blur-sm">
-                    <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" aria-hidden="true" />
-                    <span className="text-sm text-green-400 font-medium whitespace-nowrap">
-                      Analysis Completed
-                    </span>
-                  </div>
-                </div>
+              {/* Action Buttons - Stack on mobile */}
+              <div className={`flex gap-2 ${
+                deviceType === 'mobile' 
+                  ? 'flex-col w-full' 
+                  : 'flex-col sm:flex-row'
+              }`}>
+                <button
+                  onClick={() => setShowExportModal(true)}
+                  className={`btn-ghost ${
+                    deviceType === 'mobile' ? 'w-full text-xs' : 'text-xs sm:text-sm'
+                  }`}
+                  aria-label="Export analysis results"
+                >
+                  <FileText className={`${deviceType === 'mobile' ? 'w-4 h-4' : 'w-4 h-4'}`} />
+                  Export
+                </button>
+                
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className={`btn-primary ${
+                    deviceType === 'mobile' ? 'w-full text-xs' : 'text-xs sm:text-sm'
+                  }`}
+                  aria-label="Share analysis results"
+                >
+                  <Mail className={`${deviceType === 'mobile' ? 'w-4 h-4' : 'w-4 h-4'}`} />
+                  Share
+                </button>
               </div>
             </div>
           </div>
@@ -610,25 +716,53 @@ const VibeScoreResults = ({
           </div>
         )}
 
-        {/* Enhanced Main Score Section - Cleaner, more prominent design */}
-        <div className="px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8 mt-8 sm:mt-10 lg:mt-12">
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-              {/* Overall Score Card - Enhanced prominence */}
-              <div className="xl:col-span-1 mb-6 xl:mb-0">
-                <div className="bg-gradient-to-br from-white/10 via-white/5 to-white/5 border border-white/20 rounded-2xl p-6 sm:p-8 backdrop-blur-sm shadow-2xl relative overflow-hidden group hover:border-white/30 transition-all duration-300">
+        {/* Enhanced Main Score Section - Cleaner, more prominent design with better responsive grid */}
+        <div className={`${
+          deviceType === 'mobile' 
+            ? 'px-3 mb-4 mt-6' 
+            : 'px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8 mt-8 sm:mt-10 lg:mt-12'
+        }`}>
+            {/* Enhanced responsive grid with better breakpoints and aspect ratios */}
+            <div className={`grid gap-6 sm:gap-8 lg:gap-10 ${
+              deviceType === 'mobile' 
+                ? 'grid-cols-1' // Mobile: stack vertically for better readability
+                : viewport.width < 1280 
+                  ? 'grid-cols-1' // Tablet: stack vertically for better chart visibility
+                  : 'grid-cols-3' // Desktop XL+: side by side layout
+            }`}>
+              {/* Overall Score Card - Enhanced prominence with responsive sizing */}
+              <div className={`${deviceType === 'mobile' ? 'order-1' : 'order-1 xl:order-1'}`}>
+                <div className={`bg-gradient-to-br from-white/10 via-white/5 to-white/5 border border-white/20 rounded-2xl backdrop-blur-sm shadow-2xl relative overflow-hidden group hover:border-white/30 transition-all duration-300 ${
+                  deviceType === 'mobile' 
+                    ? 'rounded-xl p-5 min-h-[320px]' 
+                    : viewport.width < 1280
+                    ? 'rounded-2xl p-6 min-h-[360px] max-w-lg mx-auto' // Centered on tablet
+                    : 'rounded-2xl p-6 sm:p-8 min-h-[400px]'
+                }`}>
                   {/* Subtle background decoration */}
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   
                   <div className="relative flex flex-col items-center justify-center h-full">
-                    <div className="text-center mb-6">
-                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2">
+                    <div className="text-center mb-4 sm:mb-6">
+                      <h2 className={`font-bold text-white mb-2 ${
+                        deviceType === 'mobile' ? 'text-lg' : 'text-xl lg:text-2xl'
+                      }`}>
                         Overall Vibe Score
                       </h2>
-                      <p className="text-sm text-white/60">Repository health & quality assessment</p>
+                      <p className={`text-white/60 ${
+                        deviceType === 'mobile' ? 'text-xs' : 'text-sm'
+                      }`}>Repository health & quality assessment</p>
                     </div>
                     
-                    <div className="relative mb-6">
-                      <svg className="w-36 h-36 sm:w-44 sm:h-44 lg:w-52 lg:h-52 transform -rotate-90 drop-shadow-lg">
+                    {/* Responsive SVG circle chart */}
+                    <div className="relative mb-4 sm:mb-6">
+                      <svg className={`transform -rotate-90 drop-shadow-lg ${
+                        deviceType === 'mobile' 
+                          ? 'w-32 h-32' 
+                          : viewport.width < 1280
+                          ? 'w-40 h-40'
+                          : 'w-44 h-44 lg:w-52 lg:h-52'
+                      }`}>
                         <circle
                           cx="50%"
                           cy="50%"
@@ -658,10 +792,18 @@ const VibeScoreResults = ({
                         </defs>
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-5xl sm:text-6xl lg:text-7xl font-black bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-sm">
+                        <span className={`font-black bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-sm ${
+                          deviceType === 'mobile' 
+                            ? 'text-4xl' 
+                            : viewport.width < 1280
+                            ? 'text-5xl'
+                            : 'text-5xl sm:text-6xl lg:text-7xl'
+                        }`}>
                           {overallScore}
                         </span>
-                        <span className="text-sm sm:text-base text-white/60 mt-1 font-medium">out of 100</span>
+                        <span className={`text-white/60 mt-1 font-medium ${
+                          deviceType === 'mobile' ? 'text-xs' : 'text-sm sm:text-base'
+                        }`}>out of 100</span>
                       </div>
                     </div>
                     
@@ -680,42 +822,174 @@ const VibeScoreResults = ({
                 </div>
               </div>
 
-              {/* Enhanced Radar Chart Section */}
-              <div className="xl:col-span-2">
-                <div className="bg-gradient-to-br from-white/8 via-white/4 to-white/4 border border-white/20 rounded-2xl p-6 sm:p-8 backdrop-blur-sm shadow-2xl relative overflow-hidden group hover:border-white/30 transition-all duration-300">
-                  {/* Subtle background decoration */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/3 via-purple-500/3 to-cyan-500/3 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              {/* Enhanced Radar Chart Section with UI/UX Best Practices */}
+              <div className={`${
+                deviceType === 'mobile' 
+                  ? 'order-2' 
+                  : viewport.width < 1280
+                  ? 'order-2 max-w-2xl mx-auto'
+                  : 'order-2 col-span-2'
+              }`}>
+                <div className={`
+                  relative overflow-hidden
+                  bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-transparent
+                  border backdrop-blur-sm
+                  transition-all duration-500 ease-out
+                  ${deviceType === 'mobile' 
+                    ? 'rounded-xl border-white/15 shadow-xl p-3 min-h-[320px]' 
+                    : viewport.width < 1280
+                    ? 'rounded-2xl border-white/20 shadow-xl p-4 min-h-[400px] hover:shadow-2xl'
+                    : viewport.width < 1920
+                    ? 'rounded-2xl border-white/20 shadow-2xl p-6 min-h-[520px] hover:shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)]'
+                    : 'rounded-3xl border-white/20 shadow-2xl p-8 min-h-[580px] hover:shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)]'
+                  }
+                  group hover:border-white/30
+                `}>
+                  {/* Multi-layer background effects for depth */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    {/* Primary gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.03] via-purple-500/[0.03] to-cyan-500/[0.03] opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                    
+                    {/* Animated orb effect */}
+                    <div className="absolute -top-20 -right-20 w-96 h-96 bg-gradient-to-br from-purple-500/10 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-50 transition-opacity duration-1000"></div>
+                    
+                    {/* Subtle noise texture for premium feel */}
+                    <div className="absolute inset-0 opacity-[0.015]" 
+                      style={{ 
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: 'repeat'
+                      }}
+                    ></div>
+                  </div>
                   
-                  <div className="relative">
-                    <div className="text-center mb-6">
-                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2">
+                  <div className="relative h-full flex flex-col">
+                    {/* Enhanced Header with better visual hierarchy */}
+                    <div className={`text-center flex-shrink-0 ${
+                      deviceType === 'mobile' ? 'mb-3' : 'mb-4 sm:mb-6'
+                    }`}>
+                      {/* Title with animated gradient */}
+                      <h2 className={`
+                        font-bold bg-gradient-to-r from-white via-white to-white/80 
+                        bg-clip-text text-transparent
+                        animate-gradient-x bg-[length:200%_auto]
+                        ${deviceType === 'mobile' 
+                          ? 'text-lg mb-1' 
+                          : viewport.width < 1920 
+                          ? 'text-xl lg:text-2xl mb-2' 
+                          : 'text-2xl lg:text-3xl mb-2'
+                        }
+                      `}>
                         Score Breakdown
                       </h2>
-                      <p className="text-sm text-white/60">Detailed analysis across key metrics</p>
+                      
+                      {/* Subtitle with better contrast */}
+                      <p className={`
+                        text-white/60 font-medium
+                        ${deviceType === 'mobile' 
+                          ? 'text-xs' 
+                          : viewport.width < 1920 
+                          ? 'text-sm' 
+                          : 'text-base'
+                        }
+                      `}>
+                        Detailed analysis across key metrics
+                      </p>
+                      
+                      {/* Divider line for visual separation */}
+                      <div className={`
+                        w-16 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent 
+                        mx-auto ${deviceType === 'mobile' ? 'mt-2' : 'mt-3'}
+                      `}></div>
                     </div>
-                    {/* Responsive radar chart container */}
-                    <div className="w-full relative">
-                      <div className="chart-container-responsive">
-                        <div className="radar-chart-wrapper">
-                          <RadarChart data={breakdown} />
-                        </div>
+                    
+                    {/* Chart Container with loading state support */}
+                    <div className="flex-1 w-full relative min-h-0">
+                      {/* Inner container with aspect ratio preservation */}
+                      <div className={`
+                        chart-container-responsive h-full
+                        transition-all duration-500 ease-out
+                        ${!breakdown || Object.keys(breakdown).length === 0 ? 'opacity-50' : 'opacity-100'}
+                        ${deviceType === 'mobile' 
+                          ? 'min-h-[240px] max-h-[280px]'
+                          : viewport.width < 1280
+                          ? 'min-h-[320px] max-h-[360px]'
+                          : viewport.width < 1920
+                          ? 'min-h-[440px] max-h-[500px]'
+                          : 'min-h-[480px] max-h-[560px]'
+                        }
+                      `}>
+                        {/* Loading skeleton while data loads */}
+                        {!breakdown || Object.keys(breakdown).length === 0 ? (
+                          <div className="h-full flex items-center justify-center">
+                            <div className="relative">
+                              <div className={`
+                                animate-pulse rounded-full border-4 border-white/10
+                                ${deviceType === 'mobile' 
+                                  ? 'w-32 h-32' 
+                                  : viewport.width < 1920 
+                                  ? 'w-48 h-48' 
+                                  : 'w-64 h-64'
+                                }
+                              `}></div>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-white/40 text-sm">Loading metrics...</span>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="radar-chart-wrapper h-full animate-fade-in">
+                            <RadarChart data={breakdown} />
+                          </div>
+                        )}
                       </div>
                     </div>
+                    
+                    {/* Optional: Quick metrics summary for mobile */}
+                    {deviceType === 'mobile' && breakdown && Object.keys(breakdown).length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-white/10">
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          <div>
+                            <div className="text-xs text-white/50">Highest</div>
+                            <div className="text-sm font-semibold text-white/90">
+                              {Math.max(...Object.values(breakdown))}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-white/50">Average</div>
+                            <div className="text-sm font-semibold text-white/90">
+                              {Math.round(Object.values(breakdown).reduce((a, b) => a + b, 0) / Object.values(breakdown).length)}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-white/50">Lowest</div>
+                            <div className="text-sm font-semibold text-white/90">
+                              {Math.min(...Object.values(breakdown))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
+                        </div>
+        </div>
+      </div>
 
-          {/* Key Metrics Grid - Responsive columns */}
-          <div className="px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
+      {/* Key Metrics Grid - Enhanced responsive columns */}
+          <div className={`${
+            deviceType === 'mobile' ? 'px-3 mb-4' : 'px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6'
+          }`}>
             <SectionCard title="Key Metrics" icon={BarChart2} defaultOpen={true}>
-              <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+              {/* Enhanced responsive grid with better breakpoints */}
+              <div className={`grid gap-3 sm:gap-4 lg:gap-5 ${
+                deviceType === 'mobile' 
+                  ? 'grid-cols-2' // Mobile: always 2 columns for better touch targets
+                  : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'
+              }`}>
                 <MetricCard
                   icon={Users}
                   label="Contributors"
                   value={repoStats.contributors}
-                  tooltip="Active contributors to the repository"
                   color="blue"
                   subtext={repoStats.contributors > 10 ? 'Highly active' : repoStats.contributors > 1 ? 'Active' : repoStats.contributors === 1 ? 'Solo' : 'No data'}
                   trend={repoStats.contributors > 20 ? 15 : repoStats.contributors > 10 ? 5 : null}
@@ -724,7 +998,6 @@ const VibeScoreResults = ({
                   icon={Star}
                   label="Stars"
                   value={repoStats.stars}
-                  tooltip="Community appreciation and popularity indicator"
                   color="yellow"
                   subtext={repoStats.stars > 1000 ? 'Very popular' : repoStats.stars > 100 ? 'Popular' : repoStats.stars > 0 ? 'Growing' : 'New'}
                   trend={repoStats.stars > 500 ? 15 : repoStats.stars > 100 ? 8 : null}
@@ -733,7 +1006,6 @@ const VibeScoreResults = ({
                   icon={Beaker}
                   label="Test Files"
                   value={analysis.testFiles?.length || 0}
-                  tooltip="Automated test files detected in the repository"
                   color="green"
                   subtext={analysis.testFiles?.length > 10 ? 'Well tested' : analysis.testFiles?.length > 0 ? 'Has tests' : 'No tests'}
                   trend={analysis.testFiles?.length > 15 ? 15 : analysis.testFiles?.length > 5 ? 8 : null}
@@ -742,7 +1014,6 @@ const VibeScoreResults = ({
                   icon={Package}
                   label="Dependencies"
                   value={analysis.dependencies?.length || 0}
-                  tooltip="External packages and dependencies"
                   color="purple"
                   subtext={analysis.dependencies?.length > 50 ? 'Many deps' : analysis.dependencies?.length > 0 ? 'Moderate' : 'None'}
                   trend={analysis.dependencies?.length > 50 ? 10 : null}
@@ -751,7 +1022,6 @@ const VibeScoreResults = ({
                   icon={BookOpen}
                   label="Documentation"
                   value={analysis.documentationFiles?.length || 0}
-                  tooltip="Documentation files found in the repository"
                   color="blue"
                   subtext={analysis.documentationFiles?.length > 5 ? 'Well doc\'d' : analysis.documentationFiles?.length > 0 ? 'Some docs' : 'No docs'}
                   trend={analysis.documentationFiles?.length > 5 ? 8 : null}
@@ -760,7 +1030,6 @@ const VibeScoreResults = ({
                   icon={Shield}
                   label="Security"
                   value={`${Math.round(repoStats.securityScore)}%`}
-                  tooltip="Security practices and vulnerability assessment"
                   color={repoStats.securityScore > 70 ? 'green' : repoStats.securityScore > 40 ? 'yellow' : repoStats.securityScore > 0 ? 'red' : 'blue'}
                   subtext={repoStats.securityScore > 80 ? 'Very secure' : repoStats.securityScore > 60 ? 'Good' : repoStats.securityScore > 30 ? 'Needs work' : repoStats.securityScore > 0 ? 'At risk' : 'Unknown'}
                   trend={repoStats.securityScore > 80 ? 12 : repoStats.securityScore > 60 ? 5 : null}
@@ -770,7 +1039,9 @@ const VibeScoreResults = ({
           </div>
 
           {/* Repository Insights Section - Better mobile layout */}
-          <div className="px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
+          <div className={`${
+            deviceType === 'mobile' ? 'px-3 mb-4' : 'px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6'
+          }`}>
             <Suspense fallback={<LoadingSpinner message="Loading insights..." />}>
               <RepositoryInsights 
                 repoUrl={result?.repoUrl || `https://github.com/${repositoryInfo?.owner?.login || repositoryInfo?.owner}/${repositoryInfo?.name}`}
@@ -783,7 +1054,9 @@ const VibeScoreResults = ({
           </div>
 
           {/* Active Contributors Section - Always visible for better user experience */}
-          <div className="px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
+          <div className={`${
+            deviceType === 'mobile' ? 'px-3 mb-4' : 'px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6'
+          }`}>
             <SectionCard 
               title="Active Contributors & Collaboration" 
               icon={Users} 
@@ -801,7 +1074,9 @@ const VibeScoreResults = ({
 
           {/* AI Insights Section - Better responsive padding */}
           {analysis && !result?.aiInsightsError && (
-            <div className="px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
+            <div className={`${
+              deviceType === 'mobile' ? 'px-3 mb-4' : 'px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6'
+            }`}>
               <AnalysisInsights 
                 analysis={analysis}
                 overallScore={overallScore}
@@ -813,17 +1088,27 @@ const VibeScoreResults = ({
             </div>
           )}
 
-          {/* Detailed Metrics Section */}
-          <div className="px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
+          {/* Detailed Metrics Section - Enhanced responsive layout */}
+          <div className={`${
+            deviceType === 'mobile' ? 'px-3 mb-4' : 'px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6'
+          }`}>
             <SectionCard title="Detailed Metrics" icon={Target} defaultOpen={false}>
               {/* Check if we have Team Activity data */}
               {!result?.aiInsightsError && (analysis.commitFrequency || analysis.issueResolutionTime || analysis.prMergeRate) ? (
-                // Two-column layout when we have both sections
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
+                // Enhanced two-column layout with better responsive behavior
+                <div className={`grid gap-6 lg:gap-8 ${
+                  deviceType === 'mobile' || viewport.width < 1280
+                    ? 'grid-cols-1' // Mobile and tablet: stack vertically
+                    : 'grid-cols-1 xl:grid-cols-2' // Desktop: side by side
+                }`}>
                   {/* Metric Breakdown Column */}
-                  <div className="w-full">
-                    <h3 className="text-sm sm:text-base font-semibold text-gray-300 mb-4 flex items-center gap-2">
-                      <BarChart2 className="w-4 h-4 text-gray-400 hidden md:block" />
+                  <div className={`w-full ${deviceType === 'mobile' ? 'order-1' : 'order-1'}`}>
+                    <h3 className={`font-semibold text-gray-300 mb-4 flex items-center gap-2 ${
+                      deviceType === 'mobile' ? 'text-sm' : 'text-sm sm:text-base'
+                    }`}>
+                      <BarChart2 className={`text-gray-400 ${
+                        deviceType === 'mobile' ? 'w-4 h-4' : 'w-4 h-4 hidden md:block'
+                      }`} />
                       Score Distribution
                     </h3>
                     <MetricBreakdown 
@@ -835,12 +1120,23 @@ const VibeScoreResults = ({
                   </div>
 
                   {/* Team Activity Trends Column */}
-                  <div className="w-full">
-                    <h3 className="text-sm sm:text-base font-semibold text-gray-300 mb-4 flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-gray-400 hidden md:block" />
+                  <div className={`w-full ${deviceType === 'mobile' ? 'order-2 mt-6' : 'order-2'}`}>
+                    <h3 className={`font-semibold text-gray-300 mb-4 flex items-center gap-2 ${
+                      deviceType === 'mobile' ? 'text-sm' : 'text-sm sm:text-base'
+                    }`}>
+                      <TrendingUp className={`text-gray-400 ${
+                        deviceType === 'mobile' ? 'w-4 h-4' : 'w-4 h-4 hidden md:block'
+                      }`} />
                       Team Activity Trends
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3 sm:gap-4">
+                    {/* Enhanced responsive grid for team activity cards */}
+                    <div className={`grid gap-3 sm:gap-4 ${
+                      deviceType === 'mobile' 
+                        ? 'grid-cols-1' // Mobile: single column for better readability
+                        : viewport.width < 1280
+                        ? 'grid-cols-2' // Tablet: 2 columns
+                        : 'grid-cols-1' // Desktop in 2-col layout: single column per section
+                    }`}>
                       <MetricCard
                         label="Commit Frequency"
                         value={`${analysis.commitFrequency || 0}/week`}
@@ -850,7 +1146,6 @@ const VibeScoreResults = ({
                       <MetricCard
                         label="Issue Response"
                         value={`${analysis.issueResolutionTime || 'N/A'}`}
-                        tooltip="Average time to first response"
                         color="green"
                       />
                       <MetricCard
@@ -863,10 +1158,14 @@ const VibeScoreResults = ({
                   </div>
                 </div>
               ) : (
-                // Full-width layout when only Score Distribution is shown
+                // Enhanced full-width layout when only Score Distribution is shown
                 <div className="w-full">
-                  <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-300 mb-4 lg:mb-6 flex items-center gap-2">
-                    <BarChart2 className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400 hidden md:block" />
+                  <h3 className={`font-semibold text-gray-300 mb-4 lg:mb-6 flex items-center gap-2 ${
+                    deviceType === 'mobile' ? 'text-sm' : 'text-sm sm:text-base lg:text-lg'
+                  }`}>
+                    <BarChart2 className={`text-gray-400 ${
+                      deviceType === 'mobile' ? 'w-4 h-4' : 'w-4 h-4 lg:w-5 lg:h-5 hidden md:block'
+                    }`} />
                     Score Distribution
                   </h3>
                   <MetricBreakdown 

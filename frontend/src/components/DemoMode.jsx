@@ -114,7 +114,7 @@ const DemoMode = ({ onExitDemo }) => {
   };
 
   return (
-    <div className="space-y-8" data-testid="demo-mode">
+    <div className="space-y-8 pt-8 sm:pt-12 lg:pt-16" data-testid="demo-mode">
       {/* Demo Header */}
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-4">

@@ -1,17 +1,13 @@
-import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect, lazy, Suspense } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Zap } from 'lucide-react';
 import Header from './components/Header';
 import ChatInput from './components/ChatInput';
-import GitHubUserProfile from './components/GitHubUserProfile';
-import VibeScoreResults from './components/VibeScoreResults';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
-import DemoMode from './components/DemoMode';
-import ExportModal from './components/ExportModal';
-import ShareModal from './components/ShareModal';
 import { getUserProfile, getUserRepositories } from './services/api';
 import { useKeyboardShortcuts } from './utils/accessibility';
+import { useViewport, useDeviceType, useNetworkStatus } from './utils/responsive';
 import { 
   selectCurrentView, 
   selectIsLoading, 
@@ -27,6 +23,13 @@ import {
   clearAnalysis
 } from './store/slices/analysisSlice';
 
+// Lazy load heavy components for better performance
+const GitHubUserProfile = lazy(() => import('./components/GitHubUserProfile'));
+const VibeScoreResults = lazy(() => import('./components/VibeScoreResults'));
+const DemoMode = lazy(() => import('./components/DemoMode'));
+const ExportModal = lazy(() => import('./components/ExportModal'));
+const ShareModal = lazy(() => import('./components/ShareModal'));
+
 function App() {
   const dispatch = useDispatch();
   
@@ -36,6 +39,11 @@ function App() {
   const error = useSelector(selectError);
   const analysisResult = useSelector(selectCurrentAnalysis);
   const aiInsights = useSelector(selectAiInsights);
+  
+  // Responsive hooks
+  const viewport = useViewport();
+  const deviceType = useDeviceType();
+  const networkStatus = useNetworkStatus();
   
   // Local state (for non-Redux managed state)
   const [userProfile, setUserProfile] = useState(null);
@@ -103,10 +111,11 @@ function App() {
         setShowShareModal(true);
       }
     },
-    'ctrl+n': () => {
-      if (currentView === 'analysis') {
-        handleNewAnalysis();
-      }
+    'ctrl+n': handleNewAnalysis,
+    'ctrl+d': handleDemoMode,
+    'escape': () => {
+      if (showExportModal) setShowExportModal(false);
+      if (showShareModal) setShowShareModal(false);
     }
   });
   
@@ -252,16 +261,18 @@ function App() {
     return 'ready';
   }, [loading, currentView]);
 
-  // Memoized components to prevent unnecessary re-renders
+  // Enhanced memoized components with suspense fallback
   const memoizedChatInput = useMemo(
     () => (
       <ChatInput
         onSubmit={handleInputSubmit}
         loading={loading}
-        placeholder="Enter GitHub username (e.g., 'torvalds') or repository URL"
+        placeholder={deviceType === 'mobile' 
+          ? "GitHub user or repo URL" 
+          : "Enter GitHub username (e.g., 'torvalds') or repository URL"}
       />
     ),
-    [handleInputSubmit, loading]
+    [handleInputSubmit, loading, deviceType]
   );
 
   const loadingComponent = useMemo(
@@ -274,10 +285,10 @@ function App() {
             ? 'repository'
             : 'default'
         }
-        showSkeleton={false}
+        showSkeleton={networkStatus.effectiveType === '3g' || networkStatus.effectiveType === '2g'}
       />
     ),
-    [currentInput.type]
+    [currentInput.type, networkStatus.effectiveType]
   );
 
   const errorComponent = useMemo(
@@ -302,7 +313,7 @@ function App() {
   }, [currentView]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white font-['Inter',sans-serif] flex flex-col" data-testid="app-ready">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white font-['Inter',sans-serif] flex flex-col overflow-x-hidden" data-testid="app-ready">
       {/* Fixed position background with proper viewport constraints */}
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_20%_80%,#8B5CF6_0%,transparent_50%),radial-gradient(circle_at_80%_20%,#3B82F6_0%,transparent_50%),radial-gradient(circle_at_40%_40%,#10B981_0%,transparent_50%)] opacity-10 pointer-events-none" />
       {/* Skip Navigation Link for Accessibility */}
@@ -320,62 +331,103 @@ function App() {
         {analysisResult && `Analysis complete. Vibe score: ${analysisResult.vibeScore?.total || 0}`}
       </div>
       
-      {/* Main Content Container with proper scrolling */}
-      <main id="main-content" className="relative z-10 w-full flex-1 overflow-y-auto overflow-x-hidden scrollbar-custom" role="main" aria-busy={loading}>
-        {/* Header Section - Now consistent across all views */}
-        <div data-testid="header">
-          <Header 
-            onDemoMode={handleDemoMode}
-            loading={loading}
-            currentView={currentView}
-            onNewSearch={handleNewAnalysis}
-            onExport={handleExport}
-            onShare={handleShare}
-            onNewAnalysis={handleNewAnalysis}
-            showAnalysisActions={currentView === 'analysis'}
-          />
-        </div>
-        
-        {/* Chat Input Section - Mobile Optimized */}
-        {currentView === 'ready' && (
-          <section ref={chatSectionRef} className="w-full px-responsive py-responsive" aria-label="Repository search">
-            <div className="container-narrow">
-              {/* Welcome Section - Mobile Optimized Typography */}
-              <div className="mb-6 sm:mb-8">
-                <div className="text-center mb-6 sm:mb-8">
-                  <h1 className="text-responsive-3xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent mb-3 sm:mb-4 leading-tight">
+      {/* Header Component */}
+      <Header 
+        onDemoMode={handleDemoMode}
+        loading={loading}
+        currentView={currentView}
+        onNewSearch={handleNewAnalysis}
+        onNewAnalysis={handleNewAnalysis}
+      />
+      
+      {/* Main Content Container with perfect centering */}
+      <main 
+        id="main-content" 
+        className="flex-1 flex items-center justify-center min-h-0"
+        role="main"
+        aria-busy={loading}
+        aria-live="polite"
+      >
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
+          {currentView === 'ready' && (
+            <div className="animate-fade-in flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] py-8">
+              {/* Hero Section with responsive typography - Perfectly Centered */}
+              <div className="text-center space-y-8 max-w-4xl mx-auto">
+                <div className="flex justify-center">
+                  <div className={`${
+                    deviceType === 'mobile' ? 'p-3' : 'p-4'
+                  } rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-600/20 backdrop-blur-sm animate-pulse-slow`}>
+                    <Zap className={`${
+                      deviceType === 'mobile' ? 'w-10 h-10' : 'w-12 h-12'
+                    } text-white`} aria-hidden="true" />
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h1 className={`font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent ${
+                    deviceType === 'mobile' 
+                      ? 'text-3xl' 
+                      : deviceType === 'tablet'
+                      ? 'text-4xl'
+                      : 'text-5xl'
+                  }`}>
                     Analyze Any GitHub Repository
                   </h1>
-                  <p className="text-gray-300 text-responsive-base max-w-2xl mx-auto leading-relaxed" role="status">
+                  <p className={`text-white/70 max-w-2xl mx-auto ${
+                    deviceType === 'mobile' ? 'text-sm px-4' : 'text-lg'
+                  }`}>
                     Enter a GitHub username or repository URL to get comprehensive insights
                   </p>
                 </div>
-                {memoizedChatInput}
+                
+                {/* Error Display */}
+                {errorComponent}
+                
+                {/* Chat Input Section - Centered */}
+                <div ref={chatSectionRef} className={`w-full max-w-3xl mx-auto ${
+                  deviceType === 'mobile' ? 'px-2' : 'px-0'
+                }`}>
+                  {memoizedChatInput}
+                </div>
               </div>
-              
-              {/* Error State */}
-              {errorComponent}
             </div>
-          </section>
-        )}
-
-        {/* Loading View - Centered and responsive */}
-        {(currentView === 'loading' || (currentView === 'ready' && loading)) && (
-          <section className="section-spacing px-responsive" aria-label="Loading">
-            <div className="container-narrow">
+          )}
+          
+          {/* Loading State */}
+          {loading && currentView === 'loading' && (
+            <div className="flex justify-center items-center min-h-[60vh]">
               {loadingComponent}
             </div>
-          </section>
-        )}
-
-        {/* Results Section - Full width on large screens with max constraint */}
-        {currentView === 'analysis' && combinedAnalysisResult && (
-          <section className="py-responsive" aria-label="Analysis results">
-            <div className="container-full">
-              <div data-testid="vibe-score-results">
+          )}
+          
+          {/* Demo Mode with Suspense */}
+          {currentView === 'demo' && (
+            <Suspense fallback={<LoadingSpinner variant="default" />}>
+              <DemoMode />
+            </Suspense>
+          )}
+          
+          {/* User Profile View with Suspense */}
+          {currentView === 'profile' && userProfile && (
+            <Suspense fallback={<LoadingSpinner variant="user" />}>
+              <GitHubUserProfile 
+                user={userProfile} 
+                repositories={userRepositories}
+                onAnalyzeRepo={(repo) => {
+                  const repoUrl = `https://github.com/${repo.owner.login}/${repo.name}`;
+                  dispatch(startAnalysisAndNavigate(repoUrl));
+                }}
+              />
+            </Suspense>
+          )}
+          
+          {/* Analysis Results View with Suspense */}
+          {currentView === 'analysis' && analysisResult && (
+            <Suspense fallback={<LoadingSpinner variant="repository" />}>
+              <div id="analysis-content" className="animate-fade-in">
                 <VibeScoreResults 
-                  result={combinedAnalysisResult}
-                  repoInfo={combinedAnalysisResult?.repoInfo || combinedAnalysisResult?.repositoryInfo}
+                  result={analysisResult}
+                  repoInfo={analysisResult?.repoInfo}
                   onNewAnalysis={handleNewAnalysis}
                   showExportModal={showExportModal}
                   setShowExportModal={setShowExportModal}
@@ -383,40 +435,54 @@ function App() {
                   setShowShareModal={setShowShareModal}
                 />
               </div>
-            </div>
-          </section>
-        )}
-
-        {currentView === 'profile' && userProfile && (
-          <section className="py-responsive" aria-label="User profile">
-            <div className="container-full">
-              <GitHubUserProfile
-                user={userProfile}
-                repositories={userRepositories}
-                onNewSearch={handleNewAnalysis}
-              />
-            </div>
-          </section>
-        )}
-
-        {/* Demo Mode View */}
-        {currentView === 'demo' && (
-          <section className="py-responsive" aria-label="Demo mode">
-            <div className="container-full">
-              <DemoMode
-                onExitDemo={handleNewAnalysis}
-              />
-            </div>
-          </section>
-        )}
+            </Suspense>
+          )}
+        </div>
       </main>
-
-      {/* Footer - Compact and fixed at bottom */}
-      <footer className="relative z-10 py-3 sm:py-4 text-center px-responsive border-t border-white/10" role="contentinfo">
-        <p className="text-gray-500 text-xs sm:text-sm">
-          Built with <span aria-label="love">❤️</span> for <span className="text-blue-400 font-semibold">Cognizant Vibe Coding 2025</span>
-        </p>
+      
+      {/* Footer */}
+      <footer className="mt-auto border-t border-white/10 bg-gray-900/50 backdrop-blur-sm">
+        <div className="max-w-[1920px] mx-auto px-4 py-6">
+          <div className="text-center">
+            <p className="text-sm text-gray-400">
+              Built with <span className="text-red-400">❤️</span> for{' '}
+              <span className="font-semibold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+                Cognizant Vibe Coding 2025
+              </span>
+            </p>
+          </div>
+        </div>
       </footer>
+      
+      {/* Export Modal with Suspense */}
+      {showExportModal && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" />}>
+          <ExportModal 
+            isOpen={showExportModal}
+            onClose={() => setShowExportModal(false)}
+            data={{
+              analysisResult,
+              aiInsights,
+              userProfile,
+              repositories: userRepositories
+            }}
+          />
+        </Suspense>
+      )}
+      
+      {/* Share Modal with Suspense */}
+      {showShareModal && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" />}>
+          <ShareModal 
+            isOpen={showShareModal}
+            onClose={() => setShowShareModal(false)}
+            data={{
+              analysisResult,
+              url: window.location.href
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

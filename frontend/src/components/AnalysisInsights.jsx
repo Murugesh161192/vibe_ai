@@ -5,6 +5,7 @@ import {
   ChevronDown, ChevronUp, Info, AlertCircle, BarChart3, Beaker, Package, 
   Award, Rocket, ArrowRight, Plus 
 } from 'lucide-react';
+import { useDeviceType } from '../utils/responsive';
 
 const Tooltip = ({ label, children }) => (
   <span className="relative group inline-flex items-center">
@@ -152,7 +153,7 @@ const MetricCard = ({
       {/* Content - takes remaining space */}
       <div className="flex-1 flex flex-col justify-between space-y-2">
         <h4 className="text-sm sm:text-base text-white/60 font-medium leading-tight">{label}</h4>
-        <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-none">
+        <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white leading-none">
           {value}
         </div>
         {subtext && (
@@ -219,7 +220,11 @@ const MetricCard = ({
 const RecommendationCard = ({ title, desc, level, icon: Icon, index = 0, category }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const deviceType = useDeviceType();
   const cardId = `recommendation-${title.toLowerCase().replace(/\s+/g, '-')}`;
+  
+  // Disable modal on mobile devices
+  const isModalEnabled = deviceType !== 'mobile';
   
   // Dynamic gradient backgrounds based on priority and index
   const gradientClasses = {
@@ -335,13 +340,19 @@ const RecommendationCard = ({ title, desc, level, icon: Icon, index = 0, categor
     if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') {
       return;
     }
-    setShowDetails(true);
+    // Only show modal if enabled (not on mobile)
+    if (isModalEnabled) {
+      setShowDetails(true);
+    }
   };
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      setShowDetails(true);
+      // Only show modal if enabled (not on mobile)
+      if (isModalEnabled) {
+        setShowDetails(true);
+      }
     }
   };
   
@@ -353,20 +364,20 @@ const RecommendationCard = ({ title, desc, level, icon: Icon, index = 0, categor
           group relative overflow-hidden rounded-2xl
           bg-gradient-to-br ${selectedGradient}
           border border-white/10 backdrop-blur-xl
-          transition-all duration-500 hover:scale-[1.02] hover:border-white/20
-          hover:shadow-2xl hover:-translate-y-1
-          animate-slide-up cursor-pointer
+          transition-all duration-500 
+          ${isModalEnabled ? 'hover:scale-[1.02] hover:border-white/20 hover:shadow-2xl hover:-translate-y-1 cursor-pointer' : ''}
+          animate-slide-up
           min-h-[160px] sm:min-h-[170px] lg:min-h-[180px]
         `}
         style={{ animationDelay: `${index * 75}ms` }}
-        role="button"
+        role={isModalEnabled ? "button" : "article"}
         aria-labelledby={`recommendation-title-${cardId}`}
-        aria-pressed={showDetails}
-        tabIndex="0"
-        onClick={handleCardClick}
-        onKeyDown={handleKeyPress}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
+        aria-pressed={isModalEnabled ? showDetails : undefined}
+        tabIndex={isModalEnabled ? "0" : undefined}
+        onClick={isModalEnabled ? handleCardClick : undefined}
+        onKeyDown={isModalEnabled ? handleKeyPress : undefined}
+        onFocus={isModalEnabled ? () => setIsFocused(true) : undefined}
+        onBlur={isModalEnabled ? () => setIsFocused(false) : undefined}
       >
         {/* Enhanced gradient overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -438,8 +449,8 @@ const RecommendationCard = ({ title, desc, level, icon: Icon, index = 0, categor
             </p>
           </div>
           
-          {/* Action indicator */}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
+          {/* Action indicator - Hidden on mobile devices */}
+          <div className="hidden sm:flex items-center justify-between mt-3 pt-3 border-t border-white/10">
             <span className="text-[11px] text-white/50 font-medium">
               Click for details
             </span>
@@ -462,8 +473,8 @@ const RecommendationCard = ({ title, desc, level, icon: Icon, index = 0, categor
         )}
       </article>
 
-      {/* Detailed Modal */}
-      {showDetails && (
+      {/* Detailed Modal - Only show on non-mobile devices */}
+      {isModalEnabled && showDetails && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
           onClick={() => setShowDetails(false)}

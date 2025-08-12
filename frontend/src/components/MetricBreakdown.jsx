@@ -212,7 +212,7 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
           
           {/* Enhanced score section with better responsive design */}
           <div className="flex flex-col items-end justify-start flex-shrink-0 min-w-0">
-            <div className={`text-xl sm:text-2xl lg:text-3xl xl:text-2xl 2xl:text-3xl font-bold ${scheme.text} leading-none`} data-testid="metric-score">
+            <div className={`text-lg sm:text-xl lg:text-2xl font-bold ${scheme.text} leading-none`} data-testid="metric-score">
               {score}
             </div>
             <div className="text-[10px] sm:text-xs text-white/60 mt-0.5 whitespace-nowrap">

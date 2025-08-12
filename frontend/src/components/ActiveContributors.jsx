@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Users, GitPullRequest, GitCommit, Code, Star, TrendingUp, Calendar, Award, MessageSquare, Clock, Activity, CheckCircle, AlertCircle, Zap, Shield } from 'lucide-react';
+import LazyImage from './LazyImage';
+import { useDeviceType, useViewport } from '../utils/responsive';
 
 const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }) => {
   const [loading, setLoading] = useState(false);
+  const deviceType = useDeviceType();
+  const viewport = useViewport();
 
   // Debug logging
   useEffect(() => {
@@ -84,137 +88,123 @@ const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }
     }
   };
 
-  // Enhanced contributor card component with improved layout
+  // Enhanced contributor card component with improved layout and LazyImage
   const ContributorCard = ({ contributor, index }) => {
     const impactInfo = getImpactDisplay(contributor.impact);
     const isTopContributor = index === 0;
 
+    // Responsive avatar sizing
+    const avatarSize = deviceType === 'mobile' ? 56 : deviceType === 'tablet' ? 64 : 72;
+    const avatarClasses = `rounded-xl border-2 border-white/20 shadow-lg object-cover ${
+      deviceType === 'mobile' ? 'w-14 h-14' : 
+      deviceType === 'tablet' ? 'w-16 h-16' : 'w-18 h-18'
+    }`;
+
     return (
-      <div className="group relative p-5 sm:p-6 lg:p-7 rounded-xl bg-gradient-to-br from-white/5 to-white/2 border border-white/10 hover:border-white/20 transition-all duration-300 hover:transform hover:scale-[1.01]">
+      <div className="group relative p-4 sm:p-5 lg:p-6 rounded-xl bg-gradient-to-br from-white/5 to-white/2 border border-white/10 hover:border-white/20 transition-all duration-300 hover:transform hover:scale-[1.01]">
         {/* Top contributor crown - Enhanced positioning */}
         {isTopContributor && (
-          <div className="absolute -top-3 -right-3 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center border-2 border-white/20 shadow-lg z-10">
-            <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+          <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center border-2 border-white/20 shadow-lg z-10">
+            <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 text-white" />
           </div>
         )}
 
-        <div className="flex items-start gap-4 sm:gap-5">
-          {/* Enhanced avatar section */}
+        <div className="flex items-start gap-3 sm:gap-4">
+          {/* Enhanced avatar section with LazyImage */}
           <div className="relative flex-shrink-0">
             {contributor.avatar_url ? (
-              <img
+              <LazyImage
                 src={contributor.avatar_url}
-                alt={contributor.login}
-                className="w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-xl border-2 border-white/20 shadow-lg object-cover"
-                onError={(e) => {
-                  // Fallback: hide broken image and show initials instead
-                  e.target.style.display = 'none';
-                  const fallbackDiv = e.target.nextElementSibling;
-                  if (fallbackDiv) {
-                    fallbackDiv.style.display = 'flex';
-                  }
+                alt={`${contributor.login}'s avatar`}
+                className={avatarClasses}
+                width={avatarSize}
+                height={avatarSize}
+                sizes={`${avatarSize}px`}
+                priority={index < 3} // Priority load for first 3 contributors
+                onError={() => {
+                  console.log(`Failed to load avatar for ${contributor.login}`);
                 }}
               />
-            ) : null}
-            {/* Fallback avatar with initials - always render but hide when image loads */}
-            <div 
-              className="w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center border-2 border-white/20 shadow-lg"
-              style={{ display: contributor.avatar_url ? 'none' : 'flex' }}
-            >
-              <span className="text-white font-bold text-base sm:text-lg lg:text-xl">
-                {contributor.login?.[0]?.toUpperCase() || '?'}
-              </span>
-            </div>
+            ) : (
+              // Fallback avatar with initials
+              <div className={`${avatarClasses} bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center`}>
+                <span className="text-white font-bold text-sm sm:text-base lg:text-lg">
+                  {contributor.login?.[0]?.toUpperCase() || '?'}
+                </span>
+              </div>
+            )}
 
             {/* Impact indicator moved to avatar overlay */}
             {contributor.impact && (
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                <span className="text-xs sm:text-sm">{impactInfo.icon}</span>
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+                <span className="text-xs">{impactInfo.icon}</span>
               </div>
             )}
           </div>
 
-          {/* Enhanced contributor information */}
-          <div className="flex-1 min-w-0 space-y-4">
-            {/* Name section with improved alignment */}
-            <div className="space-y-2">
-              <div className="flex items-center">
-                {contributor.html_url ? (
-                  <a
-                    href={contributor.html_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-white font-bold text-base sm:text-lg hover:text-blue-400 transition-colors truncate group-hover:text-blue-300"
-                  >
-                    {contributor.login}
-                  </a>
-                ) : (
-                  <span className="text-white font-bold text-base sm:text-lg truncate">
-                    {contributor.login}
-                  </span>
+          {/* Enhanced contributor information with better responsive design */}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+              <div className="min-w-0">
+                <h4 className="font-semibold text-white text-sm sm:text-base truncate group-hover:text-blue-300 transition-colors">
+                  {contributor.login}
+                </h4>
+                {contributor.name && contributor.name !== contributor.login && (
+                  <p className="text-xs sm:text-sm text-white/60 truncate">
+                    {contributor.name}
+                  </p>
                 )}
               </div>
+              
+              {/* Impact badge - responsive positioning */}
+              {contributor.impact && (
+                <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${impactInfo.className} flex-shrink-0`}>
+                  <span className="hidden sm:inline">{impactInfo.label}</span>
+                  <span className="sm:hidden">{impactInfo.shortLabel}</span>
+                </div>
+              )}
+            </div>
 
-              {/* Role badge positioned directly below name */}
-              {contributor.role && (
-                <div className="flex items-start">
-                  <span className="inline-flex items-center text-xs sm:text-sm px-3 py-1.5 bg-purple-500/20 text-purple-300 rounded-lg border border-purple-500/30 font-medium">
-                    {contributor.role}
+            {/* Enhanced stats grid with responsive layout */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm">
+              <div className="flex items-center gap-1.5 text-white/70">
+                <GitCommit className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">
+                  {contributor.contributions || 0} commits
+                </span>
+              </div>
+              
+              {contributor.additions && (
+                <div className="flex items-center gap-1.5 text-green-400">
+                  <span className="text-xs">+</span>
+                  <span className="truncate">
+                    {contributor.additions.toLocaleString()}
+                  </span>
+                </div>
+              )}
+              
+              {contributor.deletions && (
+                <div className="flex items-center gap-1.5 text-red-400">
+                  <span className="text-xs">-</span>
+                  <span className="truncate">
+                    {contributor.deletions.toLocaleString()}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Enhanced contribution statistics */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/70">
-              <div className="flex items-center gap-2">
-                <GitCommit className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                <span className="font-medium">{contributor.contributions || 0}</span>
-                <span className="text-white/50">commits</span>
+            {/* Enhanced recent activity section */}
+            {contributor.recentActivity && (
+              <div className="mt-3 p-2 sm:p-3 bg-white/5 rounded-lg">
+                <h5 className="text-xs font-medium text-white/80 mb-1 flex items-center gap-1">
+                  <Activity className="w-3 h-3" />
+                  Recent Activity
+                </h5>
+                <p className="text-xs text-white/60 line-clamp-2">
+                  {contributor.recentActivity}
+                </p>
               </div>
-              {contributor.percentage && (
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-green-400 flex-shrink-0" />
-                  <span className="font-medium">{contributor.percentage}%</span>
-                  <span className="text-white/50">contribution</span>
-                </div>
-              )}
-              {contributor.expertise && (
-                <div className="flex items-center gap-2">
-                  <Code className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                  <span className="font-medium truncate max-w-32 sm:max-w-none">{contributor.expertise}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Enhanced impact and progress section */}
-            <div className="space-y-3">
-              {/* Impact badge with better positioning */}
-              {contributor.impact && (
-                <div className="flex items-center gap-2">
-                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${impactInfo.className}`}>
-                    <span className="text-base">{impactInfo.icon}</span>
-                    <span>{impactInfo.label}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Enhanced contribution progress bar */}
-              {contributor.percentage && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-white/60 font-medium">Contribution Level</span>
-                    <span className="text-white font-semibold">{contributor.percentage}%</span>
-                  </div>
-                  <div className="h-2.5 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-violet-500 to-indigo-600 transition-all duration-700 ease-out"
-                      style={{ width: `${Math.min(contributor.percentage, 100)}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -246,7 +236,7 @@ const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }
 
         {/* Value section - Aligned to bottom */}
         <div className="mt-auto">
-          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-none">
+          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white leading-none">
             {typeof value === 'object' ? JSON.stringify(value) : String(value ?? '0')}
           </div>
         </div>

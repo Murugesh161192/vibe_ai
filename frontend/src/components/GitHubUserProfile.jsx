@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { MapPin, Calendar, ExternalLink, Star, GitFork, Building, Bot, BarChart3, Activity, ChevronDown, Eye } from 'lucide-react';
 import RepositoryList from './RepositoryList';
 import { SummaryModal } from './Modal';
+import LazyImage from './LazyImage';
 import { startAnalysisAndNavigate } from '../store/slices/analysisSlice';
 import { 
   summarizeRepositoryReadme, 
@@ -10,9 +11,12 @@ import {
   selectRepoError,
   selectCachedSummary 
 } from '../store/slices/aiSlice';
+import { useDeviceType, useViewport } from '../utils/responsive';
 
 const GitHubUserProfile = ({ user, repositories = [], onNewSearch }) => {
   const dispatch = useDispatch();
+  const deviceType = useDeviceType();
+  const viewport = useViewport();
   const [loadingSummary, setLoadingSummary] = useState({});
   const [loadingAnalyze, setLoadingAnalyze] = useState({});
   const [summaryData, setSummaryData] = useState({});
@@ -225,7 +229,9 @@ const GitHubUserProfile = ({ user, repositories = [], onNewSearch }) => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className={`space-y-8 ${
+      deviceType === 'mobile' ? 'pt-6' : 'pt-8 sm:pt-12 lg:pt-16'
+    }`}>
       
       {/* Enhanced User Profile Card with Premium Design */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 shadow-2xl">
@@ -238,12 +244,17 @@ const GitHubUserProfile = ({ user, repositories = [], onNewSearch }) => {
             {/* Avatar and Basic Info - Improved Mobile Layout */}
             <div className="flex flex-col items-center lg:items-start flex-shrink-0 w-full lg:w-auto">
               <div className="relative mb-4">
-                <img
+                <LazyImage
                   src={safeUser.avatar_url}
                   alt={`${safeUser.login}'s avatar`}
-                  className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl border-3 border-white/20 shadow-xl"
-                  onError={(e) => {
-                    e.target.src = 'https://github.com/identicons/default.png';
+                  className={`rounded-2xl border-3 border-white/20 shadow-xl ${
+                    deviceType === 'mobile' ? 'w-24 h-24' : 'w-32 h-32'
+                  }`}
+                  width={deviceType === 'mobile' ? 96 : 128}
+                  height={deviceType === 'mobile' ? 96 : 128}
+                  priority={true}
+                  onError={() => {
+                    // Fallback handled by LazyImage component
                   }}
                   data-testid="user-avatar"
                 />

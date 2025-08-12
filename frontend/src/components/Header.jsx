@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { Play, Home, Search, Zap, Download, Share2, RefreshCw, ChevronDown, Github, Sparkles, Menu, X, Info } from 'lucide-react';
+import { Play, Home, Search, Zap, RefreshCw, ChevronDown, Github, Sparkles, Menu, X, Info } from 'lucide-react';
 import { startAnalysisAndNavigate } from '../store/slices/analysisSlice';
 import { setCurrentView, setError, setLoading } from '../store/slices/appSlice';
 import { clearAnalysis } from '../store/slices/analysisSlice';
@@ -12,10 +12,7 @@ const Header = ({
   loading, 
   currentView, 
   onNewSearch, 
-  onExport, 
-  onShare, 
-  onNewAnalysis,
-  showAnalysisActions = false
+  onNewAnalysis
 }) => {
   const [selectedTech, setSelectedTech] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -236,28 +233,6 @@ const Header = ({
                       <span className="hidden lg:inline">New Analysis</span>
                       <span className="lg:hidden">New</span>
                     </button>
-                    
-                    {showAnalysisActions && (
-                      <>
-                        <button
-                          onClick={onExport}
-                          className="btn-ghost text-xs sm:text-sm flex items-center gap-1.5 min-h-[40px] px-3"
-                          aria-label="Export results"
-                        >
-                          <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
-                          <span className="hidden lg:inline">Export</span>
-                        </button>
-                        
-                        <button
-                          onClick={onShare}
-                          className="btn-primary text-xs sm:text-sm flex items-center gap-1.5 min-h-[40px] px-3"
-                          aria-label="Share results"
-                        >
-                          <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" aria-hidden="true" />
-                          <span>Share</span>
-                        </button>
-                      </>
-                    )}
                   </>
                 )}
                 
@@ -373,34 +348,6 @@ const Header = ({
                         <RefreshCw className="w-4 h-4" aria-hidden="true" />
                         <span>New Analysis</span>
                       </button>
-                      
-                      {showAnalysisActions && (
-                        <>
-                          <button
-                            onClick={() => {
-                              onExport();
-                              setMobileMenuOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-3 hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
-                            role="menuitem"
-                          >
-                            <Download className="w-4 h-4" aria-hidden="true" />
-                            <span>Export Results</span>
-                          </button>
-                          
-                          <button
-                            onClick={() => {
-                              onShare();
-                              setMobileMenuOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 text-white"
-                            role="menuitem"
-                          >
-                            <Share2 className="w-4 h-4" aria-hidden="true" />
-                            <span>Share Results</span>
-                          </button>
-                        </>
-                      )}
                     </>
                   )}
                 </div>
