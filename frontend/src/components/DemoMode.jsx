@@ -257,31 +257,7 @@ const DemoMode = ({ onExitDemo }) => {
         </div>
       </div>
 
-      {/* Final CTA Section removed; consolidated into sticky footer */}
 
-      {/* Sticky Footer CTA (single source of actions) */}
-      <div className="fixed inset-x-4 bottom-4 z-30 safe-bottom">
-        <div className="card-glass p-3 flex items-center justify-between gap-3 rounded-xl border border-white/10 backdrop-blur max-w-4xl mx-auto">
-          <div className="text-white/80 text-sm hidden sm:block">Ready to get full insights?</div>
-          <div className="flex items-center gap-2 ml-auto">
-            <button
-              onClick={onExitDemo}
-              className="btn-secondary"
-            >
-              Exit Demo
-            </button>
-            <button
-              onClick={() => {
-                // The demo CTA should nudge users to real analysis via the parent flow
-                onExitDemo();
-              }}
-              className="btn-primary"
-            >
-              Try Real Analysis
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

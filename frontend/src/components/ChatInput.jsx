@@ -144,7 +144,7 @@ const ChatInput = ({ onSubmit, loading, placeholder = "Enter GitHub username or 
         noValidate
       >
         <div className="relative group">
-          {/* Enhanced input field with glassmorphism */}
+          {/* Enhanced input field with mobile-first design */}
           <div className="relative">
             <input
               ref={inputRef}
@@ -157,26 +157,26 @@ const ChatInput = ({ onSubmit, loading, placeholder = "Enter GitHub username or 
               placeholder={isFocused || input ? placeholder : ''}
               disabled={disabled || loading}
               className={`
-                w-full px-4 sm:px-6 lg:px-8 
-                py-4 sm:py-5 lg:py-6 
-                pr-24 sm:pr-32 lg:pr-36
+                w-full px-4 sm:px-5 lg:px-6 
+                py-4 sm:py-4 lg:py-5 
+                pr-20 sm:pr-24 lg:pr-28
                 text-base sm:text-lg lg:text-xl 
                 bg-white/5 backdrop-blur-2xl
-                border-2 rounded-2xl 
-                text-white placeholder-transparent
-                shadow-2xl 
-                transition-all duration-500 ease-out
-                min-h-[56px] sm:min-h-[64px] lg:min-h-[72px]
+                border-2 rounded-xl sm:rounded-2xl 
+                text-white placeholder-white/40
+                shadow-xl 
+                transition-all duration-300 ease-out
+                min-h-[56px] sm:min-h-[60px] lg:min-h-[68px]
                 ${isFocused 
-                  ? 'border-violet-400/60 shadow-violet-500/20' 
+                  ? 'border-violet-400/60 shadow-violet-500/20 bg-white/8' 
                   : isValidInput 
                     ? 'border-emerald-400/40 shadow-emerald-500/10' 
-                    : 'border-white/10 hover:border-white/20'
+                    : 'border-white/15 hover:border-white/25'
                 }
                 ${error ? 'border-red-400/60 shadow-red-500/20' : ''}
                 ${disabled || loading ? 'opacity-60 cursor-not-allowed' : ''}
-                focus:outline-none focus:border-violet-400/80 focus:shadow-2xl focus:shadow-violet-500/20
-                hover:shadow-xl hover:bg-white/10
+                focus:outline-none focus:border-violet-400/80 focus:shadow-xl focus:shadow-violet-500/20
+                hover:shadow-lg hover:bg-white/8
               `}
               aria-label="Enter GitHub repository URL, owner/repo, or username"
               aria-invalid={error ? 'true' : 'false'}
@@ -190,21 +190,21 @@ const ChatInput = ({ onSubmit, loading, placeholder = "Enter GitHub username or 
             
             {/* Custom Animated Placeholder */}
             {!input && (
-              <div className={`absolute left-4 sm:left-6 lg:left-8 top-1/2 -translate-y-1/2 pointer-events-none transition-all duration-500 ${isFocused ? 'opacity-0 translate-y-[-150%] scale-75' : 'opacity-100'}`}>
+              <div className={`absolute left-4 sm:left-5 lg:left-6 top-1/2 -translate-y-1/2 pointer-events-none transition-all duration-300 ${isFocused ? 'opacity-0 translate-y-[-100%] scale-90' : 'opacity-100'}`}>
                 {showSuggestions ? (
-                  <div className="flex items-center gap-3 animate-fade-in">
-                    <currentSuggestion.icon className="w-5 h-5 text-violet-400/70" />
-                    <div>
-                      <span className="text-white/90 text-base sm:text-lg font-medium">
+                  <div className="flex items-center gap-2 sm:gap-3 animate-fade-in">
+                    <currentSuggestion.icon className="w-4 h-4 sm:w-5 sm:h-5 text-violet-400/70 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-white/90 text-sm sm:text-base lg:text-lg font-medium">
                         {currentSuggestion.text}
                       </span>
-                      <span className="text-white/40 text-sm sm:text-base ml-2">
+                      <span className="text-white/40 text-xs sm:text-sm lg:text-base ml-1 sm:ml-2 hidden sm:inline">
                         — {currentSuggestion.description}
                       </span>
                     </div>
                   </div>
                 ) : (
-                  <span className="text-white/40 text-base sm:text-lg">
+                  <span className="text-white/40 text-sm sm:text-base lg:text-lg">
                     {placeholder}
                   </span>
                 )}
@@ -213,48 +213,49 @@ const ChatInput = ({ onSubmit, loading, placeholder = "Enter GitHub username or 
             
             {/* Enhanced loading indicator */}
             {loading && (
-              <div className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 flex items-center gap-3" aria-hidden="true">
+              <div className="absolute left-4 sm:left-5 lg:left-6 top-1/2 -translate-y-1/2 flex items-center gap-2 sm:gap-3" aria-hidden="true">
                 <div className="relative">
-                  <div className="w-5 h-5 border-2 border-violet-400/30 rounded-full" />
-                  <div className="absolute top-0 left-0 w-5 h-5 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-violet-400/30 rounded-full" />
+                  <div className="absolute top-0 left-0 w-4 h-4 sm:w-5 sm:h-5 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
                 </div>
-                <span className="text-violet-400 text-sm font-medium animate-pulse">
+                <span className="text-violet-400 text-xs sm:text-sm font-medium animate-pulse">
                   Analyzing...
                 </span>
               </div>
             )}
             
-            {/* Enhanced submit button with better states */}
+            {/* Enhanced submit button with mobile-first design */}
             <button
               type="submit"
               disabled={disabled || loading || !input.trim()}
               className={`
                 absolute right-2 sm:right-3 lg:right-4 
                 top-1/2 -translate-y-1/2 
-                px-4 sm:px-6 lg:px-8 
-                py-2.5 sm:py-3 lg:py-3.5 
+                px-4 sm:px-5 lg:px-6 
+                py-3 sm:py-3 lg:py-3.5 
                 text-sm sm:text-base lg:text-lg 
-                font-semibold rounded-xl 
+                font-semibold rounded-lg sm:rounded-xl 
                 transition-all duration-300 ease-out
-                min-h-[44px] sm:min-h-[50px] lg:min-h-[56px]
-                min-w-[80px] sm:min-w-[100px] lg:min-w-[120px]
+                min-h-[48px] sm:min-h-[52px] lg:min-h-[56px]
+                min-w-[72px] sm:min-w-[90px] lg:min-w-[110px]
+                touch-manipulation
                 ${isValidInput && !loading && !disabled
-                  ? 'bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white shadow-lg hover:shadow-2xl hover:shadow-violet-500/25 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:ring-offset-2 focus:ring-offset-transparent active:scale-95'
-                  : 'bg-white/5 text-white/30 cursor-not-allowed border border-white/5'
+                  ? 'bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white shadow-lg hover:shadow-xl hover:shadow-violet-500/25 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:ring-offset-2 focus:ring-offset-gray-900 active:scale-[0.98]'
+                  : 'bg-white/8 text-white/40 cursor-not-allowed border border-white/10'
                 }
               `}
               aria-label={loading ? 'Analyzing repository' : 'Analyze repository'}
             >
               {loading ? (
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span className="hidden sm:inline">Processing</span>
+                  <span className="hidden sm:inline text-xs sm:text-sm lg:text-base">Loading</span>
                 </div>
               ) : (
-                <div className="flex items-center justify-center gap-2">
-                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="hidden sm:inline">Analyze</span>
-                  <span className="sm:hidden">Go</span>
+                <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                  <Sparkles className="w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5" />
+                  <span className="hidden sm:inline text-xs sm:text-sm lg:text-base">Analyze</span>
+                  <span className="sm:hidden text-sm font-medium">Go</span>
                 </div>
               )}
             </button>
@@ -265,29 +266,17 @@ const ChatInput = ({ onSubmit, loading, placeholder = "Enter GitHub username or 
         {error && (
           <div 
             id="input-error"
-            className="mt-4 px-4 py-3 bg-red-500/10 backdrop-blur-xl border border-red-500/20 rounded-xl animate-slide-down"
+            className="mt-3 sm:mt-4 px-3 sm:px-4 py-2.5 sm:py-3 bg-red-500/10 backdrop-blur-xl border border-red-500/20 rounded-lg sm:rounded-xl animate-slide-down"
             role="alert"
           >
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-              <p className="text-sm text-red-400 font-medium">{error}</p>
+            <div className="flex items-start sm:items-center gap-2 sm:gap-3">
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-400 flex-shrink-0 mt-0.5 sm:mt-0" />
+              <p className="text-xs sm:text-sm text-red-400 font-medium leading-relaxed">{error}</p>
             </div>
           </div>
         )}
         
 
-        
-        {/* Enhanced help text */}
-        {!error && (
-          <div 
-            id="input-hint"
-            className="mt-3 text-center"
-          >
-            <p className="text-xs sm:text-sm text-white/30">
-              Enter a GitHub repo URL, owner/repo format, or username to get started
-            </p>
-          </div>
-        )}
       </form>
       
       {/* Enhanced keyboard shortcuts hint */}

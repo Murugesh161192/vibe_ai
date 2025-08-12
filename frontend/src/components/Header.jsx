@@ -112,8 +112,8 @@ const Header = ({
         className="fixed top-0 left-0 right-0 z-50 animate-slide-down"
         style={{
           paddingTop: 'env(safe-area-inset-top, 0)', // Support for notched devices
-          WebkitBackdropFilter: 'blur(12px)', // Safari support
-          backdropFilter: 'blur(12px)'
+          WebkitBackdropFilter: 'blur(20px)', // Enhanced Safari support
+          backdropFilter: 'blur(20px)'
         }}
         role="banner"
         aria-label="Main header"
@@ -126,8 +126,11 @@ const Header = ({
           Skip to main content
         </a>
         
-        {/* Header with mobile-optimized styling */}
-        <div className="bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-sm border-b border-white/10">
+        {/* Header with glassmorphism effect */}
+        <div className="bg-white/[0.02] backdrop-blur-xl border-b border-white/[0.08] shadow-lg shadow-black/20 relative">
+          {/* Glass effect overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/[0.05] via-white/[0.02] to-white/[0.05] pointer-events-none"></div>
+          <div className="relative">
           <div className="px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 py-2.5 xs:py-3 sm:py-4">
             <div className="flex items-center justify-between gap-2 xs:gap-3">
               {/* Left Side - Logo and Title (Mobile Optimized) */}
@@ -142,8 +145,7 @@ const Header = ({
                   </div>
                   <div className="flex flex-col min-w-0">
                     <span className="text-sm xs:text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent truncate">
-                      <span className="xs:hidden">Vibe Assistant</span>
-                      <span className="hidden xs:inline">Vibe GitHub Assistant</span>
+                      Vibe GitHub Assistant
                     </span>
                     <span className="text-[9px] xs:text-[10px] sm:text-xs text-gray-400 hidden xs:block truncate">
                       AI-Powered Repository Analysis
@@ -353,6 +355,7 @@ const Header = ({
                 </div>
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>
