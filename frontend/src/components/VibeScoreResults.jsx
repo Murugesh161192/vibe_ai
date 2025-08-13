@@ -374,15 +374,7 @@ const VibeScoreResults = ({
   
 
 
-  // Debug: Log what we're receiving
-  useEffect(() => {
-    console.log('📊 VibeScoreResults received:', {
-      hasResult: !!result,
-      hasAiInsights: !!result?.aiInsights,
-      aiInsightsData: result?.aiInsights,
-      fullResult: result
-    });
-  }, [result]);
+
 
   // Extract data from result with fallbacks
   const analysis = result?.analysis || {};
@@ -395,46 +387,7 @@ const VibeScoreResults = ({
   // Extract repository info from result.repoInfo or passed repoInfo prop
   const repositoryInfo = result?.repoInfo || repoInfo || {};
   
-  // Debug logging for breakdown data
-  useEffect(() => {
-    console.log('📊 VibeScoreResults - Genuine API Data:');
-    console.log('  Full result object:', result);
-    console.log('  vibeScore object:', vibeScore);
-    console.log('  breakdown object (from API):', breakdown);
-    console.log('  breakdown keys:', Object.keys(breakdown));
-    console.log('  breakdown values:', Object.values(breakdown));
-    console.log('  All metrics present?', Object.keys(breakdown).length >= 12);
-    
-    // Log each metric to verify API data
-    const expectedMetrics = [
-      'codeQuality', 'readability', 'collaboration', 'innovation',
-      'maintainability', 'inclusivity', 'security', 'performance',
-      'testingQuality', 'communityHealth', 'codeHealth', 'releaseManagement'
-    ];
-    
-    console.log('  Metric verification from API:');
-    expectedMetrics.forEach(metric => {
-      const value = breakdown[metric];
-      console.log(`    ${metric}: ${value !== undefined ? value : 'MISSING'}`);
-    });
-    
-    // Additional debug: Check the entire chain
-    console.log('📊 Data chain verification:');
-    console.log('  result.vibeScore exists?', !!result?.vibeScore);
-    console.log('  result.vibeScore.breakdown exists?', !!result?.vibeScore?.breakdown);
-    console.log('  result.vibeScore.breakdown keys:', result?.vibeScore?.breakdown ? Object.keys(result.vibeScore.breakdown) : 'N/A');
-    console.log('  Direct breakdown keys:', Object.keys(breakdown));
-    console.log('  Breakdown is empty object?', Object.keys(breakdown).length === 0);
-    
-    // Check if we're getting the data from the right place
-    if (result?.vibeScore?.breakdown) {
-      console.log('✅ Found breakdown in result.vibeScore.breakdown');
-    } else if (result?.breakdown) {
-      console.log('✅ Found breakdown in result.breakdown');
-    } else {
-      console.log('❌ No breakdown found in expected locations');
-    }
-  }, [result, vibeScore, breakdown]);
+
   
   // FIX: Backend returns 'total' not 'overall'
   const overallScore = 
@@ -657,7 +610,7 @@ const VibeScoreResults = ({
                   : 'flex-col sm:flex-row'
               }`}>
                 <button
-                  onClick={() => setShowExportModal(true)}
+                  onClick={() => handleExportModalToggle(true)}
                   className={`btn-ghost ${
                     deviceType === 'mobile' ? 'w-full text-xs' : 'text-xs sm:text-sm'
                   }`}
@@ -668,7 +621,7 @@ const VibeScoreResults = ({
                 </button>
                 
                 <button
-                  onClick={() => setShowShareModal(true)}
+                  onClick={() => handleShareModalToggle(true)}
                   className={`btn-primary ${
                     deviceType === 'mobile' ? 'w-full text-xs' : 'text-xs sm:text-sm'
                   }`}
@@ -996,19 +949,21 @@ const VibeScoreResults = ({
           </div>
 
           {/* Repository Insights Section - Better mobile layout */}
-          <div className={`${
-            deviceType === 'mobile' ? 'px-3 mb-4' : 'px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6'
-          }`}>
-            <Suspense fallback={<LoadingSpinner message="Loading insights..." />}>
-              <RepositoryInsights 
-                repoUrl={result?.repoUrl || `https://github.com/${repositoryInfo?.owner?.login || repositoryInfo?.owner}/${repositoryInfo?.name}`}
-                repoName={repositoryInfo?.name}
-                preloadedInsights={analysis}
-                autoGenerate={false}
-                className="w-full"
-              />
-            </Suspense>
-          </div>
+          {!result?.aiInsightsError && (
+            <div className={`${
+              deviceType === 'mobile' ? 'px-3 mb-4' : 'px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6'
+            }`}>
+              <Suspense fallback={<LoadingSpinner message="Loading insights..." />}>
+                <RepositoryInsights 
+                  repoUrl={result?.repoUrl || `https://github.com/${repositoryInfo?.owner?.login || repositoryInfo?.owner}/${repositoryInfo?.name}`}
+                  repoName={repositoryInfo?.name}
+                  preloadedInsights={analysis}
+                  autoGenerate={false}
+                  className="w-full"
+                />
+              </Suspense>
+            </div>
+          )}
 
           {/* Active Contributors Section - Always visible for better user experience */}
           <div className={`${

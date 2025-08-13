@@ -150,19 +150,24 @@ global.d3 = {
 };
 
 // Mock window.matchMedia with proper implementation
+const mockMediaQueryList = {
+  matches: false,
+  media: '',
+  onchange: null,
+  addListener: vi.fn(),
+  removeListener: vi.fn(),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+};
+
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
+  value: vi.fn((query) => ({
+    ...mockMediaQueryList,
+    media: query || '',
   })),
-})
+});
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
@@ -230,10 +235,74 @@ if (!document.body) {
 }
 
 // Mock getComputedStyle to return valid values
-global.getComputedStyle = vi.fn().mockImplementation(() => ({
-  fontSize: '16px',
-  getPropertyValue: vi.fn().mockReturnValue('16px'),
-}));
+global.getComputedStyle = vi.fn().mockImplementation((element, pseudoElement) => {
+  const style = {
+    fontSize: '16px',
+    display: 'block',
+    visibility: 'visible',
+    opacity: '1',
+    height: '100px',
+    width: '100px',
+    position: 'static',
+    zIndex: '0',
+    transform: 'none',
+    clip: 'auto',
+    clipPath: 'none',
+    overflow: 'visible',
+    pointerEvents: 'auto',
+    color: 'rgb(0, 0, 0)',
+    backgroundColor: 'rgba(0, 0, 0, 0)'
+  };
+  
+  const getPropertyValue = vi.fn().mockImplementation((property) => {
+    const normalizedProperty = property.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+    const values = {
+      'font-size': '16px',
+      'display': 'block',
+      'visibility': 'visible',
+      'opacity': '1',
+      'height': '100px',
+      'width': '100px',
+      'position': 'static',
+      'z-index': '0',
+      'transform': 'none',
+      'clip': 'auto',
+      'clip-path': 'none',
+      'overflow': 'visible',
+      'pointer-events': 'auto',
+      'color': 'rgb(0, 0, 0)',
+      'background-color': 'rgba(0, 0, 0, 0)',
+      // Add the normalized property names too
+      'fontSize': '16px',
+      'display': 'block',
+      'visibility': 'visible',
+      'opacity': '1',
+      'height': '100px',
+      'width': '100px',
+      'position': 'static',
+      'zIndex': '0',
+      'transform': 'none',
+      'clip': 'auto',
+      'clipPath': 'none',
+      'overflow': 'visible',
+      'pointerEvents': 'auto',
+      'color': 'rgb(0, 0, 0)',
+      'backgroundColor': 'rgba(0, 0, 0, 0)'
+    };
+    return values[property] || values[normalizedProperty] || '';
+  });
+  
+  return {
+    ...style,
+    getPropertyValue,
+    // Add length property for CSSStyleDeclaration interface
+    length: Object.keys(style).length,
+    // Add item method
+    item: vi.fn().mockImplementation((index) => Object.keys(style)[index] || null),
+    // Add all the direct properties for access
+    ...Object.fromEntries(Object.entries(style).map(([key, value]) => [key, value]))
+  };
+});
 
 // Mock navigator.clipboard for share tests
 Object.defineProperty(navigator, 'clipboard', {
@@ -241,5 +310,65 @@ Object.defineProperty(navigator, 'clipboard', {
     writeText: vi.fn().mockResolvedValue(true),
     readText: vi.fn().mockResolvedValue(''),
   },
+  writable: true,
+});
+
+// Mock Element.prototype methods for accessibility tests
+Object.defineProperty(Element.prototype, 'getBoundingClientRect', {
+  value: vi.fn().mockReturnValue({
+    top: 0,
+    left: 0,
+    bottom: 100,
+    right: 100,
+    width: 100,
+    height: 100,
+    x: 0,
+    y: 0
+  }),
+  writable: true,
+});
+
+Object.defineProperty(Element.prototype, 'clientHeight', {
+  value: 100,
+  writable: true,
+});
+
+Object.defineProperty(Element.prototype, 'clientWidth', {
+  value: 100,
+  writable: true,
+});
+
+Object.defineProperty(Element.prototype, 'scrollHeight', {
+  value: 100,
+  writable: true,
+});
+
+Object.defineProperty(Element.prototype, 'scrollWidth', {
+  value: 100,
+  writable: true,
+});
+
+Object.defineProperty(Element.prototype, 'offsetHeight', {
+  value: 100,
+  writable: true,
+});
+
+Object.defineProperty(Element.prototype, 'offsetWidth', {
+  value: 100,
+  writable: true,
+});
+
+Object.defineProperty(Element.prototype, 'offsetParent', {
+  value: null,
+  writable: true,
+});
+
+Object.defineProperty(Element.prototype, 'offsetTop', {
+  value: 0,
+  writable: true,
+});
+
+Object.defineProperty(Element.prototype, 'offsetLeft', {
+  value: 0,
   writable: true,
 }); 

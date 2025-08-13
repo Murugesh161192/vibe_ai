@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Lightbulb, TrendingUp, AlertTriangle, CheckCircle, Target, Zap, Users, 
   BookOpen, Code, Globe, Star, GitBranch, Clock, Shield, Heart, FileCode, 
@@ -615,16 +615,7 @@ const AnalysisInsights = ({ analysis, aiInsights }) => {
   
   const recommendationsRef = useRef(null);
 
-  // Debug: Log AI insights to verify data flow
-  useEffect(() => {
-    if (aiInsights) {
-      console.log('📊 AI Insights received:', {
-        keyInsights: aiInsights?.keyInsights,
-        smartRecommendations: aiInsights?.smartRecommendations,
-        fullData: aiInsights
-      });
-    }
-  }, [aiInsights]);
+
 
   if (!analysis && !aiInsights) return null;
   

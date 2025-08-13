@@ -19,29 +19,7 @@ const RadarChart = memo(({ data }) => {
   const prefersReducedMotion = usePrefersReducedMotion();
   const announce = useAnnouncement();
 
-  // Debug logging
-  useEffect(() => {
-    console.log('🎯 RadarChart - Using Genuine API Data:');
-    console.log('  Data received from parent:', data);
-    console.log('  Data type:', typeof data);
-    console.log('  Data keys:', data ? Object.keys(data) : 'null');
-    console.log('  Data values:', data ? Object.values(data) : 'null');
-    
-    // Check for specific expected keys
-    if (data) {
-      const expectedKeys = ['codeQuality', 'readability', 'collaboration', 'innovation', 
-                           'maintainability', 'inclusivity', 'security', 'performance',
-                           'testingQuality', 'communityHealth', 'codeHealth', 'releaseManagement'];
-      const presentKeys = expectedKeys.filter(key => key in data && data[key] !== undefined);
-      const missingKeys = expectedKeys.filter(key => !(key in data) || data[key] === undefined);
-      
-      console.log('  ✅ Present metrics:', presentKeys.length, presentKeys);
-      if (missingKeys.length > 0) {
-        console.log('  ❌ Missing metrics:', missingKeys.length, missingKeys);
-      }
-      console.log('  All values are valid numbers?', Object.values(data).every(v => typeof v === 'number' && !isNaN(v)));
-    }
-  }, [data]);
+
 
   // Enhanced data processing with better accessibility labels
   const radarData = useMemo(() => {
@@ -236,6 +214,12 @@ const RadarChart = memo(({ data }) => {
       setError(null);
       
       const svg = d3.select(svgRef.current);
+      
+      // Ensure svg selection is valid
+      if (!svg.node()) {
+        return; // SVG element not found
+      }
+      
       svg.selectAll('*').remove();
 
       const config = chartConfig;
@@ -313,18 +297,23 @@ const RadarChart = memo(({ data }) => {
         .curve(d3.curveLinearClosed);
 
       // Draw radar area - optimized with single path
-      g.append('path')
-        .datum(radarData)
-        .attr('d', lineGenerator)
-        .style('fill', 'rgba(14, 165, 233, 0.15)')
-        .style('stroke', config.color)
-        .style('stroke-width', config.strokeWidth)
-        .style('opacity', 0)
-        .attr('role', 'presentation')
-        .attr('aria-hidden', 'true')
-        .transition()
-        .duration(config.animationDuration)
-        .style('opacity', 1);
+      if (radarData && radarData.length > 0) {
+        const pathElement = g.append('path');
+        if (pathElement.datum) {
+          pathElement
+            .datum(radarData)
+            .attr('d', lineGenerator)
+            .style('fill', 'rgba(14, 165, 233, 0.15)')
+            .style('stroke', config.color)
+            .style('stroke-width', config.strokeWidth)
+            .style('opacity', 0)
+            .attr('role', 'presentation')
+            .attr('aria-hidden', 'true')
+            .transition()
+            .duration(config.animationDuration)
+            .style('opacity', 1);
+        }
+      }
 
       // Create enhanced data points with better accessibility
       const points = g.selectAll('.radar-point')

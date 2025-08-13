@@ -98,7 +98,6 @@ export const persistor = persistStore(store);
  */
 if (process.env.NODE_ENV !== 'production' || import.meta.env.MODE !== 'production') {
   window.__REDUX_STORE__ = store;
-  console.log('Redux store exposed to window.__REDUX_STORE__ for debugging');
 }
 
 /**

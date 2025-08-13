@@ -236,18 +236,6 @@ function App() {
   const combinedAnalysisResult = useMemo(() => {
     if (!analysisResult) return null;
     
-    // Debug: Log what we're combining
-    console.log('📊 Combining analysis result:', {
-      hasAnalysisResult: !!analysisResult,
-      hasAiInsights: !!aiInsights,
-      aiInsightsData: aiInsights,
-      analysisAiInsights: analysisResult?.aiInsights,
-      mergedResult: {
-        ...analysisResult,
-        aiInsights: aiInsights || analysisResult?.aiInsights
-      }
-    });
-    
     return {
       ...analysisResult,
       aiInsights: aiInsights || analysisResult?.aiInsights // Use separate aiInsights or fallback to what's in analysisResult
@@ -460,6 +448,10 @@ function App() {
               userProfile,
               repositories: userRepositories
             }}
+            repositoryInfo={analysisResult?.repoInfo || {}}
+            overallScore={analysisResult?.vibeScore?.total || analysisResult?.vibeScore?.overall || 0}
+            breakdown={analysisResult?.vibeScore?.breakdown || {}}
+            weights={analysisResult?.vibeScore?.weights || {}}
           />
         </Suspense>
       )}
@@ -470,10 +462,9 @@ function App() {
           <ShareModal 
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
-            data={{
-              analysisResult,
-              url: window.location.href
-            }}
+            overallScore={analysisResult?.vibeScore?.total || analysisResult?.vibeScore?.overall || 0}
+            repositoryInfo={analysisResult?.repoInfo || {}}
+            analysisUrl={window.location.href}
           />
         </Suspense>
       )}

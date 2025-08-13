@@ -19,44 +19,66 @@ export const BREAKPOINTS = {
   '4xl': 2560
 };
 
+// Helper function to get breakpoint from width
+const getBreakpointFromWidth = (width) => {
+  if (width < BREAKPOINTS.sm) return 'xs';
+  if (width < BREAKPOINTS.md) return 'sm';
+  if (width < BREAKPOINTS.lg) return 'md';
+  if (width < BREAKPOINTS.xl) return 'lg';
+  if (width < BREAKPOINTS['2xl']) return 'xl';
+  if (width < BREAKPOINTS['3xl']) return '2xl';
+  if (width < BREAKPOINTS['4xl']) return '3xl';
+  return '4xl';
+};
+
 /**
  * Hook to detect current viewport size and breakpoint
  */
 export const useViewport = () => {
-  const [viewport, setViewport] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
-    height: typeof window !== 'undefined' ? window.innerHeight : 768,
-    breakpoint: 'lg'
+  const [viewport, setViewport] = useState(() => {
+    const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    const height = typeof window !== 'undefined' ? window.innerHeight : 768;
+    return {
+      width,
+      height,
+      breakpoint: getBreakpointFromWidth(width)
+    };
   });
 
-  const getBreakpoint = useCallback((width) => {
-    if (width < BREAKPOINTS['2xs']) return '2xs';
-    if (width < BREAKPOINTS.xs) return 'xs';
-    if (width < BREAKPOINTS.sm) return 'sm';
-    if (width < BREAKPOINTS.md) return 'md';
-    if (width < BREAKPOINTS.lg) return 'lg';
-    if (width < BREAKPOINTS.xl) return 'xl';
-    if (width < BREAKPOINTS['2xl']) return '2xl';
-    if (width < BREAKPOINTS['3xl']) return '3xl';
-    return '4xl';
-  }, []);
-
   useEffect(() => {
-    const handleResize = debounce(() => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      setViewport({
-        width,
-        height,
-        breakpoint: getBreakpoint(width)
-      });
-    }, 150);
+    // Check if window is available (for test environment)
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    let timeoutId;
+    
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        // Double check window is still available
+        if (typeof window !== 'undefined') {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          setViewport({
+            width,
+            height,
+            breakpoint: getBreakpointFromWidth(width)
+          });
+        }
+      }, 150);
+    };
 
     window.addEventListener('resize', handleResize);
     handleResize(); // Initial call
 
-    return () => window.removeEventListener('resize', handleResize);
-  }, [getBreakpoint]);
+    return () => {
+      clearTimeout(timeoutId);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', handleResize);
+      }
+    };
+  }, []);
 
   return viewport;
 };
@@ -251,7 +273,7 @@ export const usePerformanceMonitor = (componentName) => {
       const renderTime = endTime - startTime;
       
       if (renderTime > 100) {
-        console.warn(`[Performance] ${componentName} took ${renderTime.toFixed(2)}ms to render`);
+        // Performance warning: Component took over 100ms to render
       }
     };
   }, [componentName]);

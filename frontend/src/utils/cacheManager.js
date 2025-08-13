@@ -17,8 +17,7 @@ class CacheManager {
    */
   startPeriodicCleanup(store) {
     if (this.cleanupInterval) {
-      console.warn('Cache cleanup already running');
-      return;
+      return; // Cache cleanup already running
     }
 
     // Initial cleanup
@@ -28,8 +27,6 @@ class CacheManager {
     this.cleanupInterval = setInterval(() => {
       this.cleanupExpiredCaches(store);
     }, this.cleanupIntervalMs);
-
-    console.log('Cache cleanup started with interval:', this.cleanupIntervalMs);
   }
 
   /**
@@ -39,7 +36,6 @@ class CacheManager {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
-      console.log('Cache cleanup stopped');
     }
   }
 
@@ -51,7 +47,6 @@ class CacheManager {
     store.dispatch(clearExpiredCaches());
     const state = store.getState();
     const cacheStatus = this.getCacheStatus(state);
-    console.log('Cache cleanup completed:', cacheStatus);
   }
 
   /**

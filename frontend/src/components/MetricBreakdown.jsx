@@ -182,7 +182,12 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
           ? 'text-lg' 
           : deviceType === 'tablet' 
             ? 'text-lg' 
-            : 'text-xl'
+            : 'text-xl',
+      '2xl': deviceType === 'mobile' && viewport.width < 375 
+        ? 'text-lg' 
+        : deviceType === 'mobile' 
+          ? 'text-2xl' 
+          : 'text-3xl'
     };
     return baseSize[size] || baseSize.base;
   };
@@ -222,6 +227,7 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
         ${isExpanded ? 'lg:col-span-2 xl:col-span-2 2xl:col-span-2' : ''}
         ${viewMode === 'list' ? 'w-full' : ''}
         ${touchTarget}
+        overflow-hidden min-w-0
       `}
       onClick={onToggle}
       onMouseEnter={() => setIsHovered(true)}
@@ -239,14 +245,14 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
       }}
     >
       {/* Background decoration */}
-      <div className="absolute inset-0 rounded-2xl opacity-5">
+      <div className="absolute inset-0 rounded-2xl opacity-5 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
       </div>
       
-      <div className={`relative z-10 ${spacing.padding}`}>
+      <div className={`relative z-10 ${spacing.padding} overflow-hidden`}>
         {/* Header with improved responsive layout */}
-        <div className={`flex items-start justify-between mb-3 sm:mb-4 ${spacing.gap}`}>
-          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+        <div className={`flex items-start justify-between mb-3 sm:mb-4 ${spacing.gap} min-w-0`}>
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 overflow-hidden">
             <div className={`
               p-2 sm:p-2.5 rounded-xl bg-gradient-to-br ${scheme.gradient} border ${scheme.border}
               transition-transform duration-300 flex-shrink-0 
@@ -254,28 +260,47 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
             `}>
               <span className={`${getResponsiveTextSize('base')} sm:text-lg`}>{metric.icon}</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <h5 className={`font-semibold text-white ${getResponsiveTextSize('sm')} sm:text-base lg:text-base xl:text-sm 2xl:text-base truncate`} 
-                  data-testid="metric-name">
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <h5 className={`font-semibold text-white ${getResponsiveTextSize('sm')} sm:text-base lg:text-lg xl:text-base 2xl:text-lg truncate pr-2`} 
+                  data-testid="metric-name"
+                  title={metric.label}>
                 {metric.label}
               </h5>
-              {/* Enhanced responsive badge layout for small screens */}
-              <div className="flex flex-col gap-1 mt-1.5 sm:mt-2">
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  <span className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full ${getResponsiveTextSize('xs')} font-medium ${scheme.bg} ${scheme.text} whitespace-nowrap flex-shrink-0`}>
-                    {Math.round(weight * 100)}% weight
+              {/* Enhanced responsive badge layout with proper spacing */}
+              <div className="flex flex-col gap-1.5 mt-2">
+                {/* Weight and points container with improved layout */}
+                <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                  {/* Weight badge with proper constraints */}
+                  <span className={`
+                    inline-flex items-center px-2.5 py-1 rounded-full 
+                    ${getResponsiveTextSize('xs')} font-medium 
+                    ${scheme.bg} ${scheme.text} 
+                    whitespace-nowrap flex-shrink-0
+                    transition-all duration-200
+                    hover:shadow-md hover:scale-105
+                    relative z-10
+                  `}>
+                    <span className="font-semibold">{Math.round(weight * 100)}%</span>
+                    <span className="ml-1">weight</span>
                   </span>
-                  <span className={`${getResponsiveTextSize('xs')} text-white/50 whitespace-nowrap flex-shrink-0`}>
-                    {Math.round(contribution)} pts
+                  {/* Points with separator */}
+                  <span className={`
+                    inline-flex items-center gap-1
+                    ${getResponsiveTextSize('xs')} text-white/60 
+                    whitespace-nowrap
+                  `}>
+                    <span className="hidden sm:inline text-white/30">•</span>
+                    <span className="font-medium">{Math.round(contribution)} pts</span>
                   </span>
                 </div>
-                {/* Trend indicator with improved visibility */}
+                {/* Trend indicator on separate line for clarity */}
                 {metric.trend !== 0 && (
-                  <div className={`flex items-center gap-1 ${getResponsiveTextSize('xs')} font-medium ${
+                  <div className={`flex items-center gap-1.5 ${getResponsiveTextSize('xs')} font-medium ${
                     metric.trend > 0 ? 'text-green-400' : 'text-red-400'
-                  } w-fit`}>
-                    <span className="flex items-center gap-0.5" aria-label={`Trend: ${metric.trend > 0 ? 'improving' : 'declining'} by ${Math.round(Math.abs(metric.trend))} percent`}>
-                      {metric.trend > 0 ? '↗' : '↘'} {Math.round(Math.abs(metric.trend))}%
+                  }`}>
+                    <span className="flex items-center gap-1" aria-label={`Trend: ${metric.trend > 0 ? 'improving' : 'declining'} by ${Math.round(Math.abs(metric.trend))} percent`}>
+                      <span className="text-lg">{metric.trend > 0 ? '↗' : '↘'}</span>
+                      <span>{Math.round(Math.abs(metric.trend))}%</span>
                     </span>
                   </div>
                 )}
@@ -284,13 +309,13 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
           </div>
           
           {/* Enhanced score section with better responsive design */}
-          <div className="flex flex-col items-end justify-start flex-shrink-0 min-w-0">
-            <div className={`${getResponsiveTextSize('lg')} sm:text-xl lg:text-2xl font-bold ${scheme.text} leading-none`} 
+          <div className="flex flex-col items-end justify-start flex-shrink-0 ml-3 pl-2">
+            <div className={`${getResponsiveTextSize('2xl')} sm:text-3xl lg:text-4xl font-bold ${scheme.text} leading-none tabular-nums`} 
                  data-testid="metric-score"
                  aria-label={`Score: ${score} out of 100`}>
               {score}
             </div>
-            <div className={`${getResponsiveTextSize('xs')} text-white/60 mt-0.5 whitespace-nowrap`}>
+            <div className={`${getResponsiveTextSize('xs')} text-white/60 mt-1 whitespace-nowrap font-medium`}>
               Score
             </div>
           </div>
@@ -308,18 +333,18 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
           />
         </div>
 
-        {/* Sparkline - Hidden on very small mobile screens for better space utilization */}
-        <div className={`${deviceType === 'mobile' && viewport.width < 375 ? 'hidden' : 'hidden md:block'} mb-3 sm:mb-4`}>
+        {/* Sparkline - Optimized for different screen sizes */}
+        <div className={`${deviceType === 'mobile' && viewport.width < 375 ? 'hidden' : 'block'} mb-3 sm:mb-4`}>
           {metric.sparklineData && metric.sparklineData.length > 0 && (
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+            <div className="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-2">
-                <span className={`${getResponsiveTextSize('xs')} text-white/60`}>Trend History</span>
-                <div className={`flex items-center gap-1 ${getResponsiveTextSize('xs')} ${
+                <span className={`${getResponsiveTextSize('xs')} text-white/60 font-medium`}>Trend History</span>
+                <div className={`flex items-center gap-1.5 ${getResponsiveTextSize('xs')} font-medium ${
                   metric.trend > 0 ? 'text-green-400' : metric.trend < 0 ? 'text-red-400' : 'text-gray-400'
                 }`}>
-                  {metric.trend > 0 ? <TrendingUp className="w-3 h-3" aria-hidden="true" /> : 
-                   metric.trend < 0 ? <TrendingDown className="w-3 h-3" aria-hidden="true" /> : 
-                   <Minus className="w-3 h-3" aria-hidden="true" />}
+                  {metric.trend > 0 ? <TrendingUp className="w-3.5 h-3.5" aria-hidden="true" /> : 
+                   metric.trend < 0 ? <TrendingDown className="w-3.5 h-3.5" aria-hidden="true" /> : 
+                   <Minus className="w-3.5 h-3.5" aria-hidden="true" />}
                   <span>{metric.trend > 0 ? 'Improving' : metric.trend < 0 ? 'Declining' : 'Stable'}</span>
                 </div>
               </div>
@@ -330,24 +355,23 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
 
         {/* Expand indicator with better touch targets */}
         <div className={`flex items-center justify-between ${getResponsiveTextSize('xs')} text-white/60`}>
-          <div className="flex items-center gap-1 sm:gap-2">
-            <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${
+          <div className="flex items-center gap-2">
+            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
               score >= 70 ? 'bg-green-400' : 
               score >= 40 ? 'bg-yellow-400' : 
               'bg-red-400'
             }`} aria-hidden="true"></span>
-            <span className="truncate">
+            <span className="font-medium">
               {score >= 70 ? 'Excellent' : score >= 40 ? 'Good' : 'Needs Work'}
             </span>
           </div>
-          <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-            <span className={`${deviceType === 'mobile' && viewport.width < 375 ? 'hidden' : 'hidden xs:inline'}`}>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <span className={`${deviceType === 'mobile' && viewport.width < 375 ? 'hidden' : 'inline'}`}>
               {isExpanded ? 'Hide' : 'Show'} details
             </span>
-            <span className="xs:hidden" aria-hidden="true">Details</span>
             {isExpanded ? 
-              <ChevronUp className="w-3 h-3" aria-hidden="true" /> : 
-              <ChevronDown className="w-3 h-3" aria-hidden="true" />
+              <ChevronUp className="w-4 h-4" aria-hidden="true" /> : 
+              <ChevronDown className="w-4 h-4" aria-hidden="true" />
             }
           </div>
         </div>
@@ -613,14 +637,14 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
     else if (deviceType === 'mobile') {
       return 'grid grid-cols-1 gap-3 sm:gap-4';
     }
-    // Tablet and up
+    // Tablet and desktop with improved spacing for all screen sizes
     else {
-      return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5';
+      return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 3xl:grid-cols-4 4xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 xl:gap-7 2xl:gap-8';
     }
   };
 
   return (
-    <div className="space-y-6" data-testid="metrics-breakdown" role="region" aria-label="Metrics breakdown analysis">
+    <div className="space-y-6 w-full max-w-[1920px] mx-auto" data-testid="metrics-breakdown" role="region" aria-label="Metrics breakdown analysis">
       {/* Enhanced Header with Controls */}
       <div className="flex flex-col gap-4 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-white/10 backdrop-blur-xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -755,16 +779,28 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
         </div>
       </div>
 
-      {/* Metrics Grid/List with enhanced responsive design */}
-      <div className={getResponsiveGridClasses()}>
-        {sortedMetrics.map((metric) => (
-          <MetricCard
+      {/* Metrics Grid with enhanced responsive layout */}
+      <div 
+        className={`${getResponsiveGridClasses()} relative`}
+        role="list"
+        aria-label="Detailed metrics list"
+      >
+        {sortedMetrics.map((metric, index) => (
+          <div 
             key={metric.key}
-            metric={metric}
-            isExpanded={expandedMetrics.has(metric.key)}
-            onToggle={() => toggleMetric(metric.key)}
-            viewMode={viewMode}
-          />
+            className="relative w-full min-w-0"
+            style={{ 
+              animationDelay: `${index * 50}ms`,
+              contain: 'layout style'
+            }}
+          >
+            <MetricCard
+              metric={metric}
+              isExpanded={expandedMetrics.has(metric.key)}
+              onToggle={() => toggleMetric(metric.key)}
+              viewMode={viewMode}
+            />
+          </div>
         ))}
       </div>
 

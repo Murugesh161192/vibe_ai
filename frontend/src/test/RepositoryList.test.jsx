@@ -34,6 +34,28 @@ const mockRepositories = [
 
 // Helper function to create a test store
 const createTestStore = (initialState = {}) => {
+  const defaultRepositoryState = {
+    repositories: {},
+    paginationState: {},
+    lastFetchInfo: null,
+    isLoadingRepos: false,
+    loadingPage: null,
+    error: null,
+    stats: {
+      apiCallCount: 0,
+      cacheHits: 0,
+      totalReposFetched: 0
+    }
+  };
+  
+  const defaultAiState = {
+    summaries: {},
+    isLoadingSummary: {},
+    batchProgress: { total: 0, completed: 0, failed: 0 },
+    isLoadingBatch: false,
+    error: null
+  };
+  
   return configureStore({
     reducer: {
       repository: repositoryReducer,
@@ -41,25 +63,11 @@ const createTestStore = (initialState = {}) => {
     },
     preloadedState: {
       repository: {
-        repositories: {},
-        paginationState: {},
-        lastFetchInfo: null,
-        isLoadingRepos: false,
-        loadingPage: null,
-        error: null,
-        stats: {
-          apiCallCount: 0,
-          cacheHits: 0,
-          totalReposFetched: 0
-        },
+        ...defaultRepositoryState,
         ...initialState.repository
       },
       ai: {
-        summaries: {},
-        isLoadingSummary: {},
-        batchProgress: { total: 0, completed: 0, failed: 0 },
-        isLoadingBatch: false,
-        error: null,
+        ...defaultAiState,
         ...initialState.ai
       }
     }
@@ -144,7 +152,8 @@ describe('RepositoryList Component', () => {
     const sortFilter = screen.getByLabelText(/sort repositories/i);
     fireEvent.change(sortFilter, { target: { value: 'stars-asc' } });
     
-    const repoCards = screen.getAllByRole('listitem');
+    // Get only the actual repository cards, not loading placeholders
+    const repoCards = screen.getAllByTestId(/repo-card-/);
     expect(repoCards[0]).toHaveTextContent('test-repo-1'); // 100 stars
     expect(repoCards[1]).toHaveTextContent('test-repo-2'); // 200 stars
   });
@@ -154,7 +163,7 @@ describe('RepositoryList Component', () => {
     
     const analyzeButtons = screen.getAllByRole('button', { name: /analyze vibe score/i });
     const summaryButtons = screen.getAllByRole('button', { name: /generate ai summary/i });
-    const githubLinks = screen.getAllByRole('link', { name: /view .* on github/i });
+    const githubLinks = screen.getAllByRole('link', { name: /github/i });
     
     // Check that all interactive elements are present
     expect(analyzeButtons).toHaveLength(2);
@@ -163,13 +172,29 @@ describe('RepositoryList Component', () => {
   });
 
   test('loading states are properly indicated', () => {
+    const store = createTestStore({
+      repository: {
+        repositories: {},
+        paginationState: {},
+        lastFetchInfo: null,
+        isLoadingRepos: false,
+        loadingPage: null, // Ensure no loading placeholders interfere
+        error: null,
+        stats: {
+          apiCallCount: 0,
+          cacheHits: 0,
+          totalReposFetched: 0
+        }
+      }
+    });
+    
     const loadingProps = {
       ...defaultProps,
-      loadingAnalyze: { 1: true },
-      loadingSummary: { 2: true }
+      loadingAnalyze: { 1: true },  // First repo has ID 1
+      loadingSummary: { 2: true }   // Second repo has ID 2
     };
     
-    renderWithRedux(<RepositoryList {...loadingProps} />);
+    renderWithRedux(<RepositoryList {...loadingProps} />, { store });
     
     const analyzeButtons = screen.getAllByRole('button', { name: /analyze vibe score/i });
     const summaryButtons = screen.getAllByRole('button', { name: /generate ai summary/i });
@@ -179,7 +204,23 @@ describe('RepositoryList Component', () => {
   });
 
   test('empty state displays when no repositories', () => {
-    renderWithRedux(<RepositoryList {...defaultProps} repositories={[]} totalCount={0} />);
+    const store = createTestStore({
+      repository: {
+        repositories: {},
+        paginationState: {},
+        lastFetchInfo: null,
+        isLoadingRepos: false,
+        loadingPage: null, // Ensure no loading state
+        error: null,
+        stats: {
+          apiCallCount: 0,
+          cacheHits: 0,
+          totalReposFetched: 0
+        }
+      }
+    });
+    
+    renderWithRedux(<RepositoryList {...defaultProps} repositories={[]} totalCount={0} />, { store });
     
     expect(screen.getByText('No public repositories found')).toBeInTheDocument();
   });

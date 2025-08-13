@@ -82,7 +82,6 @@ export const generateAIInsights = createAsyncThunk(
       const cachedInsights = getCachedInsights(state, repoUrl);
       
       if (cachedInsights) {
-        console.log('Using cached AI insights for:', repoUrl);
         return { 
           data: cachedInsights, 
           fromCache: true,
@@ -90,7 +89,6 @@ export const generateAIInsights = createAsyncThunk(
         };
       }
       
-      console.log('Fetching fresh AI insights for:', repoUrl);
       const response = await generateInsights(repoUrl);
       return { 
         data: response.data || response, // Handle both response.data and direct response
@@ -127,7 +125,6 @@ export const performCompleteAnalysis = createAsyncThunk(
 
     // If both caches are valid, use them
     if (hasCachedAnalysis && cachedInsights) {
-      console.log('Using fully cached data for:', repoUrl);
       dispatch(setAnalysisResult(existingHistoryEntry.analysis));
       dispatch(setAiInsights(cachedInsights));
       return { 
@@ -136,11 +133,6 @@ export const performCompleteAnalysis = createAsyncThunk(
         insights: cachedInsights
       };
     }
-
-    console.log('Starting analysis for:', repoUrl, {
-      hasCachedAnalysis,
-      hasCachedInsights: !!cachedInsights
-    });
     
     // Prepare promises for parallel execution
     const promises = [];
@@ -163,13 +155,6 @@ export const performCompleteAnalysis = createAsyncThunk(
     // Run required operations in parallel
     const results = await Promise.allSettled(promises);
     const [analysisResult, insightsResult] = results;
-
-    console.log('Analysis results:', {
-      analysisStatus: analysisResult.status,
-      insightsStatus: insightsResult.status,
-      analysisFromCache: hasCachedAnalysis,
-      insightsFromCache: insightsResult.value?.payload?.fromCache
-    });
 
     return {
       analysis: analysisResult.status === 'fulfilled' ? 
@@ -212,8 +197,6 @@ export const startAnalysis = createAsyncThunk(
 export const startAnalysisAndNavigate = createAsyncThunk(
   'analysis/startAndNavigate',
   async (repoUrl, { dispatch }) => {
-    console.log('Starting analysis and navigate for:', repoUrl);
-    
     // Set loading state
     dispatch(setLoading(true));
     
@@ -231,15 +214,6 @@ export const startAnalysisAndNavigate = createAsyncThunk(
       // Dispatch the complete analysis
       const result = await dispatch(performCompleteAnalysis(normalizedUrl));
       
-      console.log('Complete analysis result:', {
-        hasPayload: !!result.payload,
-        hasAnalysis: !!result.payload?.analysis,
-        hasFromCache: !!result.payload?.fromCache,
-        hasInsights: !!result.payload?.insights,
-        analysisError: result.payload?.analysisError,
-        insightsError: result.payload?.insightsError
-      });
-      
       // Check if we have any successful results (including cached data)
       const hasAnalysis = result.payload?.analysis || (result.payload?.fromCache && result.payload?.analysis);
       const hasInsights = result.payload?.insights;
@@ -247,10 +221,8 @@ export const startAnalysisAndNavigate = createAsyncThunk(
       // Navigate to analysis view if we have at least the analysis data
       // (insights can fail but we should still show the analysis)
       if (hasAnalysis) {
-        console.log('Navigating to analysis view');
         dispatch(setCurrentView('analysis'));
       } else if (result.payload?.analysisError) {
-        console.log('Analysis failed, staying on ready view');
         // If there's an analysis error, stay on ready view to show the error
         dispatch(setCurrentView('ready'));
       }
@@ -461,49 +433,15 @@ const analysisSlice = createSlice({
       .addCase(analyzeRepo.fulfilled, (state, action) => {
         state.isAnalyzing = false;
         
-        // Debug: Log the full payload to see if contributorInsights are included
-        console.log('📊 analyzeRepo payload received:', {
-          hasAiInsights: !!action.payload?.aiInsights,
-          hasContributorInsights: !!action.payload?.contributorInsights,
-          aiInsights: action.payload?.aiInsights,
-          contributorInsights: action.payload?.contributorInsights,
-          fullPayload: action.payload
-        });
-        
-        // Debug: Check vibeScore breakdown specifically
-        console.log('📊 VibScore breakdown check:');
-        console.log('  vibeScore object:', action.payload?.vibeScore);
-        console.log('  vibeScore.breakdown:', action.payload?.vibeScore?.breakdown);
-        if (action.payload?.vibeScore?.breakdown) {
-          const breakdown = action.payload.vibeScore.breakdown;
-          const expectedMetrics = [
-            'codeQuality', 'readability', 'collaboration', 'innovation',
-            'maintainability', 'inclusivity', 'security', 'performance',
-            'testingQuality', 'communityHealth', 'codeHealth', 'releaseManagement'
-          ];
-          console.log('  Breakdown keys:', Object.keys(breakdown));
-          console.log('  Number of metrics:', Object.keys(breakdown).length);
-          console.log('  All 12 metrics present?', Object.keys(breakdown).length === 12);
-          
-          expectedMetrics.forEach(metric => {
-            const value = breakdown[metric];
-            console.log(`    ${metric}: ${value !== undefined ? value : 'MISSING'}`);
-          });
-        }
-        
         // Store the entire analysis including aiInsights and contributorInsights
         state.currentAnalysis = action.payload;
         
         // If AI insights are included in the analyze response, store them separately too
         if (action.payload?.aiInsights) {
-          console.log('✅ AI Insights found in analyze response, storing separately');
           state.aiInsights = action.payload.aiInsights;
         }
         
         // If contributor insights are included, they're already part of currentAnalysis
-        if (action.payload?.contributorInsights) {
-          console.log('✅ Contributor Insights found in analyze response');
-        }
         
         state.lastAnalysisTime = new Date().toISOString();
         

@@ -63,7 +63,6 @@ export const fetchRepositoriesForPage = createAsyncThunk(
         // If we have all the data for this page, return from cache
         if (cachedPageData.length === REPOS_PER_PAGE || 
             (paginationInfo && !paginationInfo.hasMore && cachedPageData.length > 0)) {
-          console.log(`[Redux Cache Hit] Page ${uiPage} for ${username}`);
           return {
             username,
             repos: cachedPageData,
@@ -85,7 +84,6 @@ export const fetchRepositoriesForPage = createAsyncThunk(
           paginationInfo.fetchedApiPages.includes(apiPage) && !forceRefresh) {
         // We have the API page, return the slice we need
         const cachedPageData = userCache.repos.slice(startIndex, endIndex);
-        console.log(`[Redux Slice] Returning slice for UI page ${uiPage}`);
         return {
           username,
           repos: cachedPageData,
@@ -96,7 +94,6 @@ export const fetchRepositoriesForPage = createAsyncThunk(
       }
       
       // Need to fetch from API
-      console.log(`[API Call] Fetching API page ${apiPage} for UI page ${uiPage} of ${username}`);
       const repos = await getUserRepositories(username, apiPage, 30);
       
       return {

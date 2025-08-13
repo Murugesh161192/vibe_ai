@@ -122,7 +122,6 @@ const RepositoryList = ({
         }
       });
       
-      console.log(`Initializing Redux with ${uniqueRepos.length} unique repositories for ${username}`);
       dispatch(setRepositories({ 
         username, 
         repos: uniqueRepos, 
@@ -207,7 +206,6 @@ const RepositoryList = ({
     
     // Ensure we never show more than itemsPerPage items
     if (pageRepos.length > itemsPerPage) {
-      console.warn(`Warning: Attempting to display ${pageRepos.length} repos, limiting to ${itemsPerPage}`);
       return pageRepos.slice(0, itemsPerPage);
     }
     
@@ -394,7 +392,6 @@ const RepositoryList = ({
   const handleBatchSummarize = async () => {
     if (displayedRepos.length === 0) return;
     
-    console.log(`Starting batch summarization for ${displayedRepos.length} repositories`);
     setShowBatchModal(true);
     
     try {
@@ -405,10 +402,10 @@ const RepositoryList = ({
       
       if (batchSummarizeRepositories.fulfilled.match(resultAction)) {
         const { stats } = resultAction.payload;
-        console.log(`Batch summarization completed: ${stats.fetched} fetched, ${stats.failed} failed`);
+        // Batch summarization completed
       }
     } catch (error) {
-      console.error('Batch summarization failed:', error);
+      // Batch summarization failed
     }
   };
 
@@ -641,7 +638,12 @@ const RepositoryList = ({
       </div>
 
       {/* Repository Display with Grid View Only */}
-      <div id="repo-list-top" aria-labelledby="repo-list-heading">
+      <div 
+        id="repo-list-top" 
+        aria-labelledby="repo-list-heading"
+        role="region"
+        aria-label="Repository list"
+      >
         {displayedRepos.length > 0 || loadingPage === currentViewPage ? (
           <div 
             className='grid gap-3 grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
@@ -917,7 +919,7 @@ const RepositoryCard = ({
               className="inline-flex items-center justify-center w-8 h-8 bg-purple-500/20 text-purple-300 rounded hover:bg-purple-500/30 transition-all disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-gray-900"
               title={`Analyze vibe score for ${repo.name}`}
               aria-label={`Analyze vibe score for ${repo.name}`}
-              aria-busy={loadingAnalyze}
+              aria-busy={loadingAnalyze ? 'true' : 'false'}
             >
               <BarChart3 className={`w-4 h-4 ${loadingAnalyze ? 'mobile-slow-spin' : ''}`} aria-hidden="true" />
             </button>
@@ -930,7 +932,7 @@ const RepositoryCard = ({
               className="inline-flex items-center justify-center w-8 h-8 bg-blue-500/20 text-blue-300 rounded hover:bg-blue-500/30 transition-all disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
               title={`Generate AI summary for ${repo.name}`}
               aria-label={`Generate AI summary for ${repo.name}`}
-              aria-busy={loadingSummary}
+              aria-busy={loadingSummary ? 'true' : 'false'}
             >
               <Bot className={`w-4 h-4 ${loadingSummary ? 'mobile-slow-spin' : ''}`} aria-hidden="true" />
             </button>
@@ -1023,7 +1025,7 @@ const RepositoryCard = ({
               disabled={loadingAnalyze}
               className="flex-1 inline-flex items-center justify-center px-3 py-1.5 bg-purple-500/20 text-purple-300 rounded text-xs border border-purple-400/20 hover:bg-purple-500/30 transition-all gap-1.5 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-gray-900"
               aria-label={`Analyze vibe score for ${repo.name}`}
-              aria-busy={loadingAnalyze}
+              aria-busy={loadingAnalyze ? 'true' : 'false'}
             >
               <BarChart3 className={`w-3.5 h-3.5 ${loadingAnalyze ? 'mobile-slow-spin' : ''}`} aria-hidden="true" />
               <span>Analyze</span>
@@ -1037,7 +1039,7 @@ const RepositoryCard = ({
               className="inline-flex items-center justify-center px-2.5 py-1.5 bg-blue-500/20 text-blue-300 rounded text-xs border border-blue-400/20 hover:bg-blue-500/30 transition-all disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
               title={`Generate AI summary for ${repo.name}`}
               aria-label={`Generate AI summary for ${repo.name}`}
-              aria-busy={loadingSummary}
+              aria-busy={loadingSummary ? 'true' : 'false'}
             >
               <Bot className={`w-3.5 h-3.5 ${loadingSummary ? 'mobile-slow-spin' : ''}`} aria-hidden="true" />
             </button>

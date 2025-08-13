@@ -78,7 +78,6 @@ export const summarizeRepositoryReadme = createAsyncThunk(
       const cachedSummary = getCachedSummary(state, owner, repo);
       
       if (cachedSummary) {
-        console.log(`Using cached summary for ${owner}/${repo}`);
         return { 
           owner,
           repo,
@@ -88,7 +87,6 @@ export const summarizeRepositoryReadme = createAsyncThunk(
         };
       }
       
-      console.log(`Fetching fresh summary for ${owner}/${repo}`);
       const response = await summarizeReadme(owner, repo);
       
       return { 
@@ -128,7 +126,6 @@ export const batchSummarizeRepositories = createAsyncThunk(
         const cachedSummary = getCachedSummary(state, owner, name);
         
         if (cachedSummary) {
-          console.log(`Using cached summary for ${cacheKey}`);
           cachedResults[cacheKey] = {
             owner,
             repo: name,
@@ -144,8 +141,6 @@ export const batchSummarizeRepositories = createAsyncThunk(
       
       // Fetch summaries for non-cached repositories
       if (reposToFetch.length > 0) {
-        console.log(`Fetching ${reposToFetch.length} fresh summaries`);
-        
         if (parallel) {
           // Use batch API endpoint
           const response = await batchSummarizeReadme(reposToFetch, true);

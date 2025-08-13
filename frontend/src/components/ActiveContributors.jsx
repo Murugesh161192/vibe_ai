@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Users, GitPullRequest, GitCommit, Code, Star, TrendingUp, Calendar, Award, MessageSquare, Clock, Activity, CheckCircle, AlertCircle, Zap, Shield } from 'lucide-react';
 import LazyImage from './LazyImage';
 import { useDeviceType, useViewport } from '../utils/responsive';
@@ -8,37 +8,7 @@ const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }
   const deviceType = useDeviceType();
   const viewport = useViewport();
 
-  // Debug logging
-  useEffect(() => {
-    console.log('📊 ActiveContributors props:', {
-      hasContributorInsights: !!contributorInsights,
-      contributorsCount: contributorInsights?.contributors?.length || 0,
-      repoInfo,
-      analysis
-    });
-    
-    // Log contributor data structure for debugging avatars
-    const contributors = contributorInsights?.contributors || analysis?.contributors || [];
-    if (contributors.length > 0) {
-      console.log('👥 Contributors data:', contributors.slice(0, 3).map(c => ({
-        login: c.login,
-        hasAvatar: !!c.avatar_url,
-        avatarUrl: c.avatar_url,
-        htmlUrl: c.html_url
-      })));
-    }
-    
-    // Log data source for metrics with better context
-    if (contributorInsights?.codeReviewMetrics) {
-      console.log('🤖 Using AI-generated code review metrics:', contributorInsights.codeReviewMetrics);
-    } else {
-      console.log('📈 Using fallback repository analysis data');
-      console.log('⚠️ AI insights not available - this may be due to:');
-      console.log('   • Missing GEMINI_API_KEY configuration');
-      console.log('   • AI service timeout or error');
-      console.log('   • Falling back to calculated metrics based on repository data');
-    }
-  }, [contributorInsights, repoInfo, analysis]);
+
 
   // Use AI-generated contributor insights if available, otherwise fall back to analysis.contributors
   const contributors = contributorInsights?.contributors || analysis?.contributors || [];
@@ -122,7 +92,7 @@ const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }
                 sizes={`${avatarSize}px`}
                 priority={index < 3} // Priority load for first 3 contributors
                 onError={() => {
-                  console.log(`Failed to load avatar for ${contributor.login}`);
+                  // Avatar loading failed, will show fallback
                 }}
               />
             ) : (
@@ -292,13 +262,13 @@ const ActiveContributors = ({ repoUrl, repoInfo, analysis, contributorInsights }
             {/* Enhanced team dynamics insight */}
             {teamDynamics && (
               <div className="mt-6 sm:mt-8 p-4 sm:p-6 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <div className="p-2 sm:p-2.5 rounded-lg bg-purple-500/20 border border-purple-500/30 flex-shrink-0">
+                <div className="flex flex-col items-center text-center">
+                  <div className="p-2 sm:p-2.5 rounded-lg bg-purple-500/20 border border-purple-500/30 mb-3">
                     <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
                   </div>
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <h4 className="text-sm sm:text-base font-bold text-white text-left">Team Dynamics Insight</h4>
-                    <p className="text-sm sm:text-base text-white/80 italic leading-relaxed text-left">{teamDynamics}</p>
+                  <div className="space-y-2">
+                    <h4 className="text-sm sm:text-base font-bold text-white">Team Dynamics Insight</h4>
+                    <p className="text-sm sm:text-base text-white/80 italic leading-relaxed">{teamDynamics}</p>
                   </div>
                 </div>
               </div>

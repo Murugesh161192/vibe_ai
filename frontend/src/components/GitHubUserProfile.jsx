@@ -112,8 +112,6 @@ const GitHubUserProfile = ({ user, repositories = [], onNewSearch }) => {
   };
 
   const handleSummarizeRepo = async (repo) => {
-    console.log('Summary clicked for repo:', repo.name);
-    
     // Open modal in loading state
     setModalState({
       isOpen: true,
@@ -133,7 +131,6 @@ const GitHubUserProfile = ({ user, repositories = [], onNewSearch }) => {
       
       if (summarizeRepositoryReadme.fulfilled.match(resultAction)) {
         const response = resultAction.payload.data;
-        console.log('API response received for', repo.name);
         
         // Enhanced summary with better branding
         const summaryText = response?.summary || 'No summary available';
@@ -188,8 +185,6 @@ const GitHubUserProfile = ({ user, repositories = [], onNewSearch }) => {
   };
 
   const handleAnalyzeRepo = async (repo) => {
-    console.log('Analyze Vibe clicked for repo:', repo.name);
-    
     // Set loading state for this specific repo
     setLoadingAnalyze(prev => ({ ...prev, [repo.id]: true }));
     
@@ -203,7 +198,6 @@ const GitHubUserProfile = ({ user, repositories = [], onNewSearch }) => {
       }
       
       const repoUrl = `https://github.com/${ownerLogin}/${repoName}`;
-      console.log('Constructed repo URL:', repoUrl);
       
       // Use Redux action for consistent caching and navigation
       dispatch(startAnalysisAndNavigate(repoUrl));
