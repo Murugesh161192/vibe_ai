@@ -33,7 +33,7 @@ vi.mock('../components/Header', () => ({
   default: ({ analysisState, onNewAnalysis, onDemoMode }) => {
     return (
       <div data-testid="header-content">
-        <h1>{analysisState === 'results' ? '📊 Analysis Complete' : 'Vibe GitHub Analyzer'}</h1>
+        <h1>{analysisState === 'results' ? '📊 Analysis Complete' : 'Vibe GitHub Assistant'}</h1>
         {analysisState === 'results' && onNewAnalysis && (
           <button onClick={onNewAnalysis}>🔄 New Analysis</button>
         )}
@@ -226,7 +226,7 @@ describe('App Component', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('header')).toBeInTheDocument()
-        expect(screen.getByText(/Vibe GitHub Analyzer/i)).toBeInTheDocument()
+        expect(screen.getByText(/Vibe GitHub Assistant/i)).toBeInTheDocument()
         expect(screen.getByTestId('chat-input')).toBeInTheDocument()
       })
     })

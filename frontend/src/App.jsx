@@ -319,7 +319,7 @@ function App() {
       {/* Skip Navigation Link for Accessibility */}
       <a 
         href="#main-content" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 layer-max focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg"
       >
         Skip to main content
       </a>
@@ -450,7 +450,7 @@ function App() {
       
       {/* Export Modal with Suspense */}
       {showExportModal && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" />}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 backdrop-blur-sm layer-modal" />}>
           <ExportModal 
             isOpen={showExportModal}
             onClose={() => setShowExportModal(false)}
@@ -466,7 +466,7 @@ function App() {
       
       {/* Share Modal with Suspense */}
       {showShareModal && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" />}>
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 backdrop-blur-sm layer-modal" />}>
           <ShareModal 
             isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}

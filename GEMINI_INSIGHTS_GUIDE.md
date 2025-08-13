@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Vibe GitHub Analyzer uses Google's Gemini 1.5 Flash model to provide intelligent, actionable insights about repositories. This feature analyzes code patterns, contributor behavior, and development practices to offer specific recommendations for improvement.
+The Vibe GitHub Assistant uses Google's Gemini 1.5 Flash model to provide intelligent, actionable insights about repositories. This feature analyzes code patterns, contributor behavior, and development practices to offer specific recommendations for improvement.
 
 ## What You Get
 

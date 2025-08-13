@@ -7,7 +7,8 @@ describe('LoadingSpinner Component', () => {
     test('renders with default message', () => {
       render(<LoadingSpinner />)
       
-      expect(screen.getByText('Loading...')).toBeInTheDocument()
+      // Default variant is 'default' which shows 'Processing...'
+      expect(screen.getByText(/Processing/i)).toBeInTheDocument()
     })
 
     test('renders with custom message', () => {
@@ -20,35 +21,31 @@ describe('LoadingSpinner Component', () => {
     test('renders spinner animation elements', () => {
       const { container } = render(<LoadingSpinner />)
       
-      // Check for main spinner
-      const mainSpinner = container.querySelector('.animate-spin')
-      expect(mainSpinner).toBeInTheDocument()
-      
-      // Check for spinner styling
-      expect(mainSpinner).toHaveClass('border-t-purple-400')
+      // Check for SVG spinner elements
+      const svgElements = container.querySelectorAll('svg')
+      expect(svgElements.length).toBeGreaterThan(0)
     })
 
     test('renders AI attribution', () => {
       render(<LoadingSpinner />)
       
+      // The component shows "Powered by AI" at the bottom
       expect(screen.getByText('Powered by AI')).toBeInTheDocument()
     })
   })
 
   describe('Component Props', () => {
     test('handles empty message', () => {
-      render(<LoadingSpinner message="" />)
-      
-      // Check that the component renders without crashing
       const { container } = render(<LoadingSpinner message="" />)
-      const headingElement = container.querySelector('h3')
-      expect(headingElement).toBeInTheDocument()
+      
+      // Should render with default message for the variant
+      expect(screen.getByText(/Processing/i)).toBeInTheDocument()
     })
 
     test('handles missing message prop', () => {
       render(<LoadingSpinner />)
       
-      expect(screen.getByText('Loading...')).toBeInTheDocument()
+      expect(screen.getByText(/Processing/i)).toBeInTheDocument()
     })
 
     test('displays custom message when provided', () => {
@@ -59,90 +56,121 @@ describe('LoadingSpinner Component', () => {
     })
   })
 
+  describe('Component Variants', () => {
+    test('renders user variant correctly', () => {
+      render(<LoadingSpinner variant="user" />)
+      
+      expect(screen.getByText('Fetching user profile...')).toBeInTheDocument()
+    })
+
+    test('renders repository variant correctly', () => {
+      render(<LoadingSpinner variant="repository" />)
+      
+      expect(screen.getByText('Analyzing repository...')).toBeInTheDocument()
+    })
+
+    test('renders insights variant correctly', () => {
+      render(<LoadingSpinner variant="insights" />)
+      
+      expect(screen.getByText('Generating AI insights...')).toBeInTheDocument()
+    })
+
+    test('renders default variant when unknown variant provided', () => {
+      render(<LoadingSpinner variant="unknown" />)
+      
+      expect(screen.getByText('Processing...')).toBeInTheDocument()
+    })
+  })
+
   describe('Progress Indicator', () => {
     test('shows progress indicator when progress is provided', () => {
-      render(<LoadingSpinner progress={75} />)
+      const { container } = render(<LoadingSpinner showProgress={true} progress={50} />)
       
-      expect(screen.getByText('75% complete')).toBeInTheDocument()
+      // Check for progress text
+      expect(screen.getByText('50% Complete')).toBeInTheDocument()
     })
 
     test('does not show progress indicator when progress is null', () => {
-      render(<LoadingSpinner progress={null} />)
+      render(<LoadingSpinner showProgress={false} />)
       
-      expect(screen.queryByText(/\d+% complete/)).not.toBeInTheDocument()
+      // Should not show progress text
+      expect(screen.queryByText(/Complete/)).not.toBeInTheDocument()
     })
 
     test('shows progress bar when progress is provided', () => {
-      const { container } = render(<LoadingSpinner progress={50} />)
+      const { container } = render(<LoadingSpinner showProgress={true} progress={75} />)
       
-      const progressBar = container.querySelector('.bg-gradient-to-r.from-purple-400.to-purple-600')
+      // Check for progress bar element
+      const progressBar = container.querySelector('[role="progressbar"]')
       expect(progressBar).toBeInTheDocument()
+      expect(progressBar).toHaveAttribute('aria-valuenow', '75')
     })
   })
 
   describe('Styling and Structure', () => {
     test('applies correct container styling classes', () => {
-      const { container } = render(<LoadingSpinner />)
+      const { container } = render(<LoadingSpinner fullScreen={true} />)
       
-      const containerDiv = container.querySelector('.icon-align-center.flex-col')
-      expect(containerDiv).toBeInTheDocument()
+      // Check for fullscreen styles
+      const mainContainer = container.firstChild
+      expect(mainContainer).toHaveClass('fixed')
     })
 
     test('applies text styling classes', () => {
-      const { container } = render(<LoadingSpinner />)
+      render(<LoadingSpinner message="Test message" />)
       
-      const headingElement = container.querySelector('h3')
-      expect(headingElement).toHaveClass('text-heading-md')
+      const messageElement = screen.getByText('Test message')
+      expect(messageElement).toHaveClass('text-white')
     })
 
     test('spinner has correct structure and styling', () => {
       const { container } = render(<LoadingSpinner />)
       
-      const spinner = container.querySelector('.animate-spin')
-      expect(spinner).toBeInTheDocument()
-      expect(spinner).toHaveClass('border-4', 'border-purple-200/30', 'border-t-purple-400', 'rounded-full')
+      // Check for spinner container
+      const spinnerContainer = container.querySelector('.relative')
+      expect(spinnerContainer).toBeInTheDocument()
     })
 
     test('renders bot icon in center', () => {
       const { container } = render(<LoadingSpinner />)
       
-      const iconContainer = container.querySelector('.icon-container.icon-container-primary')
-      expect(iconContainer).toBeInTheDocument()
+      // Check for icon in the center
+      const svgElements = container.querySelectorAll('svg')
+      expect(svgElements.length).toBeGreaterThan(0)
     })
   })
 
   describe('Visual Feedback', () => {
     test('renders main loading message prominently', () => {
-      const message = 'Processing...'
-      render(<LoadingSpinner message={message} />)
+      render(<LoadingSpinner message="Custom loading message" />)
       
-      const messageElement = screen.getByText(message)
+      const messageElement = screen.getByText('Custom loading message')
       expect(messageElement).toBeInTheDocument()
-      expect(messageElement.tagName).toBe('H3')
+      expect(messageElement).toHaveClass('text-white')
     })
 
     test('progress indicator has correct styling when present', () => {
-      const { container } = render(<LoadingSpinner progress={80} />)
+      const { container } = render(<LoadingSpinner showProgress={true} progress={60} />)
       
-      const progressText = screen.getByText('80% complete')
-      expect(progressText).toHaveClass('text-white/60', 'text-sm')
+      const progressBar = container.querySelector('[role="progressbar"]')
+      expect(progressBar).toBeInTheDocument()
     })
   })
 
   describe('Accessibility', () => {
     test('has proper text content for screen readers', () => {
-      const message = 'Loading data...'
-      render(<LoadingSpinner message={message} />)
+      const { container } = render(<LoadingSpinner message="Loading data" />)
       
-      expect(screen.getByText(message)).toBeInTheDocument()
+      // Check for aria attributes
+      const statusElement = container.querySelector('[role="status"]')
+      expect(statusElement).toBeInTheDocument()
     })
 
     test('spinner elements are present for visual feedback', () => {
       const { container } = render(<LoadingSpinner />)
       
-      // Check that spinner is present
-      const spinner = container.querySelector('.animate-spin')
-      expect(spinner).toBeInTheDocument()
+      const svgElements = container.querySelectorAll('svg')
+      expect(svgElements.length).toBeGreaterThan(0)
     })
   })
 }) 

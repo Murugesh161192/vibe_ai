@@ -1,11 +1,11 @@
-# Vibe GitHub Analyzer - Enterprise Troubleshooting Guide
+# Vibe GitHub Assistant - Enterprise Troubleshooting Guide
 
-This comprehensive troubleshooting guide addresses common issues encountered when setting up, developing, and deploying the Vibe GitHub Analyzer repository intelligence platform in enterprise environments.
+This comprehensive troubleshooting guide addresses common issues encountered when setting up, developing, and deploying the Vibe GitHub Assistant repository intelligence platform in enterprise environments.
 
 ## 🚨 Quick Issue Resolution
 
 ### Emergency Checklist
-If Vibe GitHub Analyzer is not working, check these items first:
+If Vibe GitHub Assistant is not working, check these items first:
 
 1. **Services Running**
    ```bash
@@ -118,7 +118,7 @@ echo "CORS_ORIGIN=http://localhost:5173" >> backend/.env
 
 # Frontend (.env)
 echo "VITE_API_URL=http://localhost:3000" >> frontend/.env
-echo "VITE_APP_NAME=Vibe AI" >> frontend/.env
+echo "VITE_APP_NAME=Vibe GitHub Assistant" >> frontend/.env
 ```
 
 ### Issue: GitHub Token Problems
@@ -136,7 +136,7 @@ Invalid token format
 ```bash
 # Go to: https://github.com/settings/tokens
 # 1. Click "Generate new token (classic)"
-# 2. Name: "Vibe AI Development"
+# 2. Name: "Vibe GitHub Assistant Development"
 # 3. Scopes: Select "public_repo" and "read:user"
 # 4. Copy the generated token
 # 5. Add to backend/.env:
@@ -219,7 +219,7 @@ sudo ufw status
 sudo ufw allow 3000
 
 # Check firewall (Windows)
-netsh advfirewall firewall add rule name="Vibe AI Backend" dir=in action=allow protocol=TCP localport=3000
+netsh advfirewall firewall add rule name="Vibe GitHub Assistant Backend" dir=in action=allow protocol=TCP localport=3000
 ```
 
 ### Issue: CORS Errors
@@ -855,7 +855,7 @@ npm list --depth=0 > package-versions.txt
 #!/bin/bash
 # dev-setup.sh - Standardized development setup
 
-echo "Setting up Vibe AI development environment..."
+echo "Setting up Vibe GitHub Assistant development environment..."
 
 # Check Node.js version
 node_version=$(node --version)
@@ -1012,4 +1012,4 @@ netstat -tulpn | grep -E "(3000|5173)"
 
 ---
 
-**This troubleshooting guide covers the most common issues encountered with Vibe AI. For enterprise support or complex issues, please contact your system administrator or create a detailed issue report.** 
+**This troubleshooting guide covers the most common issues encountered with Vibe GitHub Assistant. For enterprise support or complex issues, please contact your system administrator or create a detailed issue report.** 

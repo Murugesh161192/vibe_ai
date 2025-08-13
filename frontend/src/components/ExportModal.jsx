@@ -95,11 +95,11 @@ const ExportModal = ({
         rows.push(['Metric Breakdown', 'Score', 'Weight', 'Weighted Score']);
         Object.entries(breakdown).forEach(([key, value]) => {
           const weight = weights[key] || 0;
-          const weightedScore = (value * weight).toFixed(2);
+          const weightedScore = Math.round(value * weight);
           rows.push([
             key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1').trim(),
-            value.toFixed(2),
-            `${(weight * 100).toFixed(1)}%`,
+            Math.round(value),
+            `${Math.round(weight * 100)}%`,
             weightedScore
           ]);
         });

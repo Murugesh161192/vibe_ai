@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo, memo } from 'react';
 import * as d3 from 'd3';
 import { useViewport, useDeviceType, useChartDimensions } from '../utils/responsive';
-import { usePrefersReducedMotion } from '../utils/accessibility';
+import { usePrefersReducedMotion, useAnnouncement, generateRadarChartDescription, generateNavigationAnnouncement } from '../utils/accessibility';
 
 const RadarChart = memo(({ data }) => {
   const svgRef = useRef();
@@ -9,12 +9,15 @@ const RadarChart = memo(({ data }) => {
   const [tooltip, setTooltip] = useState({ show: false, content: '', x: 0, y: 0 });
   const [error, setError] = useState(null);
   const [isReady, setIsReady] = useState(false);
+  const [focusedDataIndex, setFocusedDataIndex] = useState(-1);
+  const [isChartFocused, setIsChartFocused] = useState(false);
   
   // Use responsive hooks
   const viewport = useViewport();
   const deviceType = useDeviceType();
   const dimensions = useChartDimensions(containerRef, 1);
   const prefersReducedMotion = usePrefersReducedMotion();
+  const announce = useAnnouncement();
 
   // Debug logging
   useEffect(() => {
@@ -40,6 +43,34 @@ const RadarChart = memo(({ data }) => {
     }
   }, [data]);
 
+  // Enhanced data processing with better accessibility labels
+  const radarData = useMemo(() => {
+    if (!data || Object.keys(data).length === 0) return [];
+    
+    const metricLabels = {
+      codeQuality: 'Code Quality',
+      readability: 'Readability', 
+      collaboration: 'Collaboration',
+      innovation: 'Innovation',
+      maintainability: 'Maintainability',
+      inclusivity: 'Inclusivity',
+      security: 'Security',
+      performance: 'Performance',
+      testingQuality: 'Testing Quality',
+      communityHealth: 'Community Health',
+      codeHealth: 'Code Health',
+      releaseManagement: 'Release Management'
+    };
+
+    return Object.entries(data).map(([key, value], index) => ({
+      axis: metricLabels[key] || key.replace(/([A-Z])/g, ' $1').trim(),
+      value: Math.max(0, Math.min(100, value)),
+      angle: (360 / Object.keys(data).length) * index,
+      key,
+      index
+    }));
+  }, [data]);
+
   // Memoize chart configuration based on device type
   const chartConfig = useMemo(() => {
     const { width, height } = dimensions;
@@ -48,12 +79,15 @@ const RadarChart = memo(({ data }) => {
     const isDesktop = deviceType === 'desktop';
     
     // Enhanced responsive sizing based on device type and viewport size
-    const basePadding = isMobile ? 15 : isTablet ? 25 : 40;
+    const basePadding = isMobile ? 8 : isTablet ? 25 : 40;
     
-    // Improved maximum size calculation for larger screens
+    // Improved maximum size calculation with better mobile optimization
     let maxSize;
     if (isMobile) {
-      maxSize = Math.min(width - basePadding, height - basePadding, 280);
+      // Mobile: Use more of the available space for better readability
+      const availableWidth = Math.min(width - basePadding, viewport.width - 32);
+      const availableHeight = height - basePadding;
+      maxSize = Math.min(availableWidth, availableHeight, 340); // Increased from 280 to 340
     } else if (isTablet) {
       maxSize = Math.min(width - basePadding, height - basePadding, 380);
     } else {
@@ -64,237 +98,218 @@ const RadarChart = memo(({ data }) => {
     }
     
     const size = maxSize;
-    const margin = isMobile ? 35 : isTablet ? 55 : Math.min(85, Math.max(75, size * 0.15));
+    // Optimized margins for mobile - reduced margin for more chart space
+    const margin = isMobile ? 25 : isTablet ? 55 : Math.min(85, Math.max(75, size * 0.15));
     
-          return {
-        width: size,
-        height: size,
-        margin: margin,
-        levels: 5,
-        maxValue: 100,
-        roundStrokes: true,
-        color: '#0ea5e9',
-        labelFontSize: isMobile ? '9px' : isTablet ? '11px' : size > 500 ? '15px' : '13px',
-        gridLabelFontSize: isMobile ? '7px' : isTablet ? '8px' : size > 500 ? '10px' : '9px',
-        pointRadius: isMobile ? 2 : isTablet ? 2.5 : size > 500 ? 4.5 : 3.5,
-        pointHoverRadius: isMobile ? 3.5 : isTablet ? 4.5 : size > 500 ? 6.5 : 5.5,
-        labelOffset: isMobile ? 10 : isTablet ? 14 : size > 500 ? 22 : 18,
-        strokeWidth: isMobile ? '1.5px' : isTablet ? '2px' : size > 500 ? '3px' : '2.5px',
-        animationDuration: prefersReducedMotion ? 0 : isMobile ? 400 : 600,
-        animationDelay: prefersReducedMotion ? 0 : isMobile ? 20 : 30
-      };
-  }, [dimensions, deviceType, prefersReducedMotion]);
+    return {
+      width: size,
+      height: size,
+      margin: margin,
+      radius: (size - margin * 2) / 2,
+      color: '#0EA5E9',
+      strokeWidth: isMobile ? 2 : 3,
+      pointRadius: isMobile ? 4 : 6,
+      animationDuration: prefersReducedMotion ? 0 : 1000,
+      animationDelay: prefersReducedMotion ? 0 : 100,
+      labelOffset: isMobile ? 12 : 18,
+      fontSize: isMobile ? '11px' : isTablet ? '12px' : '13px',
+      fontWeight: '500'
+    };
+  }, [dimensions, deviceType, viewport.width, viewport.height, prefersReducedMotion]);
 
-  // Memoize radar data processing
-  const radarData = useMemo(() => {
-    if (!data || Object.keys(data).length === 0) {
-      console.log('📊 RadarChart: No API data available');
-      return [];
+  // Create summary for screen readers using enhanced utility
+  const chartSummary = useMemo(() => {
+    return generateRadarChartDescription(radarData);
+  }, [radarData]);
+
+  // Enhanced navigation announcements - moved before handleKeyDown
+  const announceNavigation = useCallback((index) => {
+    if (index >= 0 && index < radarData.length) {
+      const dataPoint = radarData[index];
+      const navigationStatus = generateNavigationAnnouncement(index, radarData.length, 'metric');
+      const valueInfo = `${dataPoint.axis}: ${Math.round(dataPoint.value)} out of 100`;
+      announce(`${navigationStatus}. ${valueInfo}`);
     }
+  }, [radarData, announce]);
 
-    const metrics = [
-      { key: 'codeQuality', label: 'Code Quality', angle: 0 },
-      { key: 'readability', label: 'Readability', angle: 30 },
-      { key: 'collaboration', label: 'Collaboration', angle: 60 },
-      { key: 'innovation', label: 'Innovation', angle: 90 },
-      { key: 'maintainability', label: 'Maintainability', angle: 120 },
-      { key: 'inclusivity', label: 'Inclusivity', angle: 150 },
-      { key: 'security', label: 'Security', angle: 180 },
-      { key: 'performance', label: 'Performance', angle: 210 },
-      { key: 'testingQuality', label: 'Testing', angle: 240 },
-      { key: 'communityHealth', label: 'Community', angle: 270 },
-      { key: 'codeHealth', label: 'Code Health', angle: 300 },
-      { key: 'releaseManagement', label: 'Releases', angle: 330 }
-    ];
-
-    console.log('📊 Processing genuine API metrics:');
-    console.log('  Input data keys:', Object.keys(data));
-    console.log('  Input data:', data);
+  // Enhanced keyboard navigation with better announcements
+  const handleKeyDown = useCallback((e) => {
+    if (!isChartFocused || radarData.length === 0) return;
     
-    const processedData = metrics.map(metric => {
-      const value = data[metric.key];
-      // Handle both undefined and null values, and ensure it's a number
-      const numericValue = typeof value === 'number' ? value : 0;
-      const processedValue = Math.max(0, Math.min(100, numericValue));
-      
-      if (value !== undefined && value !== null) {
-        console.log(`  ✅ ${metric.key}: ${value} (API) → ${processedValue}`);
-      } else {
-        console.log(`  ⚠️ ${metric.key}: undefined/null (API) → ${processedValue} (defaulted to 0)`);
-      }
-      
-      return {
-        axis: metric.label,
-        value: processedValue,
-        angle: metric.angle,
-        originalValue: value // Keep original value for debugging
-      };
-    });
+    let newIndex = focusedDataIndex;
+    const maxIndex = radarData.length - 1;
     
-    console.log('📊 RadarChart data ready with', processedData.filter(d => d.value > 0).length, 'non-zero metrics out of 12');
-    console.log('  All 12 metrics processed:', processedData.length === 12);
-    
-    return processedData;
-  }, [data]);
-
-  // Initialize dimensions
-  useEffect(() => {
-    if (containerRef.current) {
-      setIsReady(true);
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        e.preventDefault();
+        newIndex = focusedDataIndex < maxIndex ? focusedDataIndex + 1 : 0;
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        e.preventDefault();
+        newIndex = focusedDataIndex > 0 ? focusedDataIndex - 1 : maxIndex;
+        break;
+      case 'Home':
+        e.preventDefault();
+        newIndex = 0;
+        announce('Moved to first metric');
+        break;
+      case 'End':
+        e.preventDefault();
+        newIndex = maxIndex;
+        announce('Moved to last metric');
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (focusedDataIndex >= 0) {
+          const dataPoint = radarData[focusedDataIndex];
+          const detailedInfo = `${dataPoint.axis}: ${Math.round(dataPoint.value)} out of 100 points. Press Escape to close this information.`;
+          announce(detailedInfo);
+          setTooltip({
+            show: true,
+            content: `${dataPoint.axis}: ${Math.round(dataPoint.value)}`,
+            x: viewport.width / 2,
+            y: viewport.height / 2
+          });
+          setTimeout(() => setTooltip(prev => ({ ...prev, show: false })), 5000);
+        }
+        break;
+      case 'Escape':
+        setTooltip({ show: false, content: '', x: 0, y: 0 });
+        announce('Information closed');
+        break;
+      default:
+        return;
     }
-  }, []);
+    
+    if (newIndex !== focusedDataIndex) {
+      setFocusedDataIndex(newIndex);
+      announceNavigation(newIndex);
+    }
+  }, [isChartFocused, focusedDataIndex, radarData, announce, announceNavigation, viewport.width, viewport.height]);
 
-  // Memoize event handlers to prevent recreation
+  // Enhanced mouse/touch handlers with better accessibility
   const handleMouseOver = useCallback((event, d) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const isMobile = deviceType === 'mobile';
+    if (!d) return;
     
-    setTooltip({
-      show: true,
-      content: `${d.axis}: ${Math.round(d.value)}/100`,
-      x: isMobile ? rect.left + rect.width / 2 : event.pageX,
-      y: isMobile ? rect.top - 10 : event.pageY - 10
-    });
-  }, [deviceType]);
+    const rect = event.target.getBoundingClientRect();
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    
+    if (containerRect) {
+      setTooltip({
+        show: true,
+        content: `${d.axis}: ${Math.round(d.value)}`,
+        x: rect.left - containerRect.left + rect.width / 2,
+        y: rect.top - containerRect.top - 10
+      });
+    }
+
+    // Update focused index for consistency
+    setFocusedDataIndex(d.index);
+  }, []);
 
   const handleMouseOut = useCallback(() => {
     setTooltip({ show: false, content: '', x: 0, y: 0 });
   }, []);
 
-  // Optimized D3 rendering with memoization and performance optimizations
-  useEffect(() => {
-    console.log('🎨 D3 Rendering Check:');
-    console.log('  Has radarData:', radarData.length > 0);
-    console.log('  Has svgRef:', !!svgRef.current);
-    console.log('  Is ready:', isReady);
-    
-    if (!radarData.length || !svgRef.current || !isReady) {
-      console.log('❌ Chart not ready to render:', { 
-        hasData: radarData.length > 0, 
-        hasSvg: !!svgRef.current,
-        isReady 
-      });
-      return;
+  const handleFocus = useCallback(() => {
+    setIsChartFocused(true);
+    if (focusedDataIndex === -1 && radarData.length > 0) {
+      setFocusedDataIndex(0);
+      announce(`Radar chart focused. ${chartSummary} Use arrow keys to navigate between data points. Press Enter or Space to hear detailed values. Press Home or End to jump to first or last metric.`);
     }
+  }, [focusedDataIndex, radarData.length, announce, chartSummary]);
+
+  const handleBlur = useCallback(() => {
+    setIsChartFocused(false);
+    setFocusedDataIndex(-1);
+    setTooltip({ show: false, content: '', x: 0, y: 0 });
+  }, []);
+
+  // Chart rendering effect with enhanced accessibility
+  useEffect(() => {
+    if (!radarData.length || !svgRef.current || !chartConfig) return;
 
     try {
-      console.log('✅ Rendering radar chart with data:', radarData);
-      console.log('  Data points:', radarData.length);
-      console.log('  First data point:', radarData[0]);
+      setError(null);
       
       const svg = d3.select(svgRef.current);
-      svg.selectAll("*").remove(); // Clear previous render
+      svg.selectAll('*').remove();
 
       const config = chartConfig;
-      const radius = (Math.min(config.width, config.height) / 2) - config.margin;
-
-      // Setup SVG with optimized attributes
+      
+      // Set up SVG
       svg
         .attr('width', config.width)
         .attr('height', config.height)
         .attr('viewBox', `0 0 ${config.width} ${config.height}`)
         .attr('preserveAspectRatio', 'xMidYMid meet');
 
-      const g = svg.append('g')
+      // Create main group
+      const g = svg
+        .append('g')
         .attr('transform', `translate(${config.width / 2}, ${config.height / 2})`);
 
-      // Scales
+      // Enhanced scales
       const rScale = d3.scaleLinear()
-        .range([0, radius])
-        .domain([0, config.maxValue]);
+        .domain([0, 100])
+        .range([0, config.radius]);
 
-      // Draw concentric circles (grid) - optimized
-      const levels = d3.range(1, config.levels + 1).reverse();
-      
-      // Add subtle gradient background
-      const defs = svg.append('defs');
-      const radialGradient = defs.append('radialGradient')
-        .attr('id', 'radar-gradient');
-      
-      radialGradient.append('stop')
-        .attr('offset', '0%')
-        .attr('stop-color', 'rgba(14, 165, 233, 0.05)');
-      
-      radialGradient.append('stop')
-        .attr('offset', '100%')
-        .attr('stop-color', 'rgba(14, 165, 233, 0)');
-      
-      // Background circle
-      g.append('circle')
-        .attr('r', radius)
-        .style('fill', 'url(#radar-gradient)')
-        .style('stroke', 'none');
-      
-      g.selectAll('.levels')
-        .data(levels)
-        .enter()
-        .append('circle')
-        .attr('r', d => radius / config.levels * d)
-        .attr('class', 'radar-grid-line')
-        .style('fill', 'none')
-        .style('stroke', 'rgba(255, 255, 255, 0.1)')
-        .style('stroke-width', '1px');
+      // Create grid circles with better accessibility
+      const gridLevels = [20, 40, 60, 80, 100];
+      gridLevels.forEach((level, i) => {
+        g.append('circle')
+          .attr('r', rScale(level))
+          .style('fill', 'none')
+          .style('stroke', 'rgba(255, 255, 255, 0.1)')
+          .style('stroke-width', '1px')
+          .attr('role', 'presentation')
+          .attr('aria-hidden', 'true');
+      });
 
-      // Create axis lines - optimized
-      const axis = g.selectAll('.axis')
-        .data(radarData)
-        .enter()
-        .append('g')
-        .attr('class', 'axis');
+      // Create axis lines with better labels
+      radarData.forEach((d, i) => {
+        const lineCoords = {
+          x: rScale(100) * Math.cos((d.angle - 90) * Math.PI / 180),
+          y: rScale(100) * Math.sin((d.angle - 90) * Math.PI / 180)
+        };
 
-      axis.append('line')
-        .attr('x1', 0)
-        .attr('y1', 0)
-        .attr('x2', d => rScale(config.maxValue) * Math.cos((d.angle - 90) * Math.PI / 180))
-        .attr('y2', d => rScale(config.maxValue) * Math.sin((d.angle - 90) * Math.PI / 180))
-        .style('stroke', 'rgba(255, 255, 255, 0.2)')
-        .style('stroke-width', '1px');
+        // Axis line
+        g.append('line')
+          .attr('x1', 0)
+          .attr('y1', 0)
+          .attr('x2', lineCoords.x)
+          .attr('y2', lineCoords.y)
+          .style('stroke', 'rgba(255, 255, 255, 0.2)')
+          .style('stroke-width', '1px')
+          .attr('role', 'presentation')
+          .attr('aria-hidden', 'true');
 
-      // Add labels - optimized positioning
-      axis.append('text')
-        .attr('x', d => {
-          const labelDistance = radius + config.labelOffset;
-          return labelDistance * Math.cos((d.angle - 90) * Math.PI / 180);
-        })
-        .attr('y', d => {
-          const labelDistance = radius + config.labelOffset;
-          return labelDistance * Math.sin((d.angle - 90) * Math.PI / 180);
-        })
-        .attr('text-anchor', d => {
-          const angle = d.angle;
-          if (angle === 0 || angle === 180) return 'middle';
-          if (angle > 0 && angle < 180) return 'start';
-          return 'end';
-        })
-        .attr('dominant-baseline', d => {
-          const angle = d.angle;
-          if (angle === 90) return 'text-after-edge';
-          if (angle === 270) return 'text-before-edge';
-          return 'middle';
-        })
-        .style('font-size', config.labelFontSize)
-        .style('font-weight', '500')
-        .style('fill', 'white')
-        .style('text-shadow', '0 0 4px rgba(0,0,0,0.5)')
-        .text(d => d.axis);
+        // Enhanced labels with better positioning
+        const labelDistance = config.radius + config.labelOffset;
+        const labelX = labelDistance * Math.cos((d.angle - 90) * Math.PI / 180);
+        const labelY = labelDistance * Math.sin((d.angle - 90) * Math.PI / 180);
 
-      // Add grid labels - optimized
-      g.selectAll('.grid-label')
-        .data(levels)
-        .enter()
-        .append('text')
-        .attr('class', 'grid-label')
-        .attr('x', 4)
-        .attr('y', d => -radius / config.levels * d)
-        .attr('dy', '0.4em')
-        .style('font-size', config.gridLabelFontSize)
-        .style('fill', 'rgba(255, 255, 255, 0.4)')
-        .text(d => (config.maxValue / config.levels * d).toFixed(0));
+        g.append('text')
+          .attr('x', labelX)
+          .attr('y', labelY)
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'middle')
+          .style('fill', '#e5e7eb')
+          .style('font-size', config.fontSize)
+          .style('font-weight', config.fontWeight)
+          .style('font-family', 'system-ui, -apple-system, sans-serif')
+          .text(d.axis)
+          .attr('role', 'presentation')
+          .attr('aria-hidden', 'true');
+      });
 
-      // Create line generator - optimized
-      const lineGenerator = d3.lineRadial()
-        .radius(d => rScale(d.value))
-        .angle(d => (d.angle - 90) * Math.PI / 180)
+      // Create data visualization path
+      const lineGenerator = d3.line()
+        .x(d => rScale(d.value) * Math.cos((d.angle - 90) * Math.PI / 180))
+        .y(d => rScale(d.value) * Math.sin((d.angle - 90) * Math.PI / 180))
         .curve(d3.curveLinearClosed);
 
       // Draw radar area - optimized with single path
@@ -305,11 +320,13 @@ const RadarChart = memo(({ data }) => {
         .style('stroke', config.color)
         .style('stroke-width', config.strokeWidth)
         .style('opacity', 0)
+        .attr('role', 'presentation')
+        .attr('aria-hidden', 'true')
         .transition()
         .duration(config.animationDuration)
         .style('opacity', 1);
 
-      // Create data points - optimized event handling
+      // Create enhanced data points with better accessibility
       const points = g.selectAll('.radar-point')
         .data(radarData)
         .enter()
@@ -327,11 +344,20 @@ const RadarChart = memo(({ data }) => {
         .on('mouseout', handleMouseOut)
         .on('focus', handleMouseOver)
         .on('blur', handleMouseOut)
-        .on('touchstart', handleMouseOver)
+        .on('touchstart', (event, d) => {
+          event.preventDefault();
+          handleMouseOver(event, d);
+        })
         .on('touchend', handleMouseOut)
         .attr('tabindex', 0)
         .attr('role', 'button')
-        .attr('aria-label', d => `${d.axis}: ${Math.round(d.value)} out of 100`);
+        .attr('aria-label', d => `${d.axis}: ${Math.round(d.value)} out of 100. Press Enter for details.`)
+        .each(function(d, i) {
+          // Enhanced focus ring for better visibility
+          d3.select(this)
+            .style('outline', focusedDataIndex === i ? '2px solid #60a5fa' : 'none')
+            .style('outline-offset', '2px');
+        });
 
       // Animate points
       points
@@ -346,17 +372,47 @@ const RadarChart = memo(({ data }) => {
         .attr('cy', 0)
         .attr('r', 3)
         .style('fill', config.color)
-        .style('opacity', 0.8);
+        .style('opacity', 0.8)
+        .attr('role', 'presentation')
+        .attr('aria-hidden', 'true');
+
+      setIsReady(true);
 
     } catch (e) {
       console.error('Error rendering radar chart:', e);
       setError('Error rendering chart: ' + e.message);
     }
-  }, [radarData, chartConfig, handleMouseOver, handleMouseOut, isReady]);
+  }, [radarData, chartConfig, handleMouseOver, handleMouseOut, focusedDataIndex]);
+
+  // Update focus indicators when focusedDataIndex changes
+  useEffect(() => {
+    if (!svgRef.current) return;
+    
+    const svg = d3.select(svgRef.current);
+    svg.selectAll('.radar-point')
+      .style('outline', (d, i) => focusedDataIndex === i ? '2px solid #60a5fa' : 'none')
+      .style('outline-offset', '2px');
+  }, [focusedDataIndex]);
+
+  // Keyboard event listeners
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.addEventListener('keydown', handleKeyDown);
+    container.addEventListener('focus', handleFocus);
+    container.addEventListener('blur', handleBlur);
+
+    return () => {
+      container.removeEventListener('keydown', handleKeyDown);
+      container.removeEventListener('focus', handleFocus);
+      container.removeEventListener('blur', handleBlur);
+    };
+  }, [handleKeyDown, handleFocus, handleBlur]);
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64 text-red-400">
+      <div className="flex items-center justify-center h-64 text-red-400" role="alert">
         <p>{error}</p>
       </div>
     );
@@ -364,7 +420,7 @@ const RadarChart = memo(({ data }) => {
 
   if (!data || Object.keys(data).length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-white/60">
+      <div className="flex items-center justify-center h-64 text-white/60" role="status">
         <p>No data available for chart</p>
       </div>
     );
@@ -382,14 +438,24 @@ const RadarChart = memo(({ data }) => {
         justifyContent: 'center'
       }}
     >
+      {/* Screen reader summary */}
+      <div className="sr-only" aria-live="polite">
+        {chartSummary}
+      </div>
+      
       <div 
-        className="relative w-full h-full flex items-center justify-center"
+        className="relative w-full h-full flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
         style={{ 
           maxWidth: deviceType === 'mobile' ? '280px' : deviceType === 'tablet' ? '380px' : '600px',
           maxHeight: deviceType === 'mobile' ? '280px' : deviceType === 'tablet' ? '380px' : '600px',
           aspectRatio: '1 / 1',
           margin: '0 auto'
         }}
+        tabIndex={0}
+        role="img"
+        aria-label={`Interactive radar chart. ${chartSummary} Use arrow keys to navigate between data points.`}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
       >
         <svg 
           ref={svgRef} 
@@ -400,30 +466,36 @@ const RadarChart = memo(({ data }) => {
             maxHeight: '100%',
             margin: '0 auto'
           }}
-          aria-label="Repository metrics radar chart"
-          role="img"
+          aria-hidden="true"
         />
       </div>
       
+      {/* Enhanced tooltip with better positioning and accessibility */}
       <div
-        data-testid="radar-chart-tooltip"
-        className={`tooltip fixed z-50 ${tooltip.show ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+        className={`absolute z-50 px-3 py-2 text-sm font-medium text-white bg-gray-900 border border-white/20 rounded-lg shadow-xl pointer-events-none transition-all duration-200 ${
+          tooltip.show ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        }`}
         style={{
-          left: tooltip.x + 'px',
-          top: tooltip.y + 'px',
-          pointerEvents: 'none',
-          padding: '6px 10px',
-          backgroundColor: 'rgba(0, 0, 0, 0.9)',
-          color: 'white',
-          borderRadius: '6px',
-          fontSize: deviceType === 'mobile' ? '11px' : '12px',
-          whiteSpace: 'nowrap',
-          transition: 'opacity 0.2s, visibility 0.2s',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+          left: `${tooltip.x}px`,
+          top: `${tooltip.y}px`,
+          transform: 'translateX(-50%) translateY(-100%)',
+          backdropFilter: 'blur(8px)',
+          backgroundColor: 'rgba(17, 24, 39, 0.95)'
         }}
         role="tooltip"
+        aria-live="polite"
+        aria-atomic="true"
       >
         {tooltip.content}
+        <div 
+          className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"
+          aria-hidden="true"
+        />
+      </div>
+
+      {/* Keyboard instructions for screen readers */}
+      <div className="sr-only" aria-live="polite">
+        Chart navigation: Use arrow keys to move between data points. Press Enter or Space to announce values. Press Escape to close tooltip.
       </div>
     </div>
   );

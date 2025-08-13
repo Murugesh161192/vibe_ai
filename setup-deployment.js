@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Deployment Setup Script for Vibe AI
+ * Deployment Setup Script for Vibe GitHub Assistant
  * Helps configure required environment variables for deployment
  */
 
@@ -14,7 +14,7 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-console.log('🚀 Vibe AI Deployment Setup');
+console.log('🚀 Vibe GitHub Assistant Deployment Setup');
 console.log('============================\n');
 
 async function question(prompt) {
@@ -99,7 +99,7 @@ RATE_LIMIT_TIME_WINDOW=900000
 VITE_API_URL=${apiUrl || 'http://localhost:3000'}
 
 # Application Configuration
-VITE_APP_NAME=Vibe AI
+VITE_APP_NAME=Vibe GitHub Assistant
 VITE_APP_VERSION=1.0.0
 VITE_ENABLE_ANALYTICS=true
 `;
@@ -138,7 +138,7 @@ VITE_ENABLE_ANALYTICS=true
   console.log('\n🌐 For Netlify deployment:');
   console.log('1. Add these environment variables to Netlify:');
   console.log(`   VITE_API_URL=${apiUrl || 'https://your-backend-domain.com'}`);
-  console.log('   VITE_APP_NAME=Vibe AI');
+  console.log('   VITE_APP_NAME=Vibe GitHub Assistant');
   console.log('   VITE_APP_VERSION=1.0.0');
   
   console.log('\n🧪 Testing:');

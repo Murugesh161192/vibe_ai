@@ -2927,275 +2927,540 @@ button:focus-visible {
   .chart-container-responsive {
     /* Reduce complexity on mobile for better performance */
     will-change: auto;
+    /* Better mobile padding */
+    padding: 0.5rem;
   }
   
   .radar-chart-wrapper {
     /* Ensure charts don't break mobile layouts */
     min-width: 0;
     min-height: 0;
+    /* Enhanced mobile spacing */
+    padding: 0.25rem;
   }
   
-  /* Optimize chart text for mobile */
+  /* Optimize chart text for mobile - Improved readability */
   .radar-chart-wrapper text {
-    font-size: clamp(8px, 2vw, 12px) !important;
+    font-size: clamp(10px, 2.5vw, 13px) !important;
+    font-weight: 500 !important;
+    fill: #e5e7eb !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
   }
   
   /* Improve chart point interactions on touch devices */
   .radar-chart-wrapper circle {
-    stroke-width: 3px;
-    r: 4;
-  }
-}
-
-/* Enhanced chart container for landscape mobile */
-@media (max-height: 500px) and (orientation: landscape) {
-  .chart-container-responsive {
-    min-height: 200px;
-    max-height: 300px;
+    r: 4 !important; /* Larger touch targets */
   }
   
-  .radar-chart-wrapper {
-    max-width: 300px;
-    max-height: 250px;
+  /* Better text contrast on small screens */
+  .radar-chart-wrapper path {
+    stroke-width: 2.5px !important;
   }
 }
 
-/* Enhanced accessibility improvements for mobile and responsive design */
-
-/* Improved focus management for keyboard navigation */
-.focus-trap-active {
-  position: relative;
-  z-index: 50;
+/* Enhanced enterprise-grade typography system */
+.heading-primary {
+  @apply text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight;
+  letter-spacing: -0.025em;
 }
 
-.focus-trap-active *:focus {
-  outline: 3px solid rgba(59, 130, 246, 0.8) !important;
-  outline-offset: 2px !important;
-  border-radius: 4px;
+.heading-secondary {
+  @apply text-xl sm:text-2xl lg:text-3xl font-semibold text-white leading-snug;
+  letter-spacing: -0.015em;
 }
 
-/* Enhanced skip links for better keyboard navigation */
-.skip-link-enhanced {
-  position: absolute;
-  top: -100vh;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, rgb(59, 130, 246), rgb(147, 51, 234));
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  z-index: 9999;
-  transition: top 0.3s ease-in-out;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+.heading-tertiary {
+  @apply text-lg sm:text-xl lg:text-2xl font-semibold text-gray-200 leading-snug;
 }
 
-.skip-link-enhanced:focus {
-  top: 20px;
+.body-large {
+  @apply text-base sm:text-lg text-gray-300 leading-relaxed;
 }
 
-/* Enhanced touch targets for mobile accessibility (WCAG 2.5.5) */
-@media (max-width: 768px) {
-  /* Ensure all interactive elements meet minimum touch target size */
-  button,
-  a[role="button"],
-  [role="button"],
-  input[type="button"],
-  input[type="submit"],
-  input[type="reset"],
-  select,
-  input[type="checkbox"],
-  input[type="radio"] {
-    min-height: 48px !important;
-    min-width: 48px !important;
-    position: relative;
-  }
-  
-  /* Expand touch targets for small visual elements */
-  button:not(.btn-icon)::before,
-  a[role="button"]:not(.btn-icon)::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: -8px;
-    right: -8px;
-    bottom: -8px;
-    z-index: -1;
-  }
-  
-  /* Enhanced spacing for touch interfaces */
-  .interactive-list > * + * {
-    margin-top: 8px;
-  }
-  
-  /* Improve contrast for better visibility on mobile */
-  button:hover,
-  a[role="button"]:hover {
-    filter: brightness(1.1);
-    transition: filter 0.2s ease;
-  }
+.body-regular {
+  @apply text-sm sm:text-base text-gray-300 leading-normal;
 }
 
-/* Enhanced color contrast utilities (WCAG AA compliant) */
-.text-contrast-high {
-  color: #ffffff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+.body-small {
+  @apply text-xs sm:text-sm text-gray-400 leading-normal;
 }
 
-.text-contrast-medium {
-  color: #e5e7eb;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+/* Enterprise spacing system */
+.section-spacing {
+  @apply mb-6 sm:mb-8 lg:mb-12;
 }
 
-.text-contrast-accessible {
-  color: #d1d5db;
-  font-weight: 500;
+.content-spacing {
+  @apply space-y-4 sm:space-y-6 lg:space-y-8;
 }
 
-/* High contrast mode support for accessibility */
+.card-padding {
+  @apply p-4 sm:p-6 lg:p-8;
+}
+
+.compact-padding {
+  @apply p-3 sm:p-4 lg:p-5;
+}
+
+/* Enhanced focus states for accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:ring-offset-2 focus:ring-offset-gray-900;
+}
+
+.focus-ring-inset {
+  @apply focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-400/50;
+}
+
+/* Interactive element states */
+.interactive-hover {
+  @apply transition-all duration-200 ease-out hover:scale-[1.02] hover:shadow-lg;
+}
+
+.interactive-press {
+  @apply active:scale-[0.98] active:transition-transform active:duration-75;
+}
+
+/* Professional card styling */
+.card-enterprise {
+  @apply bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/10 backdrop-blur-sm rounded-xl shadow-xl;
+  @apply hover:border-white/20 hover:shadow-2xl transition-all duration-300;
+}
+
+.card-primary {
+  @apply bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 backdrop-blur-sm rounded-xl;
+  @apply hover:border-blue-400/30 transition-all duration-300;
+}
+
+/* Status indicators with proper contrast */
+.status-success {
+  @apply bg-emerald-500/10 text-emerald-300 border border-emerald-500/20;
+}
+
+.status-warning {
+  @apply bg-amber-500/10 text-amber-300 border border-amber-500/20;
+}
+
+.status-error {
+  @apply bg-red-500/10 text-red-300 border border-red-500/20;
+}
+
+.status-info {
+  @apply bg-blue-500/10 text-blue-300 border border-blue-500/20;
+}
+
+/* Consistent grid systems */
+.grid-responsive-2 {
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6;
+}
+
+.grid-responsive-3 {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6;
+}
+
+.grid-responsive-4 {
+  @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4;
+}
+
+/* High contrast mode support */
 @media (prefers-contrast: high) {
-  /* Ensure sufficient contrast in high contrast mode */
-  .glass-card,
-  .metric-card,
-  .btn-primary,
-  .btn-secondary {
-    border: 2px solid currentColor !important;
-    background: rgba(0, 0, 0, 0.9) !important;
-    color: #ffffff !important;
+  .card-enterprise {
+    @apply border-white/30 bg-white/15;
   }
   
-  .text-white {
-    color: #ffffff !important;
+  .text-gray-300 {
+    @apply text-gray-100;
   }
   
-  .text-gray-300,
-  .text-gray-400,
-  .text-white\/60,
-  .text-white\/70 {
-    color: #e5e7eb !important;
+  .text-gray-400 {
+    @apply text-gray-200;
   }
   
-  /* Improve chart visibility in high contrast mode */
-  .radar-chart-wrapper svg {
-    filter: contrast(1.5) brightness(1.2);
+  .text-white\/60 {
+    @apply text-white/90;
   }
 }
 
-/* Reduced motion accessibility (WCAG 2.3.3) */
+/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  /* Disable complex animations for users who prefer reduced motion */
-  .radar-chart-wrapper,
-  .chart-container-responsive,
-  .animate-spin,
-  .animate-pulse,
-  .animate-bounce,
-  .hover-lift,
-  .hover-scale {
-    animation: none !important;
-    transition: none !important;
-    transform: none !important;
+  .interactive-hover {
+    @apply hover:scale-100 transition-none;
   }
   
-  /* Provide alternative indicators for loading states */
-  .loading-indicator::after {
-    content: '⏳ Loading...';
-    display: inline-block;
+  .animate-pulse {
     animation: none;
   }
   
-  /* Static alternatives for animated elements */
-  .progress-indicator {
-    background: linear-gradient(90deg, #10b981 var(--progress, 0%), transparent var(--progress, 0%));
-    transition: none;
+  .animate-spin {
+    animation: none;
+  }
+  
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg {
+    backdrop-filter: none !important;
+    background: rgba(0, 0, 0, 0.8) !important;
   }
 }
 
-/* Enhanced responsive layout utilities for better mobile UX */
-.responsive-stack {
+/* Print styles for accessibility */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .card-enterprise {
+    background: white !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Enhanced touch targets specifically for score breakdown chart components */
+.score-breakdown-touch-targets {
+  /* Ensure all interactive elements meet minimum touch target requirements */
+}
+
+.score-breakdown-touch-targets button,
+.score-breakdown-touch-targets [role="button"],
+.score-breakdown-touch-targets [tabindex="0"] {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  @apply flex items-center justify-center;
+  position: relative;
+}
+
+/* Enhanced chart point touch targets for mobile accessibility */
+.radar-chart-point-touch {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  @apply flex items-center justify-center;
+}
+
+/* Score breakdown metric card touch optimizations */
+.metric-card-touch-optimized {
+  @apply transition-all duration-200 ease-out;
+}
+
+.metric-card-touch-optimized:hover,
+.metric-card-touch-optimized:focus {
+  @apply scale-[1.02] shadow-xl;
+}
+
+/* Responsive grid improvements for score breakdown */
+@media (max-width: 375px) {
+  .score-breakdown-grid-ultra-mobile {
+    @apply grid grid-cols-1 gap-3;
+  }
+  
+  .score-breakdown-controls-mobile {
+    @apply flex flex-col gap-2;
+  }
+  
+  .score-breakdown-text-mobile {
+    font-size: clamp(10px, 2.5vw, 12px);
+  }
+}
+
+@media (min-width: 376px) and (max-width: 640px) {
+  .score-breakdown-grid-mobile {
+    @apply grid grid-cols-1 gap-3 sm:gap-4;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .score-breakdown-grid-tablet {
+    @apply grid grid-cols-2 lg:grid-cols-3 gap-4;
+  }
+}
+
+@media (min-width: 1025px) {
+  .score-breakdown-grid-desktop {
+    @apply grid grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-4 lg:gap-5;
+  }
+}
+
+/* Enhanced accessibility for radar chart */
+.radar-chart-accessible {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900;
+}
+
+.radar-chart-accessible svg {
+  @apply transition-all duration-200;
+}
+
+/* Better focus indicators for metric cards */
+.metric-card-focus-enhanced:focus-within {
+  @apply ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-900;
+  outline: none;
+}
+
+/* Improved progress bar accessibility */
+.progress-bar-accessible {
+  @apply relative;
+}
+
+.progress-bar-accessible::after {
+  content: '';
+  @apply absolute inset-0 rounded-full;
+  pointer-events: none;
+  transition: box-shadow var(--animation-base) ease-out;
+}
+
+.progress-bar-accessible:focus-within::after {
+  box-shadow: 0 0 0 2px rgb(59 130 246 / 0.5);
+}
+
+/* Enhanced sort and view controls touch targets */
+.score-breakdown-controls button {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  @apply flex items-center justify-center transition-all duration-200;
+}
+
+@media (max-width: 375px) {
+  .score-breakdown-controls button {
+    @apply px-2 py-2;
+    font-size: clamp(10px, 2.5vw, 12px);
+  }
+}
+
+/* Improved tooltip positioning and readability */
+.score-breakdown-tooltip {
+  @apply pointer-events-none transition-all duration-200;
+  backdrop-filter: blur(8px);
+  background-color: rgba(17, 24, 39, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.score-breakdown-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid rgba(17, 24, 39, 0.95);
+}
+
+/* Enhanced responsive text sizing for score breakdown */
+.score-breakdown-responsive-text {
+  font-size: clamp(0.75rem, 2vw + 0.5rem, 0.875rem);
+  line-height: 1.4;
+}
+
+.score-breakdown-responsive-text-small {
+  font-size: clamp(0.625rem, 1.5vw + 0.4rem, 0.75rem);
+  line-height: 1.3;
+}
+
+/* Better chart container responsive behavior */
+.chart-container-score-breakdown {
+  width: 100%;
+  height: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
 }
 
-@media (min-width: 640px) {
-  .responsive-stack {
-    flex-direction: row;
-    align-items: center;
+@media (max-width: 375px) {
+  .chart-container-score-breakdown {
+    min-height: 240px;
+    max-height: 280px;
+    padding: 0.5rem;
   }
 }
 
-.responsive-grid-auto {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+@media (min-width: 376px) and (max-width: 640px) {
+  .chart-container-score-breakdown {
+    min-height: 280px;
+    max-height: 320px;
+    padding: 0.75rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1280px) {
+  .chart-container-score-breakdown {
+    min-height: 320px;
+    max-height: 360px;
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 1281px) and (max-width: 1920px) {
+  .chart-container-score-breakdown {
+    min-height: 440px;
+    max-height: 500px;
+    padding: 1.25rem;
+  }
+}
+
+@media (min-width: 1921px) {
+  .chart-container-score-breakdown {
+    min-height: 480px;
+    max-height: 560px;
+    padding: 1.5rem;
+  }
+}
+
+/* Better sparkline accessibility and responsive sizing */
+.sparkline-accessible {
+  @apply transition-opacity duration-200;
+}
+
+@media (max-width: 375px) {
+  .sparkline-accessible {
+    @apply hidden; /* Hide on very small screens for better space utilization */
+  }
+}
+
+/* Enhanced metric breakdown header responsive design */
+.metric-breakdown-header-responsive {
+  @apply flex flex-col gap-4;
 }
 
 @media (max-width: 640px) {
-  .responsive-grid-auto {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+  .metric-breakdown-header-responsive {
+    @apply p-4;
   }
 }
 
-/* Safe area support for modern mobile devices */
-.safe-area-container {
-  padding-top: env(safe-area-inset-top, 0);
-  padding-bottom: env(safe-area-inset-bottom, 0);
-  padding-left: env(safe-area-inset-left, 0);
-  padding-right: env(safe-area-inset-right, 0);
+@media (min-width: 641px) {
+  .metric-breakdown-header-responsive {
+    @apply p-6;
+  }
 }
 
-/* Mobile-optimized scrolling */
-.mobile-scroll-optimized {
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  overscroll-behavior: contain;
+/* Improved badge and label responsive sizing */
+.metric-badge-responsive {
+  @apply px-2 py-1 rounded-full font-medium whitespace-nowrap flex-shrink-0;
+  font-size: clamp(0.625rem, 1.5vw + 0.4rem, 0.75rem);
 }
 
-@media (max-width: 768px) {
-  .mobile-scroll-optimized {
-    scroll-snap-type: y mandatory;
-    scroll-padding: 1rem;
+@media (min-width: 640px) {
+  .metric-badge-responsive {
+    @apply px-2.5 py-1;
+  }
+}
+
+/* Better score display responsive scaling */
+.metric-score-display {
+  font-size: clamp(1rem, 4vw + 0.5rem, 1.5rem);
+  line-height: 1;
+  @apply font-bold leading-none;
+}
+
+@media (min-width: 640px) {
+  .metric-score-display {
+    font-size: clamp(1.25rem, 3vw + 0.75rem, 2rem);
+  }
+}
+
+/* Enhanced quick stats responsive grid */
+.quick-stats-responsive-grid {
+  @apply grid gap-3;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+@media (max-width: 640px) {
+  .quick-stats-responsive-grid {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 641px) {
+  .quick-stats-responsive-grid {
+    @apply grid-cols-4;
+  }
+}
+
+/* Touch target optimization for quick stats */
+.quick-stats-card {
+  @apply p-3 rounded-xl text-center transition-all duration-200;
+  min-height: var(--touch-target-comfortable);
+}
+
+@media (min-width: 640px) {
+  .quick-stats-card {
+    @apply p-4;
+    min-height: var(--touch-target-large);
+  }
+}
+
+/* Enhanced summary statistics grid */
+.summary-stats-responsive {
+  @apply grid gap-3 p-4 rounded-2xl;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+}
+
+@media (max-width: 640px) {
+  .summary-stats-responsive {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 641px) {
+  .summary-stats-responsive {
+    @apply grid-cols-4 p-6;
+  }
+}
+
+/* Better icon sizing for touch targets */
+.metric-icon-responsive {
+  @apply flex-shrink-0;
+  width: clamp(1rem, 3vw + 0.5rem, 1.25rem);
+  height: clamp(1rem, 3vw + 0.5rem, 1.25rem);
+}
+
+@media (min-width: 640px) {
+  .metric-icon-responsive {
+    width: clamp(1.25rem, 2vw + 0.75rem, 1.5rem);
+    height: clamp(1.25rem, 2vw + 0.75rem, 1.5rem);
+  }
+}
+
+/* High contrast mode enhancements for score breakdown */
+@media (prefers-contrast: high) {
+  .score-breakdown-high-contrast {
+    --border-color: rgba(255, 255, 255, 0.4);
   }
   
-  .mobile-scroll-optimized > * {
-    scroll-snap-align: start;
+  .score-breakdown-high-contrast .metric-card {
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+  
+  .score-breakdown-high-contrast button {
+    text-decoration: underline;
+    border-width: 2px;
+  }
+  
+  .score-breakdown-high-contrast .progress-bar {
+    border: 1px solid rgba(255, 255, 255, 0.3);
   }
 }
 
-/* Enhanced focus indicators for complex components */
-.complex-focus-indicator:focus-within {
-  outline: 2px solid rgba(59, 130, 246, 0.8);
-  outline-offset: 4px;
-  border-radius: 8px;
-}
-
-/* Improved visual hierarchy for screen readers */
-.sr-context {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.sr-context-visible:focus,
-.sr-context-visible:active {
-  position: static;
-  width: auto;
-  height: auto;
-  padding: 8px 12px;
-  margin: 0;
-  overflow: visible;
-  clip: auto;
-  white-space: normal;
-  background: rgba(59, 130, 246, 0.9);
-  color: white;
-  border-radius: 4px;
-  font-size: 14px;
+/* Reduced motion adaptations for score breakdown */
+@media (prefers-reduced-motion: reduce) {
+  .score-breakdown-reduced-motion * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .score-breakdown-reduced-motion .metric-card:hover {
+    transform: none !important;
+  }
+  
+  .score-breakdown-reduced-motion .sparkline {
+    display: none; /* Hide animated sparklines */
+  }
 }

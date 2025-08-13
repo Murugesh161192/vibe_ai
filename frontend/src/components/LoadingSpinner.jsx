@@ -239,7 +239,7 @@ const LoadingSpinner = ({
   // If fullScreen is true, wrap in a full-screen overlay
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-auto">
+      <div className="fixed inset-0 layer-max flex items-center justify-center pointer-events-auto">
         {/* Semi-transparent backdrop with blur */}
         <div 
           className="absolute inset-0 bg-gray-900/85 backdrop-blur-md pointer-events-auto"

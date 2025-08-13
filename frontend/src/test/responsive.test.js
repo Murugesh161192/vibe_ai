@@ -210,7 +210,7 @@ describe('Responsive Component Behavior', () => {
     });
 
     it('should debounce resize events', async () => {
-      const resizeHandler = jest.fn();
+      const resizeHandler = vi.fn();
       window.addEventListener('resize', resizeHandler);
       
       // Trigger multiple resize events

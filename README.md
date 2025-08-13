@@ -1,4 +1,4 @@
-# Vibe GitHub Analyzer 🚀
+# Vibe GitHub Assistant 🚀
 
 A powerful web application that analyzes GitHub repositories and provides comprehensive insights into code quality, community health, and project vibes using advanced metrics and AI-powered analysis.
 
@@ -116,8 +116,8 @@ This generates:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/vibe-github-analyzer.git
-cd vibe-github-analyzer
+git clone https://github.com/yourusername/vibe-github-assistant.git
+cd vibe-github-assistant
 ```
 
 2. Install dependencies:
@@ -148,7 +148,7 @@ NODE_ENV=development
 VITE_API_URL=http://localhost:3000
 
 # Application Configuration
-VITE_APP_NAME=Vibe GitHub Analyzer
+VITE_APP_NAME=Vibe GitHub Assistant
 VITE_APP_VERSION=1.0.0
 ```
 

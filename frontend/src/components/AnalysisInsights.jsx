@@ -476,7 +476,7 @@ const RecommendationCard = ({ title, desc, level, icon: Icon, index = 0, categor
       {/* Detailed Modal - Only show on non-mobile devices */}
       {isModalEnabled && showDetails && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 layer-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
           onClick={() => setShowDetails(false)}
           role="dialog"
           aria-modal="true"

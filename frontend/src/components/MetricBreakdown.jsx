@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback, memo } from 'react';
 import { CheckCircle, AlertCircle, Info, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, BarChart3, Activity, Sparkles, Target, Award, Zap, Users, Shield, Trophy, List } from 'lucide-react';
+import { useDeviceType, useViewport, useTouchTarget } from '../utils/responsive';
+import { usePrefersReducedMotion, useAnnouncement } from '../utils/accessibility';
 
 // Enhanced Sparkline component for visual trends
 const Sparkline = ({ points = [], color = 'text-purple-300' }) => {
@@ -20,7 +22,7 @@ const Sparkline = ({ points = [], color = 'text-purple-300' }) => {
   
   return (
     <div className="flex items-center justify-center">
-      <svg width={width} height={height} className={`${color} opacity-80`}>
+      <svg width={width} height={height} className={`${color} opacity-80`} aria-hidden="true">
         <defs>
           <linearGradient id={`gradient-${color}`} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" style={{ stopColor: 'currentColor', stopOpacity: 0.1 }} />
@@ -45,8 +47,8 @@ const Sparkline = ({ points = [], color = 'text-purple-300' }) => {
   );
 };
 
-// Enhanced Progress Bar Component
-const ProgressBar = ({ value, max = 100, color = 'blue', showValue = true, size = 'md' }) => {
+// Enhanced Progress Bar Component with better accessibility
+const ProgressBar = ({ value, max = 100, color = 'blue', showValue = true, size = 'md', label }) => {
   const colorSchemes = {
     blue: 'from-blue-400 to-cyan-400',
     green: 'from-green-400 to-emerald-400',
@@ -71,7 +73,14 @@ const ProgressBar = ({ value, max = 100, color = 'blue', showValue = true, size 
   
   return (
     <div className="space-y-1">
-      <div className={`w-full bg-white/10 rounded-full overflow-hidden ${sizeClasses[size]}`}>
+      <div 
+        className={`w-full bg-white/10 rounded-full overflow-hidden ${sizeClasses[size]}`}
+        role="progressbar"
+        aria-valuenow={Math.round(value)}
+        aria-valuemin="0"
+        aria-valuemax={max}
+        aria-label={label || `Progress: ${Math.round(value)} out of ${max}`}
+      >
         <div 
           className={`${sizeClasses[size]} rounded-full bg-gradient-to-r ${gradient} transition-all duration-1000 ease-out`}
           style={{ 
@@ -82,7 +91,7 @@ const ProgressBar = ({ value, max = 100, color = 'blue', showValue = true, size 
       </div>
       {showValue && (
         <div className="flex justify-between text-xs text-white/60">
-          <span>{value.toFixed(1)}</span>
+          <span>{Math.round(value)}</span>
           <span>{max}</span>
         </div>
       )}
@@ -90,9 +99,13 @@ const ProgressBar = ({ value, max = 100, color = 'blue', showValue = true, size 
   );
 };
 
-// Enhanced Metric Card Component
+// Enhanced Metric Card Component with improved accessibility and responsiveness
 const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const deviceType = useDeviceType();
+  const viewport = useViewport();
+  const touchTarget = useTouchTarget('default');
+  const prefersReducedMotion = usePrefersReducedMotion();
   
   const score = Math.round(metric.value);
   const weight = metric.weight;
@@ -143,21 +156,79 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
   
   const scheme = colorSchemes[scoreColor] || colorSchemes.blue;
   
+  // Enhanced responsive text sizing for better mobile readability
+  const getResponsiveTextSize = (size) => {
+    const baseSize = {
+      'xs': deviceType === 'mobile' && viewport.width < 375 
+        ? 'text-[10px]' 
+        : deviceType === 'mobile' 
+          ? 'text-xs' 
+          : 'text-xs',
+      'sm': deviceType === 'mobile' && viewport.width < 375 
+        ? 'text-xs' 
+        : deviceType === 'mobile' 
+          ? 'text-sm' 
+          : 'text-sm',
+      'base': deviceType === 'mobile' && viewport.width < 375 
+        ? 'text-sm' 
+        : deviceType === 'mobile' 
+          ? 'text-sm' 
+          : deviceType === 'tablet' 
+            ? 'text-base' 
+            : 'text-base',
+      'lg': deviceType === 'mobile' && viewport.width < 375 
+        ? 'text-base' 
+        : deviceType === 'mobile' 
+          ? 'text-lg' 
+          : deviceType === 'tablet' 
+            ? 'text-lg' 
+            : 'text-xl'
+    };
+    return baseSize[size] || baseSize.base;
+  };
+
+  // Enhanced responsive spacing for ultra-small screens
+  const getResponsiveSpacing = () => {
+    if (deviceType === 'mobile' && viewport.width < 375) {
+      return {
+        padding: 'p-3',
+        margin: 'm-1',
+        gap: 'gap-1.5'
+      };
+    } else if (deviceType === 'mobile') {
+      return {
+        padding: 'p-4',
+        margin: 'm-2',
+        gap: 'gap-2'
+      };
+    } else {
+      return {
+        padding: 'p-4 sm:p-5',
+        margin: 'm-2 sm:m-3',
+        gap: 'gap-3'
+      };
+    }
+  };
+
+  const spacing = getResponsiveSpacing();
+  
   return (
     <div
       className={`
         group relative rounded-2xl bg-gradient-to-br ${scheme.gradient}
         border ${scheme.border} hover:border-white/30
         backdrop-blur-xl transition-all duration-500 cursor-pointer
-        hover:scale-[1.02] hover:shadow-xl
+        ${!prefersReducedMotion ? 'hover:scale-[1.02] hover:shadow-xl' : 'hover:shadow-xl'}
         ${isExpanded ? 'lg:col-span-2 xl:col-span-2 2xl:col-span-2' : ''}
         ${viewMode === 'list' ? 'w-full' : ''}
+        ${touchTarget}
       `}
       onClick={onToggle}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       role="button"
       aria-expanded={isExpanded}
+      aria-label={`${metric.label} metric: ${score} out of 100. ${isExpanded ? 'Collapse' : 'Expand'} details.`}
       tabIndex={0}
       data-testid={`metric-${metric.key.toLowerCase().replace(/[_\s]+/g, '-')}`}
       onKeyDown={(e) => {
@@ -172,37 +243,39 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
         <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
       </div>
       
-      <div className="relative z-10 p-4 sm:p-5">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4 gap-3">
+      <div className={`relative z-10 ${spacing.padding}`}>
+        {/* Header with improved responsive layout */}
+        <div className={`flex items-start justify-between mb-3 sm:mb-4 ${spacing.gap}`}>
           <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             <div className={`
               p-2 sm:p-2.5 rounded-xl bg-gradient-to-br ${scheme.gradient} border ${scheme.border}
-              transition-transform duration-300 flex-shrink-0 ${isHovered ? 'scale-110 rotate-3' : 'scale-100'}
+              transition-transform duration-300 flex-shrink-0 
+              ${!prefersReducedMotion && isHovered ? 'scale-110 rotate-3' : 'scale-100'}
             `}>
-              <span className="text-base sm:text-lg">{metric.icon}</span>
+              <span className={`${getResponsiveTextSize('base')} sm:text-lg`}>{metric.icon}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <h5 className="font-semibold text-white text-sm sm:text-base lg:text-base xl:text-sm 2xl:text-base truncate" data-testid="metric-name">
+              <h5 className={`font-semibold text-white ${getResponsiveTextSize('sm')} sm:text-base lg:text-base xl:text-sm 2xl:text-base truncate`} 
+                  data-testid="metric-name">
                 {metric.label}
               </h5>
-              {/* Enhanced responsive badge layout */}
+              {/* Enhanced responsive badge layout for small screens */}
               <div className="flex flex-col gap-1 mt-1.5 sm:mt-2">
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  <span className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${scheme.bg} ${scheme.text} whitespace-nowrap flex-shrink-0`}>
-                    {(weight * 100).toFixed(1)}% weight
+                  <span className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full ${getResponsiveTextSize('xs')} font-medium ${scheme.bg} ${scheme.text} whitespace-nowrap flex-shrink-0`}>
+                    {Math.round(weight * 100)}% weight
                   </span>
-                  <span className="text-[10px] sm:text-xs text-white/50 whitespace-nowrap flex-shrink-0">
-                    {contribution.toFixed(1)} pts
+                  <span className={`${getResponsiveTextSize('xs')} text-white/50 whitespace-nowrap flex-shrink-0`}>
+                    {Math.round(contribution)} pts
                   </span>
                 </div>
-                {/* Trend indicator on separate line for better spacing */}
+                {/* Trend indicator with improved visibility */}
                 {metric.trend !== 0 && (
-                  <div className={`flex items-center gap-1 text-[10px] sm:text-xs font-medium ${
+                  <div className={`flex items-center gap-1 ${getResponsiveTextSize('xs')} font-medium ${
                     metric.trend > 0 ? 'text-green-400' : 'text-red-400'
                   } w-fit`}>
-                    <span className="flex items-center gap-0.5">
-                      {metric.trend > 0 ? '↗' : '↘'} {Math.abs(metric.trend).toFixed(1)}%
+                    <span className="flex items-center gap-0.5" aria-label={`Trend: ${metric.trend > 0 ? 'improving' : 'declining'} by ${Math.round(Math.abs(metric.trend))} percent`}>
+                      {metric.trend > 0 ? '↗' : '↘'} {Math.round(Math.abs(metric.trend))}%
                     </span>
                   </div>
                 )}
@@ -212,16 +285,18 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
           
           {/* Enhanced score section with better responsive design */}
           <div className="flex flex-col items-end justify-start flex-shrink-0 min-w-0">
-            <div className={`text-lg sm:text-xl lg:text-2xl font-bold ${scheme.text} leading-none`} data-testid="metric-score">
+            <div className={`${getResponsiveTextSize('lg')} sm:text-xl lg:text-2xl font-bold ${scheme.text} leading-none`} 
+                 data-testid="metric-score"
+                 aria-label={`Score: ${score} out of 100`}>
               {score}
             </div>
-            <div className="text-[10px] sm:text-xs text-white/60 mt-0.5 whitespace-nowrap">
+            <div className={`${getResponsiveTextSize('xs')} text-white/60 mt-0.5 whitespace-nowrap`}>
               Score
             </div>
           </div>
         </div>
 
-        {/* Progress Bar */}
+        {/* Progress Bar with accessibility label */}
         <div className="mb-3 sm:mb-4">
           <ProgressBar 
             value={score} 
@@ -229,21 +304,22 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
             color={scoreColor} 
             showValue={false}
             size="md"
+            label={`${metric.label} score progress`}
           />
         </div>
 
-        {/* Sparkline - Desktop only */}
-        <div className="hidden md:block mb-3 sm:mb-4">
+        {/* Sparkline - Hidden on very small mobile screens for better space utilization */}
+        <div className={`${deviceType === 'mobile' && viewport.width < 375 ? 'hidden' : 'hidden md:block'} mb-3 sm:mb-4`}>
           {metric.sparklineData && metric.sparklineData.length > 0 && (
             <div className="p-3 rounded-xl bg-white/5 border border-white/10">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-white/60">Trend History</span>
-                <div className={`flex items-center gap-1 text-xs ${
+                <span className={`${getResponsiveTextSize('xs')} text-white/60`}>Trend History</span>
+                <div className={`flex items-center gap-1 ${getResponsiveTextSize('xs')} ${
                   metric.trend > 0 ? 'text-green-400' : metric.trend < 0 ? 'text-red-400' : 'text-gray-400'
                 }`}>
-                  {metric.trend > 0 ? <TrendingUp className="w-3 h-3" /> : 
-                   metric.trend < 0 ? <TrendingDown className="w-3 h-3" /> : 
-                   <Minus className="w-3 h-3" />}
+                  {metric.trend > 0 ? <TrendingUp className="w-3 h-3" aria-hidden="true" /> : 
+                   metric.trend < 0 ? <TrendingDown className="w-3 h-3" aria-hidden="true" /> : 
+                   <Minus className="w-3 h-3" aria-hidden="true" />}
                   <span>{metric.trend > 0 ? 'Improving' : metric.trend < 0 ? 'Declining' : 'Stable'}</span>
                 </div>
               </div>
@@ -252,47 +328,51 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
           )}
         </div>
 
-        {/* Expand indicator */}
-        <div className="flex items-center justify-between text-[10px] sm:text-xs text-white/60">
+        {/* Expand indicator with better touch targets */}
+        <div className={`flex items-center justify-between ${getResponsiveTextSize('xs')} text-white/60`}>
           <div className="flex items-center gap-1 sm:gap-2">
             <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${
               score >= 70 ? 'bg-green-400' : 
               score >= 40 ? 'bg-yellow-400' : 
               'bg-red-400'
-            }`}></span>
+            }`} aria-hidden="true"></span>
             <span className="truncate">
               {score >= 70 ? 'Excellent' : score >= 40 ? 'Good' : 'Needs Work'}
             </span>
           </div>
           <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
-            <span className="hidden xs:inline">{isExpanded ? 'Hide' : 'Show'} details</span>
-            <span className="xs:hidden">Details</span>
+            <span className={`${deviceType === 'mobile' && viewport.width < 375 ? 'hidden' : 'hidden xs:inline'}`}>
+              {isExpanded ? 'Hide' : 'Show'} details
+            </span>
+            <span className="xs:hidden" aria-hidden="true">Details</span>
             {isExpanded ? 
-              <ChevronUp className="w-3 h-3" /> : 
-              <ChevronDown className="w-3 h-3" />
+              <ChevronUp className="w-3 h-3" aria-hidden="true" /> : 
+              <ChevronDown className="w-3 h-3" aria-hidden="true" />
             }
           </div>
         </div>
       </div>
 
-      {/* Expanded Details */}
+      {/* Expanded Details with improved mobile layout */}
       {isExpanded && (
-        <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-white/10 pt-4 animate-fade-in">
+        <div className={`px-4 sm:px-5 pb-4 sm:pb-5 border-t border-white/10 pt-4 ${!prefersReducedMotion ? 'animate-fade-in' : ''}`} 
+             role="region" 
+             aria-label={`Detailed information about ${metric.label}`}>
           <div className="space-y-4">
             {/* Description */}
             <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-              <p className="text-sm text-white/80 leading-relaxed mb-3">{metric.description}</p>
+              <p className={`${getResponsiveTextSize('sm')} text-white/80 leading-relaxed mb-3`}>{metric.description}</p>
               
-              {/* Key Factors */}
+              {/* Key Factors with better mobile grid */}
               <div className="mb-4">
-                <h6 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-3">
+                <h6 className={`${getResponsiveTextSize('xs')} font-semibold text-white/60 uppercase tracking-wider mb-3`}>
                   Key Contributing Factors
                 </h6>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className={`grid ${deviceType === 'mobile' && viewport.width < 375 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'} gap-2`}>
                   {metric.factors.map((factor, idx) => (
                     <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                      <div className={`w-2 h-2 rounded-full ${scheme.bg}`}></div>
-                      <span className="text-xs text-white/80">{factor}</span>
+                      <div className={`w-2 h-2 rounded-full ${scheme.bg}`} aria-hidden="true"></div>
+                      <span className={`${getResponsiveTextSize('xs')} text-white/80`}>{factor}</span>
                     </div>
                   ))}
                 </div>
@@ -302,31 +382,31 @@ const MetricCard = ({ metric, isExpanded, onToggle, viewMode }) => {
             {/* Improvement Tips */}
             <div className={`p-4 rounded-xl ${scheme.bg} border ${scheme.border}`}>
               <div className="flex items-start gap-3">
-                <div className={`p-1.5 rounded-lg bg-white/10`}>
-                  <Target className={`w-4 h-4 ${scheme.text}`} />
+                <div className={`p-1.5 rounded-lg bg-white/10 flex-shrink-0`}>
+                  <Target className={`w-4 h-4 ${scheme.text}`} aria-hidden="true" />
                 </div>
-                <div>
-                  <h6 className={`text-sm font-semibold ${scheme.text} mb-2`}>
+                <div className="flex-1 min-w-0">
+                  <h6 className={`${getResponsiveTextSize('sm')} font-semibold ${scheme.text} mb-2`}>
                     Improvement Strategy
                   </h6>
-                  <p className="text-sm text-white/80 leading-relaxed">{metric.tips}</p>
+                  <p className={`${getResponsiveTextSize('sm')} text-white/80 leading-relaxed`}>{metric.tips}</p>
                 </div>
               </div>
             </div>
 
-            {/* Score Impact Analysis */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Score Impact Analysis with responsive grid */}
+            <div className={`grid ${deviceType === 'mobile' && viewport.width < 375 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-3'} gap-3`}>
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
-                <div className="text-sm font-semibold text-white mb-1">Current Score</div>
-                <div className={`text-lg font-bold ${scheme.text}`}>{score}</div>
+                <div className={`${getResponsiveTextSize('sm')} font-semibold text-white mb-1`}>Current Score</div>
+                <div className={`${getResponsiveTextSize('lg')} font-bold ${scheme.text}`} aria-label={`Current score is ${score}`}>{score}</div>
               </div>
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
-                <div className="text-sm font-semibold text-white mb-1">Weight Impact</div>
-                <div className="text-lg font-bold text-yellow-400">{(weight * 100).toFixed(0)}%</div>
+                <div className={`${getResponsiveTextSize('sm')} font-semibold text-white mb-1`}>Weight Impact</div>
+                <div className={`${getResponsiveTextSize('lg')} font-bold text-yellow-400`} aria-label={`Weight impact is ${Math.round(weight * 100)} percent`}>{Math.round(weight * 100)}%</div>
               </div>
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
-                <div className="text-sm font-semibold text-white mb-1">Contribution</div>
-                <div className="text-lg font-bold text-blue-400">{contribution.toFixed(1)}</div>
+                <div className={`${getResponsiveTextSize('sm')} font-semibold text-white mb-1`}>Contribution</div>
+                <div className={`${getResponsiveTextSize('lg')} font-bold text-blue-400`} aria-label={`Contribution is ${Math.round(contribution)} points`}>{Math.round(contribution)}</div>
               </div>
             </div>
           </div>
@@ -340,19 +420,27 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
   const [expandedMetrics, setExpandedMetrics] = useState(new Set());
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [sortBy, setSortBy] = useState('score'); // 'score', 'weight', 'contribution'
+  const deviceType = useDeviceType();
+  const viewport = useViewport();
+  const announce = useAnnouncement();
+  const touchTarget = useTouchTarget('default');
 
-  // Toggle metric expansion
+  // Toggle metric expansion with announcement
   const toggleMetric = useCallback((metric) => {
     setExpandedMetrics(prev => {
       const newSet = new Set(prev);
+      const isExpanding = !newSet.has(metric);
+      
       if (newSet.has(metric)) {
         newSet.delete(metric);
+        announce(`${metric} details collapsed`);
       } else {
         newSet.add(metric);
+        announce(`${metric} details expanded`);
       }
       return newSet;
     });
-  }, []);
+  }, [announce]);
 
   // Calculate metric details with enhanced information
   const metricsWithDetails = useMemo(() => {
@@ -513,29 +601,47 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
     return sorted;
   }, [metricsWithDetails, sortBy]);
 
+  // Enhanced responsive grid classes for better mobile layout
+  const getResponsiveGridClasses = () => {
+    if (viewMode === 'list') return 'space-y-4';
+    
+    // Ultra-small screens (< 375px)
+    if (deviceType === 'mobile' && viewport.width < 375) {
+      return 'grid grid-cols-1 gap-3';
+    }
+    // Regular mobile (375px - 640px)
+    else if (deviceType === 'mobile') {
+      return 'grid grid-cols-1 gap-3 sm:gap-4';
+    }
+    // Tablet and up
+    else {
+      return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5';
+    }
+  };
+
   return (
-    <div className="space-y-6" data-testid="metrics-breakdown">
+    <div className="space-y-6" data-testid="metrics-breakdown" role="region" aria-label="Metrics breakdown analysis">
       {/* Enhanced Header with Controls */}
       <div className="flex flex-col gap-4 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-white/10 backdrop-blur-xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           {/* Header Content */}
           <div className="flex items-start sm:items-center gap-3">
             <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/20 flex-shrink-0">
-              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
+              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" aria-hidden="true" />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-base sm:text-lg font-semibold text-white break-words">
+              <h4 className={`${deviceType === 'mobile' && viewport.width < 375 ? 'text-sm' : 'text-base'} sm:text-lg font-semibold text-white break-words`}>
                 Detailed Metrics Analysis
               </h4>
-              <p className="text-xs sm:text-sm text-white/60 mt-0.5">
+              <p className={`${deviceType === 'mobile' && viewport.width < 375 ? 'text-[10px]' : 'text-xs'} sm:text-sm text-white/60 mt-0.5`}>
                 Comprehensive breakdown of {sortedMetrics.length} key performance indicators
               </p>
             </div>
           </div>
           
-          {/* Controls Container */}
+          {/* Controls Container with better responsive layout */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* Sort Options */}
+            {/* Sort Options with better mobile accessibility */}
             <div className="flex items-center justify-center gap-0.5 p-0.5 bg-white/5 rounded-lg">
               {[
                 { key: 'score', label: 'Score', icon: Award },
@@ -544,46 +650,52 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
               ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
-                  onClick={() => setSortBy(key)}
-                  className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all min-h-[36px] sm:min-h-[38px] ${
+                  onClick={() => {
+                    setSortBy(key);
+                    announce(`Sorted by ${label}`);
+                  }}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2 rounded-md ${deviceType === 'mobile' && viewport.width < 375 ? 'text-[10px]' : 'text-xs'} sm:text-sm font-medium transition-all min-h-[36px] sm:min-h-[38px] ${touchTarget} ${
                     sortBy === key 
                       ? 'bg-white/15 text-white shadow-sm' 
                       : 'text-white/60 hover:text-white hover:bg-white/5'
                   }`}
                   title={`Sort by ${label}`}
                   aria-label={`Sort by ${label}`}
+                  aria-pressed={sortBy === key}
                 >
-                  <Icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden xs:inline">{label}</span>
+                  <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                  <span className={`${deviceType === 'mobile' && viewport.width < 375 ? 'hidden' : 'hidden xs:inline'}`}>{label}</span>
                 </button>
               ))}
             </div>
             
-            {/* View Mode Toggle - Hidden on mobile (< 768px) */}
-            <div className="hidden md:flex items-center justify-center gap-0.5 p-0.5 bg-white/5 rounded-lg">
+            {/* View Mode Toggle - Hidden on very small mobile screens */}
+            <div className={`${deviceType === 'mobile' && viewport.width < 375 ? 'hidden' : 'hidden md:flex'} items-center justify-center gap-0.5 p-0.5 bg-white/5 rounded-lg`}>
               <button
                 onClick={() => setViewMode('grid')}
-                className={`flex items-center justify-center px-3 py-2 sm:px-3.5 sm:py-2 rounded-md text-xs sm:text-sm transition-all min-h-[36px] sm:min-h-[38px] ${
+                className={`flex items-center justify-center px-3 py-2 sm:px-3.5 sm:py-2 rounded-md text-xs sm:text-sm transition-all min-h-[36px] sm:min-h-[38px] ${touchTarget} ${
                   viewMode === 'grid' 
                     ? 'bg-white/15 text-white shadow-sm' 
                     : 'text-white/60 hover:text-white hover:bg-white/5'
                 }`}
                 aria-label="Grid view"
                 title="Grid view"
+                aria-pressed={viewMode === 'grid'}
               >
-                <BarChart3 className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                <BarChart3 className="w-4 h-4 sm:w-4.5 sm:h-4.5" aria-hidden="true" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`flex items-center justify-center px-3 py-2 sm:px-3.5 sm:py-2 rounded-md text-xs sm:text-sm transition-all min-h-[36px] sm:min-h-[38px] ${
+                className={`flex items-center justify-center px-3 py-2 sm:px-3.5 sm:py-2 rounded-md text-xs sm:text-sm transition-all min-h-[36px] sm:min-h-[38px] ${touchTarget} ${
                   viewMode === 'list' 
                     ? 'bg-white/15 text-white shadow-sm' 
                     : 'text-white/60 hover:text-white hover:bg-white/5'
                 }`}
                 aria-label="List view"
                 title="List view"
+                aria-pressed={viewMode === 'list'}
               >
-                <List className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                <List className="w-4 h-4 sm:w-4.5 sm:h-4.5" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -593,7 +705,7 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
       {/* Information Panel */}
       <div className="p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-2xl backdrop-blur-xl">
         <div className="flex items-start gap-3">
-          <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+          <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
           <div>
             <h5 className="text-sm font-semibold text-blue-300 mb-2">Understanding Your Scores</h5>
             <p className="text-sm text-blue-200/90 leading-relaxed">
@@ -608,13 +720,13 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
       {/* Quick Stats - Mobile-friendly layout */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 text-center">
-          <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 mb-2 mx-auto" />
+          <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 mb-2 mx-auto" aria-hidden="true" />
           <div className="text-xs sm:text-sm font-semibold text-white/60 mb-1">Metrics</div>
           <div className="text-lg sm:text-xl font-bold text-blue-400">{sortedMetrics.length}</div>
         </div>
         
         <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 text-center">
-          <Target className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 mb-2 mx-auto" />
+          <Target className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 mb-2 mx-auto" aria-hidden="true" />
           <div className="text-xs sm:text-sm font-semibold text-white/60 mb-1">Avg Score</div>
           <div className="text-lg sm:text-xl font-bold text-green-400">
             {Math.round(sortedMetrics.reduce((sum, m) => sum + m.value, 0) / sortedMetrics.length)}
@@ -622,7 +734,7 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
         </div>
         
         <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 text-center">
-          <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 mb-2 mx-auto" />
+          <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 mb-2 mx-auto" aria-hidden="true" />
           <div className="text-xs sm:text-sm font-semibold text-white/60 mb-1">Weighted Score</div>
           <div className="text-lg sm:text-xl font-bold text-purple-400">
             {(() => {
@@ -635,7 +747,7 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
         </div>
         
         <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 text-center">
-          <Award className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 mb-2 mx-auto" />
+          <Award className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 mb-2 mx-auto" aria-hidden="true" />
           <div className="text-xs sm:text-sm font-semibold text-white/60 mb-1">Top Score</div>
           <div className="text-lg sm:text-xl font-bold text-yellow-400">
             {Math.max(...sortedMetrics.map(m => m.value))}
@@ -643,12 +755,8 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
         </div>
       </div>
 
-      {/* Metrics Grid/List */}
-      <div className={
-        viewMode === 'grid' 
-          ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5' 
-          : 'space-y-4'
-      }>
+      {/* Metrics Grid/List with enhanced responsive design */}
+      <div className={getResponsiveGridClasses()}>
         {sortedMetrics.map((metric) => (
           <MetricCard
             key={metric.key}
@@ -664,7 +772,7 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-gray-900/60 to-gray-800/40 border border-white/10 backdrop-blur-xl">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 mb-2 sm:mb-3">
-            <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+            <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" aria-hidden="true" />
           </div>
           <div className="text-lg sm:text-xl font-bold text-white mb-0.5 sm:mb-1">
             {Math.round(sortedMetrics.reduce((sum, m) => sum + m.value, 0) / sortedMetrics.length)}
@@ -674,7 +782,7 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
         
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 mb-2 sm:mb-3">
-            <Award className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
+            <Award className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" aria-hidden="true" />
           </div>
           <div className="text-lg sm:text-xl font-bold text-green-400 mb-0.5 sm:mb-1">
             {sortedMetrics.filter(m => m.value >= 70).length}
@@ -684,7 +792,7 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
         
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 mb-2 sm:mb-3">
-            <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" />
+            <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" aria-hidden="true" />
           </div>
           <div className="text-lg sm:text-xl font-bold text-yellow-400 mb-0.5 sm:mb-1">
             {sortedMetrics.filter(m => m.value >= 40 && m.value < 70).length}
@@ -694,7 +802,7 @@ const MetricBreakdown = memo(({ breakdown, weights }) => {
         
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-red-500/20 to-rose-500/20 border border-red-500/30 mb-2 sm:mb-3">
-            <Info className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
+            <Info className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" aria-hidden="true" />
           </div>
           <div className="text-lg sm:text-xl font-bold text-red-400 mb-0.5 sm:mb-1">
             {sortedMetrics.filter(m => m.value < 40).length}

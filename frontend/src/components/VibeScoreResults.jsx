@@ -722,23 +722,11 @@ const VibeScoreResults = ({
             ? 'px-3 mb-4 mt-6' 
             : 'px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8 mt-8 sm:mt-10 lg:mt-12'
         }`}>
-            {/* Enhanced responsive grid with better breakpoints and aspect ratios */}
-            <div className={`grid gap-6 sm:gap-8 lg:gap-10 ${
-              deviceType === 'mobile' 
-                ? 'grid-cols-1' // Mobile: stack vertically for better readability
-                : viewport.width < 1280 
-                  ? 'grid-cols-1' // Tablet: stack vertically for better chart visibility
-                  : 'grid-cols-3' // Desktop XL+: side by side layout
-            }`}>
-              {/* Overall Score Card - Enhanced prominence with responsive sizing */}
-              <div className={`${deviceType === 'mobile' ? 'order-1' : 'order-1 xl:order-1'}`}>
-                <div className={`bg-gradient-to-br from-white/10 via-white/5 to-white/5 border border-white/20 rounded-2xl backdrop-blur-sm shadow-2xl relative overflow-hidden group hover:border-white/30 transition-all duration-300 ${
-                  deviceType === 'mobile' 
-                    ? 'rounded-xl p-5 min-h-[320px]' 
-                    : viewport.width < 1280
-                    ? 'rounded-2xl p-6 min-h-[360px] max-w-lg mx-auto' // Centered on tablet
-                    : 'rounded-2xl p-6 sm:p-8 min-h-[400px]'
-                }`}>
+            {/* Enhanced responsive layout for overall score and breakdown */}
+            <div className="flex flex-col gap-6 lg:grid lg:grid-cols-7 lg:gap-6 xl:gap-8">
+              {/* Overall Score Card - Reduced width for better space efficiency */}
+              <div className="order-1 lg:col-span-2">
+                <div className="bg-gradient-to-br from-white/10 via-white/5 to-white/5 border border-white/20 rounded-xl lg:rounded-2xl backdrop-blur-sm shadow-2xl relative overflow-hidden group hover:border-white/30 transition-all duration-300 p-5 lg:p-4 xl:p-6 min-h-[320px] lg:min-h-[450px] max-w-none lg:max-w-sm mx-auto lg:mx-0">
                   {/* Subtle background decoration */}
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   
@@ -823,28 +811,8 @@ const VibeScoreResults = ({
               </div>
 
               {/* Enhanced Radar Chart Section with UI/UX Best Practices */}
-              <div className={`${
-                deviceType === 'mobile' 
-                  ? 'order-2' 
-                  : viewport.width < 1280
-                  ? 'order-2 max-w-2xl mx-auto'
-                  : 'order-2 col-span-2'
-              }`}>
-                <div className={`
-                  relative overflow-hidden
-                  bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-transparent
-                  border backdrop-blur-sm
-                  transition-all duration-500 ease-out
-                  ${deviceType === 'mobile' 
-                    ? 'rounded-xl border-white/15 shadow-xl p-3 min-h-[320px]' 
-                    : viewport.width < 1280
-                    ? 'rounded-2xl border-white/20 shadow-xl p-4 min-h-[400px] hover:shadow-2xl'
-                    : viewport.width < 1920
-                    ? 'rounded-2xl border-white/20 shadow-2xl p-6 min-h-[520px] hover:shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)]'
-                    : 'rounded-3xl border-white/20 shadow-2xl p-8 min-h-[580px] hover:shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)]'
-                  }
-                  group hover:border-white/30
-                `}>
+              <div className="order-2 lg:col-span-5">
+                <div className="relative overflow-hidden bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-transparent border backdrop-blur-sm transition-all duration-500 ease-out rounded-xl lg:rounded-2xl border-white/15 lg:border-white/20 shadow-xl lg:shadow-2xl p-3 lg:p-6 min-h-[320px] lg:min-h-[450px] hover:shadow-2xl lg:hover:shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)] group hover:border-white/30">
                   {/* Multi-layer background effects for depth */}
                   <div className="absolute inset-0 pointer-events-none">
                     {/* Primary gradient */}
@@ -883,30 +851,19 @@ const VibeScoreResults = ({
                       </h2>
                       
                       {/* Subtitle with better contrast */}
-                      <p className={`
-                        text-white/60 font-medium
-                        ${deviceType === 'mobile' 
-                          ? 'text-xs' 
-                          : viewport.width < 1920 
-                          ? 'text-sm' 
-                          : 'text-base'
-                        }
-                      `}>
+                      <p className="hidden md:block text-white/60 font-medium text-sm lg:text-base">
                         Detailed analysis across key metrics
                       </p>
                       
                       {/* Divider line for visual separation */}
-                      <div className={`
-                        w-16 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent 
-                        mx-auto ${deviceType === 'mobile' ? 'mt-2' : 'mt-3'}
-                      `}></div>
+                      <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto mt-2 lg:mt-3"></div>
                     </div>
                     
                     {/* Chart Container with loading state support */}
                     <div className="flex-1 w-full relative min-h-0">
                       {/* Inner container with aspect ratio preservation */}
                       <div className={`
-                        chart-container-responsive h-full
+                        chart-container-responsive chart-container-score-breakdown h-full
                         transition-all duration-500 ease-out
                         ${!breakdown || Object.keys(breakdown).length === 0 ? 'opacity-50' : 'opacity-100'}
                         ${deviceType === 'mobile' 
@@ -932,12 +889,12 @@ const VibeScoreResults = ({
                                 }
                               `}></div>
                               <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-white/40 text-sm">Loading metrics...</span>
+                                <span className="text-white/40 score-breakdown-responsive-text-small">Loading metrics...</span>
                               </div>
                             </div>
                           </div>
                         ) : (
-                          <div className="radar-chart-wrapper h-full animate-fade-in">
+                          <div className="radar-chart-wrapper radar-chart-accessible h-full animate-fade-in">
                             <RadarChart data={breakdown} />
                           </div>
                         )}
@@ -951,7 +908,7 @@ const VibeScoreResults = ({
                           <div>
                             <div className="text-xs text-white/50">Highest</div>
                             <div className="text-sm font-semibold text-white/90">
-                              {Math.max(...Object.values(breakdown))}
+                              {Math.round(Math.max(...Object.values(breakdown)))}
                             </div>
                           </div>
                           <div>
@@ -963,7 +920,7 @@ const VibeScoreResults = ({
                           <div>
                             <div className="text-xs text-white/50">Lowest</div>
                             <div className="text-sm font-semibold text-white/90">
-                              {Math.min(...Object.values(breakdown))}
+                              {Math.round(Math.min(...Object.values(breakdown)))}
                             </div>
                           </div>
                         </div>
@@ -1103,20 +1060,22 @@ const VibeScoreResults = ({
                 }`}>
                   {/* Metric Breakdown Column */}
                   <div className={`w-full ${deviceType === 'mobile' ? 'order-1' : 'order-1'}`}>
-                    <h3 className={`font-semibold text-gray-300 mb-4 flex items-center gap-2 ${
+                    <h3 className={`font-semibold text-gray-300 mb-4 flex items-center gap-2 score-breakdown-responsive-text ${
                       deviceType === 'mobile' ? 'text-sm' : 'text-sm sm:text-base'
                     }`}>
-                      <BarChart2 className={`text-gray-400 ${
+                      <BarChart2 className={`text-gray-400 metric-icon-responsive ${
                         deviceType === 'mobile' ? 'w-4 h-4' : 'w-4 h-4 hidden md:block'
                       }`} />
                       Score Distribution
                     </h3>
-                    <MetricBreakdown 
-                      breakdown={breakdown}
-                      weights={weights}
-                      analysis={analysis}
-                      className="w-full"
-                    />
+                    <div className="score-breakdown-touch-targets score-breakdown-high-contrast score-breakdown-reduced-motion">
+                      <MetricBreakdown 
+                        breakdown={breakdown}
+                        weights={weights}
+                        analysis={analysis}
+                        className="w-full"
+                      />
+                    </div>
                   </div>
 
                   {/* Team Activity Trends Column */}

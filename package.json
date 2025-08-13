@@ -1,5 +1,5 @@
 {
-  "name": "vibe-github-analyzer",
+  "name": "vibe-github-assistant",
   "version": "1.0.0",
   "description": "A comprehensive GitHub repository and user analyzer with vibe scoring",
   "main": "server.js",
@@ -31,7 +31,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/vibe-github-analyzer.git"
+    "url": "git+https://github.com/yourusername/vibe-github-assistant.git"
   },
   "keywords": [
     "github",
@@ -46,9 +46,9 @@
   "author": "Your Name",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yourusername/vibe-github-analyzer/issues"
+    "url": "https://github.com/yourusername/vibe-github-assistant/issues"
   },
-  "homepage": "https://github.com/yourusername/vibe-github-analyzer#readme",
+  "homepage": "https://github.com/yourusername/vibe-github-assistant#readme",
   "devDependencies": {
     "@playwright/test": "^1.40.0",
     "concurrently": "^8.2.0",

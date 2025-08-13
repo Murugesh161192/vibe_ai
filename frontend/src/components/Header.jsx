@@ -109,7 +109,7 @@ const Header = ({
     <>
       {/* Fixed Header - Consistent across all pages */}
       <div 
-        className="fixed top-0 left-0 right-0 z-50 animate-slide-down"
+        className="fixed top-0 left-0 right-0 layer-modal animate-slide-down"
         style={{
           paddingTop: 'env(safe-area-inset-top, 0)', // Support for notched devices
           WebkitBackdropFilter: 'blur(20px)', // Enhanced Safari support
@@ -121,7 +121,7 @@ const Header = ({
         {/* Skip to content link for accessibility */}
         <a 
           href="#main-content" 
-          className="skip-to-content sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-lg z-50"
+          className="skip-to-content sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-lg layer-max"
         >
           Skip to main content
         </a>
@@ -131,7 +131,7 @@ const Header = ({
           {/* Glass effect overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-white/[0.05] via-white/[0.02] to-white/[0.05] pointer-events-none"></div>
           <div className="relative">
-          <div className="px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 py-2.5 xs:py-3 sm:py-4">
+                      <div className="px-3 xs:px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4 lg:py-5">
             <div className="flex items-center justify-between gap-2 xs:gap-3">
               {/* Left Side - Logo and Title (Mobile Optimized) */}
               <div className="flex items-center gap-2 xs:gap-3 sm:gap-4 flex-1 min-w-0">
@@ -361,7 +361,7 @@ const Header = ({
       </div>
       
       {/* Spacer to account for fixed header height */}
-      <div className="h-14 xs:h-16 sm:h-20 w-full" aria-hidden="true" />
+      <div className="h-16 sm:h-18 lg:h-20 w-full" aria-hidden="true" />
 
       {/* Metrics Modal */}
       <MetricsModal 

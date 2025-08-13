@@ -1,8 +1,8 @@
-# About Vibe GitHub Analyzer
+# About Vibe GitHub Assistant
 
 ## 🏆 Built for Cognizant Vibe Coding 2025
 
-**Vibe GitHub Analyzer** is an innovative project developed for **Cognizant's Vibe Coding 2025** event. This application demonstrates the power of combining GitHub's rich data ecosystem with modern AI capabilities to provide meaningful insights for developers and organizations.
+**Vibe GitHub Assistant** is an innovative project developed for **Cognizant's Vibe Coding 2025** event. This application demonstrates the power of combining GitHub's rich data ecosystem with modern AI capabilities to provide meaningful insights for developers and organizations.
 
 ## 🎯 Event Overview
 

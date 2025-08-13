@@ -15,7 +15,7 @@ import repositoryReducer from './slices/repositorySlice';
  * Persists user preferences and recent analyses
  */
 const persistConfig = {
-  key: 'vibe-github-analyzer',
+  key: 'vibe-github-assistant',
   version: 1,
   storage,
   whitelist: ['user', 'repository'], // Persist user slice and repository cache

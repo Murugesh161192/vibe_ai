@@ -43,7 +43,7 @@ fastify.get('/health', async (request, reply) => {
 fastify.get('/', async (request, reply) => {
   return {
     status: 'ok',
-    message: 'Welcome to Vibe AI Backend! The server is running.'
+    message: 'Welcome to Vibe GitHub Assistant Backend! The server is running.'
   };
 });
 
@@ -93,7 +93,7 @@ const start = async () => {
     const host = '0.0.0.0'; // Always bind to 0.0.0.0 for Render
     
     await fastify.listen({ port, host });
-    fastify.log.info(`🚀 Vibe AI Backend server running on http://${host}:${port}`);
+    fastify.log.info(`🚀 Vibe GitHub Assistant Backend server running on http://${host}:${port}`);
     fastify.log.info(`📊 Health check available at http://${host}:${port}/health`);
     fastify.log.info(`🔍 API endpoints available at http://${host}:${port}${process.env.API_PREFIX || '/api'}`);
   } catch (err) {
