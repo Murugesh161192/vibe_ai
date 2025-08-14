@@ -82,7 +82,10 @@ export class GitHubService {
           }
         }
         if (error.response?.status === 404) {
-          throw new Error('Repository not found or is private.');
+          const notFoundError = new Error('Repository not found or is private.');
+          notFoundError.response = { status: 404 };
+          notFoundError.isRepositoryNotFound = true;
+          throw notFoundError;
         }
         throw error;
       }
@@ -369,6 +372,21 @@ export class GitHubService {
   }
 
   /**
+   * Check if repository exists
+   */
+  async repositoryExists(owner, repo) {
+    try {
+      await this.api.get(`/repos/${owner}/${repo}`);
+      return true;
+    } catch (error) {
+      if (error.response?.status === 404) {
+        return false;
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Get repository README content
    */
   async getReadmeContent(owner, repo) {
@@ -385,7 +403,17 @@ export class GitHubService {
       return null;
     } catch (error) {
       if (error.response?.status === 404) {
-        // README not found
+        // Could be either repository not found or README not found
+        // Check if repository exists
+        const repoExists = await this.repositoryExists(owner, repo);
+        if (!repoExists) {
+          // Repository doesn't exist - throw specific error
+          const notFoundError = new Error(`Repository ${owner}/${repo} not found or is private`);
+          notFoundError.response = { status: 404 };
+          notFoundError.isRepositoryNotFound = true;
+          throw notFoundError;
+        }
+        // Repository exists but no README
         return null;
       }
       throw error;

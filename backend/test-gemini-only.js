@@ -63,7 +63,7 @@ async function testGemini() {
     }
     
     console.log('\n🎉 Gemini 1.5 Flash is working perfectly!');
-    console.log('\n✨ Your Vibe GitHub Analyzer is ready to use with AI insights.');
+    console.log('\n✨ Your Vibe GitHub Assistant is ready to use with AI insights.');
     
   } catch (error) {
     console.error('\n❌ Gemini test failed:', error.message);

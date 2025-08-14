@@ -61,7 +61,7 @@ fastify.setErrorHandler((error, request, reply) => {
   if (error.validation) {
     reply.status(400).send({
       success: false,
-      error: 'Validation Error',
+      error: 'Bad Request',
       message: error.message,
       details: error.validation
     });
@@ -89,7 +89,7 @@ const start = async () => {
       host
     });
     
-    fastify.log.info(`🚀 Vibe GitHub Analyzer Backend running on http://${host}:${port}`);
+    fastify.log.info(`🚀 Vibe GitHub Assistant Backend running on http://${host}:${port}`);
     fastify.log.info(`📊 Health check available at http://localhost:${port}/health`);
     fastify.log.info(`🔍 API endpoints available at http://localhost:${port}/api`);
     fastify.log.info(`💡 Built for Cognizant Vibe Coding 2025`);

@@ -13,12 +13,12 @@ import readline from 'readline';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log('🔧 GitHub Token Setup for Vibe AI\n');
+console.log('🔧 GitHub Token Setup for Vibe GitHub Assistant\n');
 
 console.log('📋 Instructions:');
 console.log('1. Go to: https://github.com/settings/tokens');
 console.log('2. Click "Generate new token (classic)"');
-console.log('3. Give it a name like "Vibe AI Analyzer"');
+console.log('3. Give it a name like "Vibe GitHub Assistant"');
 console.log('4. Select the "public_repo" scope');
 console.log('5. Copy the generated token\n');
 

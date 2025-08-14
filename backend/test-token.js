@@ -56,7 +56,7 @@ async function testToken() {
     console.log(`   - Forks: ${repo.forks_count}`);
     
     console.log('\n✅ Token is working correctly!');
-    console.log('🎉 You can now use the Vibe AI application.');
+    console.log('🎉 You can now use the Vibe GitHub Assistant application.');
     
   } catch (error) {
     console.error('\n❌ Token test failed:');

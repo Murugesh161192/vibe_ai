@@ -4,7 +4,21 @@ import { GeminiInsightsService } from '../services/geminiInsights.js';
 
 const analyzer = new RepositoryAnalyzer();
 const githubService = new GitHubService();
-const geminiService = process.env.GEMINI_API_KEY ? new GeminiInsightsService() : null;
+
+// Initialize Gemini service with proper error handling
+let geminiService = null;
+if (process.env.GEMINI_API_KEY) {
+  try {
+    geminiService = new GeminiInsightsService();
+    console.log('✅ Gemini AI service initialized successfully');
+  } catch (error) {
+    console.error('⚠️ Failed to initialize Gemini AI service:', error.message);
+    console.error('   Summarization features will be unavailable');
+    // Continue without AI features instead of crashing
+  }
+} else {
+  console.log('ℹ️ GEMINI_API_KEY not configured - AI features disabled');
+}
 
 /**
  * Generate basic contributor insights when AI is not available
@@ -1023,7 +1037,22 @@ async function summarizeHandler(request, reply) {
     }
     
     // Fetch repository README content
-    const readmeContent = await githubService.getReadmeContent(owner, repo);
+    let readmeContent;
+    try {
+      readmeContent = await githubService.getReadmeContent(owner, repo);
+    } catch (githubError) {
+      // Check if it's a repository not found error
+      if (githubError.isRepositoryNotFound || 
+          (githubError.response?.status === 404 && githubError.message?.includes('not found or is private'))) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Repository not found',
+          message: `Repository ${owner}/${repo} not found or is private`
+        });
+      }
+      // Re-throw other errors to be handled by the outer catch
+      throw githubError;
+    }
     
     if (!readmeContent) {
       return reply.status(404).send({
@@ -1060,6 +1089,11 @@ ${readmeContent}`;
     
   } catch (error) {
     request.log.error('Summarization error:', error);
+    request.log.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack?.split('\n').slice(0, 3).join('\n')
+    });
     
     if (error.status === 404) {
       reply.status(404).send({
@@ -1073,11 +1107,30 @@ ${readmeContent}`;
         error: 'AI service not configured',
         message: 'Gemini API key is not configured. Please set GEMINI_API_KEY environment variable.'
       });
+    } else if (error.message?.includes('API_KEY_INVALID')) {
+      reply.status(500).send({
+        success: false,
+        error: 'Invalid API key',
+        message: 'The configured Gemini API key is invalid. Please check your GEMINI_API_KEY.'
+      });
+    } else if (error.message?.includes('RATE_LIMIT_EXCEEDED')) {
+      reply.status(429).send({
+        success: false,
+        error: 'Rate limit exceeded',
+        message: 'Gemini API rate limit exceeded. Please try again later.'
+      });
+    } else if (error.message?.includes('fetch failed') || error.message?.includes('ECONNREFUSED')) {
+      reply.status(503).send({
+        success: false,
+        error: 'Service unavailable',
+        message: 'Unable to reach Gemini API. Please check your internet connection.'
+      });
     } else {
       reply.status(500).send({
         success: false,
         error: 'Summarization failed',
-        message: 'Failed to generate summary. Please try again later.'
+        message: 'Failed to generate summary. Please try again later.',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   }

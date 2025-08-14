@@ -11,7 +11,7 @@ dotenv.config();
 
 import { analyzeRepository } from './src/services/analyzer.js';
 
-console.log('🔍 Debug Test for Vibe AI Backend\n');
+console.log('🔍 Debug Test for Vibe GitHub Assistant Backend\n');
 console.log('🔧 Environment Variables:');
 console.log(`   - GITHUB_TOKEN: ${process.env.GITHUB_TOKEN ? '✅ Set' : '❌ Not set'}`);
 console.log(`   - NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
